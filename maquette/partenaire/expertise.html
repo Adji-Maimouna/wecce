@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Expertise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Accepter|pieces:Reprendre en pièces|refus:Refuser">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace partenaire · essayez de changer les deux prix</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="rendez-vous.html" aria-label="Wecce, espace partenaire">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>LBC · Leye Business Company</strong>Campus UGB, entre les villages E et F</div>
+    <nav aria-label="Espace partenaire">
+      <a href="rendez-vous.html"><i data-icon="calendar"></i>Rendez-vous du jour<span class="badge">4</span></a>
+      <a href="expertise.html" aria-current="page"><i data-icon="clipboard"></i>Expertise</a>
+      <a href="stock.html"><i data-icon="package"></i>Stock en boutique</a>
+      <a href="couverture.html"><i data-icon="scale"></i>Dette et couverture</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : comptoir 1</div>
+  </aside>
+
+  <main class="main">
+    <nav class="crumbs" aria-label="Fil d'Ariane"><a href="rendez-vous.html">Rendez-vous du jour</a><span aria-hidden="true">›</span><span>WC-2026-0634</span></nav>
+    <div class="page-head">
+      <div><h1>Expertise · Lenovo IdeaPad 3</h1><p>Moussa D. · carte 2024-1183 · rendez-vous de 10 h 30</p></div>
+    </div>
+
+    <form data-expertise data-souhait="90000" class="expertise-grid">
+      <aside class="panel panel--sunken">
+        <div class="panel__head"><h2 style="font-size:var(--t-md)">Déclaré par l'étudiant</h2></div>
+        <div class="panel__body">
+          <dl class="dl small">
+            <dt>Catégorie</dt><dd>Ordinateur</dd>
+            <dt>Modèle</dt><dd>Lenovo IdeaPad 3</dd>
+            <dt>Stockage</dt><dd>256 Go SSD</dd>
+            <dt>Âge</dt><dd>1 à 2 ans</dd>
+            <dt>État</dt><dd>Bon état</dd>
+            <dt>Photos</dt><dd>3</dd>
+            <span class="sep"></span>
+            <dt>Prix souhaité</dt><dd><strong>90 000 pts</strong></dd>
+          </dl>
+          <p class="xs muted" style="margin-top:12px;display:flex;gap:6px"><i data-icon="private" class="i--sm"></i>Le prix souhaité n'est vu que par l'étudiant et par vous.</p>
+        </div>
+      </aside>
+
+      <div class="stack" style="gap:20px">
+        <section class="panel">
+          <div class="panel__head"><h2>Ce que vous constatez</h2></div>
+          <div class="panel__body form-grid">
+            <fieldset class="full" style="border:0;margin:0;padding:0">
+              <legend class="label" style="margin-bottom:10px">État constaté</legend>
+              <div class="seg" data-single data-unless="pieces">
+                <button type="button" aria-pressed="false">Comme neuf</button>
+                <button type="button" aria-pressed="true">Bon état</button>
+                <button type="button" aria-pressed="false">Usé</button>
+              </div>
+              <div class="seg" data-single data-when="pieces" hidden>
+                <button type="button" aria-pressed="true">Fonctionnel</button>
+                <button type="button" aria-pressed="false">Défectueux</button>
+              </div>
+            </fieldset>
+            <div class="field"><label for="batt">Batterie</label><div class="affix"><input class="input" id="batt" inputmode="numeric" value="88"><span class="affix__unit">%</span></div></div>
+            <div class="field"><label for="serie">Numéro de série relevé</label><input class="input" id="serie" value="PF3K9X2B"></div>
+            <div class="full stack" style="gap:8px">
+              <span class="label">Contrôles</span>
+              <label class="check"><input type="checkbox" checked><span>Écran sans pixel mort ni fissure</span></label>
+              <label class="check"><input type="checkbox" checked><span>Clavier, pavé tactile et ports testés</span></label>
+              <label class="check"><input type="checkbox" checked><span>Compte Microsoft déconnecté, appareil réinitialisé</span></label>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" data-unless="refus">
+          <div class="panel__head"><h2>Vos deux prix</h2><span class="small muted">Wecce ne propose aucun prix.</span></div>
+          <div class="panel__body stack" style="gap:18px">
+            <div class="form-grid">
+              <div class="field">
+                <label for="reprise">Valeur de reprise</label>
+                <div class="affix"><input class="input" id="reprise" inputmode="numeric" value="72 000"><span class="affix__unit">pts</span></div>
+                <span class="hint">Les points crédités à l'étudiant.</span>
+              </div>
+              <div class="field">
+                <label for="affichage">Prix d'affichage</label>
+                <div class="affix"><input class="input" id="affichage" inputmode="numeric" value="96 000"><span class="affix__unit">pts</span></div>
+                <span class="hint">Ce que paiera l'étudiant suivant.</span>
+                <span class="err" data-invalid hidden><i data-icon="alert" class="i--sm"></i>Le prix d'affichage ne peut pas être inférieur à la valeur de reprise.</span>
+              </div>
+            </div>
+
+            <dl class="dl small">
+              <dt>Écart pour la boutique</dt><dd><strong><span data-out="ecart">24 000</span> pts</strong> <span class="muted">(<span data-out="ecart-pct">25 %</span> du prix affiché)</span></dd>
+              <dt>Bonus de lancement, 64<sup>e</sup> dépôt sur 100</dt><dd>+ <span data-out="bonus">14 400</span> pts</dd>
+              <span class="sep"></span>
+              <dt class="total">L'étudiant recevra</dt><dd class="total pts"><span data-out="credit">86 400</span> pts</dd>
+            </dl>
+
+            <div class="notice notice--warn" data-gap="below">
+              <i data-icon="info"></i>
+              <div><p><strong>L'étudiant espère 90 000 pts. Vous proposez <span data-out="diff-souhait">18 000</span> de moins.</strong></p><p class="small">Expliquez-lui votre prix avant de lui faire signer le document.</p></div>
+            </div>
+            <div class="notice notice--ok" data-gap="above" hidden>
+              <i data-icon="check-circle"></i>
+              <div><p><strong>Votre reprise atteint ou dépasse le souhait de l'étudiant.</strong></p></div>
+            </div>
+
+            <div>
+              <span class="label">Message que l'étudiant lira avant de signer</span>
+              <p class="doc__quote" style="margin-top:8px;font-size:var(--t-md)">« Nous reprenons votre appareil à <strong><span data-out="reprise">72 000</span> points</strong>. Il sera proposé à <strong><span data-out="affichage">96 000</span> points</strong>. La différence couvre l'expertise, le stockage et la garantie. »</p>
+            </div>
+          </div>
+          <div class="panel__foot">
+            <a class="btn" href="../etudiant/renoncement.html" data-unless="pieces" data-needs-valid>Accepter et faire signer</a>
+            <a class="btn" href="../etudiant/renoncement.html#pieces" data-when="pieces" hidden data-needs-valid>Reprendre en pièces et faire signer</a>
+            <button class="btn btn--ghost" type="button" data-go-state="pieces" data-unless="pieces">Reprendre en pièces</button>
+            <button class="btn btn--ghost" type="button" data-go-state="defaut" data-when="pieces" hidden>Reprendre entier</button>
+            <span class="spacer"></span>
+            <button class="btn btn--danger" type="button" data-go-state="refus">Refuser le dépôt</button>
+          </div>
+        </section>
+
+        <div class="notice" data-when="pieces" hidden>
+          <i data-icon="piece"></i>
+          <div><p><strong>L'appareil passera dans la catégorie « Pièces ».</strong></p><p class="small">Saisissez la reprise et le prix de l'ensemble des pièces.</p></div>
+        </div>
+
+        <section class="panel" data-when="refus" hidden>
+          <div class="panel__head"><h2>Refuser le dépôt</h2></div>
+          <div class="panel__body stack" style="gap:16px">
+            <fieldset class="choices" style="border:0;margin:0;padding:0;grid-template-columns:repeat(2,minmax(0,1fr))">
+              <legend class="label" style="margin-bottom:10px">Motif, lu par l'étudiant</legend>
+              <label class="choice"><input type="radio" name="motif"><span class="choice__main"><strong>Écran cassé ou tactile défaillant</strong></span></label>
+              <label class="choice"><input type="radio" name="motif"><span class="choice__main"><strong>Compte encore lié à l'appareil</strong></span></label>
+              <label class="choice"><input type="radio" name="motif" checked><span class="choice__main"><strong>Batterie sous 70 % de capacité</strong></span></label>
+              <label class="choice"><input type="radio" name="motif"><span class="choice__main"><strong>Modèle introuvable ou invendable</strong></span></label>
+            </fieldset>
+            <div class="field"><label for="comm">Commentaire pour l'étudiant <span class="muted" style="font-weight:400">(facultatif)</span></label><textarea class="textarea" id="comm">Batterie mesurée à 61 %. Après remplacement de la batterie, vous pouvez le déposer à nouveau.</textarea></div>
+            <p class="xs muted">L'étudiant repart avec son appareil. Aucun point n'est crédité.</p>
+          </div>
+          <div class="panel__foot">
+            <button class="btn btn--danger" type="button" data-toast="Refus enregistré. L'étudiant repart avec son appareil et lit le motif dans « Mes dépôts ».">Confirmer le refus</button>
+            <button class="btn btn--ghost" type="button" data-go-state="defaut">Revenir aux prix</button>
+          </div>
+        </section>
+      </div>
+    </form>
+  </main>
+</div>
+</body>
+</html>

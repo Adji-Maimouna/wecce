@@ -1,0 +1,90 @@
+/* Jetons de design (couleurs, typographie, rayons, mouvement)
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f5f3ee;
+  --sunken: #ebe8e0;
+  --line: #e2e0da;
+  --line-strong: #c9c6be;
+  --inv-bg: #1c1a14;
+  --inv-surface: #292721;
+  --inv-ink: #ffffff;
+  --inv-muted: #a09f9c;
+  --ink: #1c1a14;
+  --ink-2: #3a3730;
+  --muted: #6a6863;
+  --faint: #6a6863;
+  --ink-warm: #1c1a14;
+  --accent: #24338f;
+  --accent-hover: #1b276f;
+  --accent-ink: #ffffff;
+  --accent-tint: #e9ebf6;
+  --accent-tint-2: #f3f4fa;
+  --cobalt: #24338f;
+  --brand: #e1ac10;
+  --brand-ink: #111111;
+  --brand-deep: #a87c06;
+  --mustard: #e1ac10;
+  --mustard-vivid: #e1ac10;
+  --points: #1c1a14;
+  --points-fill: #e1ac10;
+  --points-ink: #111111;
+  --points-tint: #f5f3ee;
+  --points-tint-hover: #ebe8e0;
+  --shell-bg: #ffffff;
+  --shell-ink: #1c1a14;
+  --shell-muted: #6a6863;
+  --shell-field: #f5f3ee;
+  --shell-line: #e2e0da;
+  --shell-active: #f5f3ee;
+  --shell-accent: #e1ac10;
+  --shell-focus: #24338f;
+  --foot-bg: #1c1a14;
+  --foot-ink: #ffffff;
+  --foot-muted: #a09f9c;
+  --foot-accent: #e1ac10;
+  --link: #24338f;
+  --focus: #24338f;
+  --ok: #1d7a3e;
+  --ok-tint: #e2f2e6;
+  --warn: #8a6100;
+  --warn-tint: #f6ecc9;
+  --danger: #b42318;
+  --danger-tint: #fde7e4;
+  --info: #24338f;
+  --info-tint: #e9ebf6;
+  --strip-bg: #121317;
+  --strip-ink: #f1f1f1;
+  --strip-muted: #9aa0ad;
+  --font: "Figtree Variable", "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", "Bricolage Grotesque", "Figtree Variable", system-ui, sans-serif;
+  --t-xs: 0.78125rem;
+  --t-sm: 0.875rem;
+  --t-md: 1rem;
+  --t-lg: 1.125rem;
+  --t-xl: 1.375rem;
+  --t-2xl: 1.75rem;
+  --t-3xl: 2.125rem;
+  --t-4xl: 2.75rem;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 18px;
+  --shadow-float: 0 12px 30px rgb(18 20 32 / 0.13);
+  --m-in: 140ms;
+  --m-out: 200ms;
+  --m-press: 90ms;
+  --m-image: 600ms;
+  --m-ease: cubic-bezier(.2, .8, .2, 1);
+  --ease-std: cubic-bezier(.2, 0, 0, 1);
+  --ease-emph-in: cubic-bezier(.05, .7, .1, 1);
+  --ease-emph-out: cubic-bezier(.3, 0, .8, .15);
+  --spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1);
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (min-width: 768px) {
+  :root { --gutter: max(24px, env(safe-area-inset-left, 0px)); --gutter-r: max(24px, env(safe-area-inset-right, 0px)); }
+}

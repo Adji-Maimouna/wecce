@@ -1,0 +1,24 @@
+/* Doors
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.doors { display: flex; flex-direction: column; gap: 12px; }
+.door {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 18px 20px;
+  border-radius: var(--r-lg); border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink);
+  transition: transform 180ms var(--m-ease), border-color var(--m-out) var(--m-ease), box-shadow var(--m-out) var(--m-ease);
+}
+.door strong { display: block; font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+.door small { display: block; margin-top: 2px; color: var(--muted); font-size: var(--t-sm); }
+.door__ico { width: 48px; height: 48px; border-radius: var(--r); background: var(--surface-2); display: flex; align-items: center; justify-content: center; }
+.door__go { transition: transform 300ms var(--spring); }
+@media (hover: hover) and (pointer: fine) {
+  .door:hover { transform: translateY(-2px); border-color: var(--ink-2); box-shadow: var(--shadow-float); }
+  .door:hover .door__go { transform: translateX(5px); }
+}
+.door--primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.door--primary small { color: #cfd3ec; }
+@media (hover: hover) and (pointer: fine) {
+  .door--primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+}
+.door--primary .door__ico { background: var(--brand); color: var(--brand-ink); }
+.door--quiet { border-style: dashed; }

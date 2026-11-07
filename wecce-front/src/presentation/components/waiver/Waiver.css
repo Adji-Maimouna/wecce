@@ -1,0 +1,14 @@
+/* Waiver
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.doc { background: #fffefd; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: 0 1px 0 var(--line), 0 12px 32px rgb(43 38 34 / 0.06); }
+.doc__head { padding: 28px 32px 22px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; }
+.doc__body { padding: 24px 32px 28px; display: flex; flex-direction: column; gap: 22px; }
+.doc__quote { font-size: var(--t-lg); line-height: 1.5; padding: 18px 20px; border-radius: var(--r); background: var(--surface-2); }
+.doc__clauses { margin: 0; padding-left: 1.25em; display: flex; flex-direction: column; gap: 8px; color: var(--ink-2); }
+.doc__foot { padding: 20px 32px 28px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 16px; }
+.sigpad { width: 100%; height: 150px; border: 1px dashed var(--line-strong); border-radius: var(--r); background: var(--surface); touch-action: none; cursor: crosshair; display: block; }
+.hash { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: var(--t-xs); color: var(--muted); word-break: break-all; }
+@media (max-width: 720px) {
+  .doc__head, .doc__body, .doc__foot { padding-left: 18px; padding-right: 18px; }
+}

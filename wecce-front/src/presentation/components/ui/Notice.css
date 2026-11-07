@@ -1,0 +1,16 @@
+/* Notice
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.notice {
+  display: flex; gap: 14px; align-items: flex-start; padding: 18px 20px; border-radius: var(--r);
+  background: var(--info-tint); color: var(--ink);
+}
+.notice .i { color: var(--info); margin-top: 2px; }
+.notice strong { font-weight: 600; }
+.notice--warn { background: var(--warn-tint); }
+.notice--warn .i { color: var(--warn); }
+.notice--danger { background: var(--danger-tint); }
+.notice--danger .i { color: var(--danger); }
+.notice--ok { background: var(--ok-tint); }
+.notice--ok .i { color: var(--ok); }
+.notice p + p { margin-top: 4px; }

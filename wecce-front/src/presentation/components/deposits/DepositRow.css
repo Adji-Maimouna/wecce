@@ -1,0 +1,25 @@
+/* DepositRow
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.track { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; margin-top: 14px; }
+.track span { display: flex; flex-direction: column; gap: 6px; font-size: var(--t-xs); color: var(--faint); }
+.track span::before { content: ""; height: 4px; border-radius: 999px; background: var(--sunken); }
+.track span.done { color: var(--muted); }
+.track span.done::before { background: var(--accent); }
+.track span.now { color: var(--ink); font-weight: 500; }
+.track span.now::before { background: repeating-linear-gradient(90deg, var(--accent) 0 6px, var(--accent-tint) 6px 10px); }
+.deposit { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 18px 22px; padding: 26px 28px; }
+.deposit + .deposit { border-top: 1px solid var(--line); }
+.deposit__icon { width: 72px; height: 72px; border-radius: var(--r); background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--muted); overflow: hidden; }
+.deposit__icon img { width: 100%; height: 100%; object-fit: cover; }
+.deposit__title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.deposit__title h3 { font-size: var(--t-md); font-weight: 500; }
+.deposit__ref { font-size: var(--t-xs); color: var(--faint); font-variant-numeric: tabular-nums; }
+.deposit__facts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: var(--t-sm); color: var(--muted); margin-top: 6px; }
+.deposit__actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+@media (max-width: 720px) {
+  .deposit { grid-template-columns: 56px minmax(0, 1fr); padding: 16px; }
+  .deposit__icon { width: 56px; height: 56px; }
+  .deposit__actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .track span { font-size: 11px; }
+}

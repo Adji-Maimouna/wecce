@@ -1,0 +1,14 @@
+/* TwoPrices
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.prices { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 32px; align-items: center; }
+.prices__num { font-family: var(--font-display); font-weight: 800; font-size: clamp(3.5rem, 9vw, 7.5rem); line-height: .95; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.prices__num small { display: block; font-family: var(--font); font-size: 1.125rem; font-weight: 600; letter-spacing: 0; color: var(--inv-muted); margin-top: 12px; }
+.prices__num--alt { color: var(--mustard); }
+.prices__photo { width: 200px; aspect-ratio: 3 / 4; border-radius: 22px; overflow: hidden; box-shadow: 0 24px 48px rgb(0 0 0 / 0.35); transform: rotate(-3deg); }
+.prices__photo img { width: 100%; height: 100%; object-fit: cover; }
+.prices__quote { margin-top: 56px; max-width: 60ch; font-size: 1.25rem; line-height: 1.55; color: var(--inv-ink); }
+@media (max-width: 720px) {
+  .prices { grid-template-columns: minmax(0, 1fr); text-align: left; gap: 20px; }
+  .prices__photo { width: 140px; }
+}

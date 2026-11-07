@@ -1,0 +1,6 @@
+/* Icon
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.i { width: 1.25em; height: 1.25em; flex: none; stroke: currentColor; fill: none; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: -0.25em; }
+.i--sm { width: 1em; height: 1em; vertical-align: -0.15em; }
+.i--lg { width: 1.5em; height: 1.5em; }

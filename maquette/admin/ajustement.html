@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Ajustement de points</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Saisie|fait:Enregistré">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Administration · essayez le montant et le motif</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="pilotage.html" aria-label="Wecce, administration">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>Administration</strong>Campus UGB, Saint-Louis</div>
+    <nav aria-label="Administration">
+      <a href="pilotage.html"><i data-icon="sliders"></i>Pilotage</a>
+      <a href="ajustement.html" aria-current="page"><i data-icon="points"></i>Ajustement de points</a>
+      <a href="journal.html"><i data-icon="history"></i>Journal</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : administrateur</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div><h1>Ajustement de points</h1><p>Une correction ajoute un mouvement motivé. Aucun mouvement n'est modifié ni effacé.</p></div>
+    </div>
+
+    <div class="notice notice--ok" data-when="fait" hidden style="margin-bottom:18px">
+      <i data-icon="check-circle"></i>
+      <div><p><strong>Ajustement enregistré : + 2 000 pts sur le compte de Moussa D.</strong></p><p class="small">Nouveau solde : 34 490 pts. L'opération figure dans son historique et au <a class="link" href="journal.html">journal d'administration</a>.</p></div>
+    </div>
+
+    <div class="cols" style="grid-template-columns:minmax(0,1fr) 360px">
+      <form class="panel" data-adjust data-solde="32490">
+        <div class="panel__head"><h2>Compte</h2></div>
+        <div class="panel__body stack" style="gap:18px">
+          <label class="search" style="max-width:none;background:var(--surface)"><i data-icon="search"></i><input type="search" value="2024-1183" aria-label="Numéro de carte ou nom de l'étudiant"></label>
+          <div class="who" style="padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface-2)">
+            <span class="avatar">MD</span>
+            <div><div class="who__name">Moussa D. · 2024-1183</div><div class="who__sub">L3 Informatique · compte actif · solde 32 490 pts</div></div>
+          </div>
+
+          <fieldset style="border:0;margin:0;padding:0">
+            <legend class="label" style="margin-bottom:10px">Sens</legend>
+            <div class="seg" data-single data-sign>
+              <button type="button" data-value="credit" aria-pressed="true"><i data-icon="plus" class="i--sm"></i> Créditer</button>
+              <button type="button" data-value="debit" aria-pressed="false"><i data-icon="minus" class="i--sm"></i> Débiter</button>
+            </div>
+          </fieldset>
+          <div class="field" style="max-width:260px"><label for="montant">Montant</label><div class="affix"><input class="input" id="montant" inputmode="numeric" value="2000"><span class="affix__unit">pts</span></div>
+            <span class="err" data-neg hidden><i data-icon="alert" class="i--sm"></i>Le solde ne peut pas devenir négatif.</span>
+          </div>
+          <div class="field"><label for="motif">Motif</label><textarea class="textarea" id="motif" placeholder="Au moins 10 caractères, par exemple la référence du dépôt ou du paiement concerné">Bonus de lancement non appliqué au dépôt WC-2026-0412 : écart constaté par le partenaire, 2 000 pts manquants.</textarea><span class="hint">Lu par l'étudiant dans son historique et conservé au journal.</span></div>
+        </div>
+        <div class="panel__foot"><button class="btn btn--lg" type="button" data-submit data-go-state="fait" data-toast="Ajustement enregistré et inscrit au journal.">Enregistrer l'ajustement</button></div>
+      </form>
+
+      <aside class="stack sticky" style="gap:16px">
+        <section class="panel">
+          <div class="panel__body stack" style="gap:12px">
+            <span class="label">Aperçu</span>
+            <dl class="dl small">
+              <dt>Solde actuel</dt><dd>32 490 pts</dd>
+              <dt>Ajustement</dt><dd data-out="delta">+ 2 000</dd>
+              <span class="sep"></span>
+              <dt class="total">Nouveau solde</dt><dd class="total pts"><span data-out="nouveau">34 490</span> pts</dd>
+            </dl>
+          </div>
+        </section>
+        <div class="notice"><i data-icon="lock"></i><div><p class="small"><strong>Signé à votre nom.</strong> L'ajustement est inscrit au journal avec le solde avant et après, votre adresse IP et le motif. Il ne pourra être ni modifié ni supprimé.</p></div></div>
+      </aside>
+    </div>
+  </main>
+</div>
+</body>
+</html>

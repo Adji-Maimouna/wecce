@@ -1,0 +1,13 @@
+/* HomeSection
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.lsec { padding-block: 112px; }
+.lsec--tint { background: var(--surface-2); }
+.lsec--dark { background: var(--inv-bg); color: var(--inv-ink); }
+.lsec__head { max-width: 62ch; margin-bottom: 56px; }
+.lsec__head h2 { font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1.05; letter-spacing: -0.035em; font-weight: 800; }
+.lsec__head p { margin-top: 16px; font-size: 1.125rem; color: var(--muted); }
+.lsec--dark .lsec__head p { color: var(--inv-muted); }
+@media (max-width: 720px) {
+  .lsec { padding-block: 72px; }
+}

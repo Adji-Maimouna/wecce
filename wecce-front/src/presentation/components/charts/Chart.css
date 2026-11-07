@@ -1,0 +1,25 @@
+/* Chart
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.ln-points { stroke: var(--points-fill); }
+.ln-ref { stroke: var(--cobalt); }
+.ln-ink { stroke: var(--cobalt); }
+.ln-danger { stroke: var(--danger); }
+.dot-points { fill: var(--points-fill); stroke: var(--surface); }
+.dot-ref { fill: var(--cobalt); stroke: var(--surface); }
+.dot-ink { fill: var(--ink); stroke: var(--surface); }
+.chart .tx-points { fill: var(--points); font-weight: 700; }
+.chart .tx-ink { fill: var(--ink); font-weight: 700; }
+.chart text { font-family: var(--font); font-size: 15px; fill: var(--muted); }
+.chart--wide text { font-size: 11px; }
+.chart .grid-line { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--line-strong); stroke-width: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; font-size: var(--t-xs); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+.tip {
+  position: absolute; z-index: 50; padding: 8px 12px; border-radius: 10px; background: var(--ink); color: var(--surface);
+  font-size: var(--t-xs); font-weight: 600; pointer-events: none; max-width: 280px; box-shadow: 0 8px 24px rgb(0 0 0 / 0.16);
+}
+.hit { cursor: pointer; transform-box: fill-box; transform-origin: center; transition: transform 140ms var(--m-ease); outline: none; }
+.hit:hover, .hit.is-on, .hit:focus-visible { transform: scale(1.4); }

@@ -1,0 +1,20 @@
+# Dépendances et builds
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Outils de conception utilisés en local
+.claude/
+.impeccable/
+.taste-skill/
+
+# Document de besoins : tenu hors du dépôt
+explicitation-besoins-troc-ugb.pdf
+
+# Environnement et système
+.env
+.env.*
+*.log
+desktop.ini
+Thumbs.db
+.DS_Store

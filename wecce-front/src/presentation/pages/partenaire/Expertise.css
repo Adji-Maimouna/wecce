@@ -1,0 +1,4 @@
+/* Expertise
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.expertise-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }

@@ -1,0 +1,15 @@
+/* Auth
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.auth form { display: flex; flex-direction: column; gap: 16px; }
+.auth h1 { font-size: var(--t-2xl); }
+.auth__row { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: var(--t-sm); flex-wrap: wrap; }
+.auth__head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.auth__alt { font-size: var(--t-sm); color: var(--muted); text-align: center; }
+.auth__alt a { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--line-strong); }
+.auth__alt a:hover { text-decoration-color: currentColor; }
+.welcome { display: flex; flex-direction: column; gap: 20px; }
+.welcome__mark { width: 64px; height: 64px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: flex; align-items: center; justify-content: center; animation: pop 600ms var(--spring) both; }
+.welcome__mark .i { width: 30px; height: 30px; stroke-width: 2.5; }
+@keyframes pop { from { transform: scale(.4); opacity: 0; } }
+.welcome__actions { display: flex; gap: 10px; flex-wrap: wrap; }

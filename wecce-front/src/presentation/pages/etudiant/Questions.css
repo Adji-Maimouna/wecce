@@ -1,0 +1,5 @@
+/* Questions fréquentes (espace étudiant) */
+
+.help-toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 32px; }
+.help-section { scroll-margin-top: 96px; }
+.help-section > h2 { font-size: var(--t-xl); margin-bottom: 16px; }

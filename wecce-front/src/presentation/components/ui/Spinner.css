@@ -1,0 +1,5 @@
+/* Spinner
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--info-tint); border-top-color: var(--info); animation: spin 1s linear infinite; flex: none; margin-top: 2px; }
+@keyframes spin { to { transform: rotate(360deg); } }

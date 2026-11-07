@@ -1,0 +1,32 @@
+/* Gate
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.gate { position: relative; isolation: isolate; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); min-height: 100vh; background: var(--bg); }
+.gate__main { display: flex; flex-direction: column; justify-content: center; gap: 28px; padding: 56px max(24px, 6vw); }
+.gate__inner { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 28px; }
+.gate__mark { display: inline-flex; align-items: baseline; font-family: var(--font-display); font-weight: 800; font-size: clamp(3.5rem, 7vw, 6rem); letter-spacing: -0.05em; line-height: .9; color: var(--ink); }
+.gate__mark span { width: .16em; height: .16em; border-radius: 50%; background: var(--brand); margin-left: .05em; display: inline-block; }
+.gate__mark--sm { font-size: 1.75rem; letter-spacing: -0.04em; }
+.gate__lead { font-size: 1.25rem; line-height: 1.5; color: var(--ink-2); max-width: 38ch; }
+.gate__foot { font-size: var(--t-sm); color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.gate__art { position: sticky; top: 0; align-self: start; min-height: 100vh; overflow: hidden; background: var(--brand); display: flex; align-items: center; justify-content: center; padding: 56px; }
+.gate::after { content: ""; grid-column: 2; grid-row: 1; background: var(--brand); z-index: -1; }
+.gate__main { grid-column: 1; grid-row: 1; }
+.gate__art { grid-column: 2; grid-row: 1; }
+.pile { position: relative; width: min(460px, 100%); aspect-ratio: 1 / 1.05; }
+.pile__item { position: absolute; width: 54%; aspect-ratio: 3 / 4; transform: rotate(var(--r, 0deg)); animation: drop 900ms var(--spring) both; animation-delay: calc(var(--i, 0) * 150ms + 200ms); }
+.pile__item img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; box-shadow: 0 22px 40px rgb(0 0 0 / 0.3); }
+.pile__item:nth-child(1) { left: 0; top: 10%; }
+.pile__item:nth-child(2) { right: 0; top: 0; }
+.pile__item:nth-child(3) { left: 24%; bottom: 0; }
+.gate h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }
+.gate h1 + p { margin-top: -16px; }
+@media (max-width: 900px) {
+  .gate { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .gate__main, .gate__art { grid-column: auto; grid-row: auto; }
+  .gate__art { order: -1; padding: 28px 24px; position: static; min-height: 0; }
+  .gate::after { display: none; }
+  .pile { width: min(300px, 78%); }
+  .gate__main { padding: 32px var(--gutter-r) 56px var(--gutter); }
+  .gate--auth .gate__art { display: none; }
+}

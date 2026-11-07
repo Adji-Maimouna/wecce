@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Prendre un objet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Choix du paiement|attente:Paiement en attente|confirme:Réservé|echoue:Paiement échoué">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace étudiant · le paiement se confirme seul au bout de 3 secondes</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="marche.html" aria-current="page">Marché</a>
+    <a href="deposer.html">Déposer</a>
+    <a href="depots.html">Mes dépôts</a>
+    <a href="solde.html">Mon solde</a>
+  </nav>
+  <label class="search"><i data-icon="search"></i><input type="search" placeholder="Chercher un modèle" aria-label="Chercher un modèle"></label>
+  <div class="top__end">
+    <a class="balance" href="solde.html" aria-label="Votre solde : 32 490 points"><i data-icon="points"></i>32 490 pts</a>
+    <a class="avatar" href="profil.html" title="Moussa D. · mon profil" aria-label="Mon profil">MD</a>
+  </div>
+</div></header>
+
+<main class="page"><div class="wrap">
+  <nav class="crumbs" aria-label="Fil d'Ariane"><a href="marche.html">Marché</a><span aria-hidden="true">›</span><a href="fiche.html">Galaxy A12</a><span aria-hidden="true">›</span><span>Prendre</span></nav>
+
+  <div class="cols">
+    <div class="stack" style="gap:20px">
+
+      <!-- Choix du moyen de paiement -->
+      <section data-when="defaut echoue">
+        <div class="notice notice--danger" data-when="echoue" hidden style="margin-bottom:20px">
+          <i data-icon="x-circle"></i>
+          <div><p><strong>Le paiement Wave n'a pas abouti.</strong></p><p class="small">La demande a expiré sans validation sur votre téléphone. Aucun point n'a été débité et l'objet n'est pas réservé. Réessayez, ou choisissez un autre moyen.</p></div>
+        </div>
+        <h1>Payer le complément</h1>
+        <p class="muted" style="margin-top:8px;max-width:58ch">Vos 32 490 points sont utilisés en premier. Il reste 9 510 F à payer, sans frais.</p>
+
+        <form class="panel" data-pay data-complement="9 510" style="margin-top:22px">
+          <div class="panel__body stack" style="gap:18px">
+            <fieldset class="choices" style="border:0;padding:0;margin:0">
+              <legend class="label" style="margin-bottom:10px">Moyen de paiement</legend>
+              <label class="choice"><input type="radio" name="moyen" value="wave" data-name="Wave" checked><span class="choice__main"><strong>Wave</strong><small>Validez la demande dans l'application Wave</small></span></label>
+              <label class="choice"><input type="radio" name="moyen" value="om" data-name="Orange Money"><span class="choice__main"><strong>Orange Money</strong><small>Validez avec votre code secret Orange Money</small></span></label>
+              <label class="choice"><input type="radio" name="moyen" value="especes" data-name="espèces"><span class="choice__main"><strong>Espèces en boutique</strong><small>L'objet est réservé, vous payez au moment du retrait</small></span></label>
+            </fieldset>
+            <div class="field">
+              <label for="tel">Numéro du compte à débiter</label>
+              <input class="input" id="tel" inputmode="tel" autocomplete="tel" placeholder="Votre numéro Wave ou Orange Money">
+              <span class="hint">Vous recevrez une demande de paiement de 9 510 F à valider.</span>
+            </div>
+            <button class="btn btn--lg btn--block" type="submit" data-pay-btn><span data-pay-label>Payer 9 510 F avec Wave</span></button>
+            <p class="xs muted">En payant, vous réservez l'objet. Vos points sont débités une fois le paiement confirmé.</p>
+          </div>
+        </form>
+      </section>
+
+      <!-- Paiement en attente -->
+      <section data-when="attente" hidden class="stack" style="gap:18px">
+        <h1>Paiement en attente</h1>
+        <div class="notice"><span class="spinner" aria-hidden="true"></span><div><p><strong>Validez la demande de 9 510 F dans l'application Wave.</strong></p><p class="small">L'objet vous est réservé pendant ce temps.</p></div></div>
+        <div class="panel"><div class="panel__body">
+          <dl class="dl small">
+            <dt>Demande envoyée</dt><dd>5 nov., 14 h 32</dd>
+            <dt>Montant</dt><dd class="fcfa">9 510 F</dd>
+            <dt>Référence Wave</dt><dd class="num">T_8KQ2••••</dd>
+          </dl>
+        </div><div class="panel__foot"><button class="btn btn--ghost" type="button" data-go-state="defaut">Changer de moyen de paiement</button></div></div>
+      </section>
+
+      <!-- Réservé -->
+      <section data-when="confirme" hidden class="stack" style="gap:18px">
+        <div class="notice notice--ok"><i data-icon="check-circle"></i><div><p><strong>Votre Galaxy A12 est réservé.</strong></p><p class="small">Paiement Wave confirmé le 5 nov. à 14 h 33. 32 490 points ont été débités de votre solde.</p></div></div>
+        <h1>Bon de retrait</h1>
+        <div class="panel">
+          <div class="panel__body stack" style="gap:16px">
+            <dl class="dl">
+              <dt>Référence</dt><dd class="num" style="font-weight:600">AQ-2026-1187</dd>
+              <dt>À retirer avant le</dt><dd><span class="tbd" title="Durée de réservation à trancher">samedi 8 novembre</span></dd>
+              <dt>Où</dt><dd>LBC, campus de l'UGB, entre les villages E et F</dd>
+              <dt>Garantie</dt><dd><span class="tbd" title="Durée de garantie à trancher">7 jours après le retrait</span></dd>
+            </dl>
+            <hr class="divider">
+            <p class="small">Apportez votre carte d'étudiant.</p>
+          </div>
+        </div>
+        <div class="row"><a class="btn" href="marche.html">Retour au marché</a><a class="btn btn--ghost" href="solde.html">Voir mon solde</a></div>
+      </section>
+    </div>
+
+    <aside class="panel sticky" aria-label="Récapitulatif">
+      <div class="panel__body stack" style="gap:16px">
+        <div class="row" style="gap:14px;flex-wrap:nowrap;align-items:flex-start">
+          <img class="thumb" src="../assets/img/galaxya12.jpg" alt="" width="72" height="72" style="width:72px;height:72px">
+          <div><div style="font-weight:500">Samsung Galaxy A12 · 64 Go</div><div class="small muted">Bon état · batterie 81 %</div></div>
+        </div>
+        <div class="jauge jauge--lg" aria-hidden="true"><span class="jauge__pts" style="width:77%"></span><span class="jauge__cfa" style="width:23%"></span></div>
+        <dl class="dl small">
+          <dt>Prix de l'objet</dt><dd>42 000</dd>
+          <dt>Vos points</dt><dd class="pts">− 32 490 pts</dd>
+          <span class="sep"></span>
+          <dt class="total">À payer en francs</dt><dd class="total fcfa">9 510 F</dd>
+        </dl>
+        <p class="xs muted">1 point vaut 1 franc. Après l'échange, votre solde sera de 0 point.</p>
+      </div>
+    </aside>
+  </div>
+</div></main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, marché" href="marche.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="questions.html" data-discover="true">Questions fréquentes</a><a href="questions.html#deux-prix" data-discover="true">Les deux prix</a><a href="questions.html#baisse" data-discover="true">La baisse mensuelle</a><a href="questions.html#retrait" data-discover="true">Retrait et garantie</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Mon compte"><h2>Mon compte</h2><a href="profil.html" data-discover="true">Mon profil</a><a href="solde.html#historique" data-discover="true">Historique des points</a><a href="../entree.html">Se déconnecter</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="../credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="marche.html" aria-current="page"><i data-icon="grid"></i>Marché</a>
+  <a href="deposer.html"><i data-icon="upload"></i>Déposer</a>
+  <a href="depots.html"><i data-icon="list"></i>Mes dépôts</a>
+  <a href="solde.html"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

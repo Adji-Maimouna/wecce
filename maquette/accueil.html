@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Échange d'électronique à l'UGB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="assets/wecce.css">
+<script src="assets/wecce.js" defer></script>
+</head>
+<body>
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Page d'accueil publique · données de démonstration</span>
+  <a href="sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="etudiant/marche.html">Marché</a>
+    <a href="#comment">Comment ça marche</a>
+    <a href="#lbc">La boutique LBC</a>
+    <a href="#questions">Questions</a>
+  </nav>
+  <div class="top__cta">
+    <a class="btn btn--ghost" href="connexion.html">Se connecter</a>
+    <a class="btn" href="etudiant/deposer.html">Déposer un objet</a>
+  </div>
+</div></header>
+
+<main>
+  <!-- Ouverture : le tiroir -->
+  <section class="hero">
+    <div class="wrap hero__in">
+      <div class="hero__top">
+        <h1>Votre vieux téléphone vaut des points.</h1>
+        <div class="hero__side">
+      <p class="hero__lead">Déposez chez LBC l'électronique qui ne vous sert plus. Vous recevez des points à la signature et vous les dépensez sur le marché Wecce.</p>
+      <div class="hero__actions">
+        <a class="btn btn--lg" href="etudiant/deposer.html">Déposer un objet</a>
+        <a class="btn btn--lg btn--ghost" href="etudiant/marche.html">Voir le marché</a>
+      </div>
+        </div>
+      </div>
+      <div class="hero__facts">
+        <span><i data-icon="store"></i>LBC, entre les villages E et F</span>
+        <span><i data-icon="points"></i>1 point = 1 franc</span>
+      </div>
+
+      <div class="drawer">
+        <div class="drawer__box">
+          <a class="drawer__item" href="etudiant/marche.html" style="--i:0;--r:-5deg">
+            <img src="assets/img/redmi.jpg" alt="Redmi Note 8 déposé par un étudiant" width="480" height="640">
+            <span class="tag"><strong>30 000 pts</strong>Redmi Note 8 · repris le 14 sept.</span>
+          </a>
+          <a class="drawer__item" href="etudiant/marche.html" style="--i:1;--r:3deg">
+            <img src="assets/img/iphone11.jpg" alt="iPhone 11 rouge" width="500" height="615">
+            <span class="tag"><strong>93 000 pts</strong>iPhone 11 · repris le 20 oct.</span>
+          </a>
+          <a class="drawer__item" href="etudiant/marche.html" style="--i:2;--r:-2deg">
+            <img src="assets/img/galaxya12.jpg" alt="Galaxy A12 noir" width="720" height="960">
+            <span class="tag"><strong>33 000 pts</strong>Galaxy A12 · repris le 28 oct.</span>
+          </a>
+          <a class="drawer__item" href="etudiant/marche.html" style="--i:3;--r:4deg">
+            <img src="assets/img/casque.jpg" alt="Casque Sony bleu" width="500" height="374">
+            <span class="tag"><strong>13 800 pts</strong>Casque Sony · repris le 30 oct.</span>
+          </a>
+          <a class="drawer__item" href="etudiant/marche.html" style="--i:4;--r:-3deg">
+            <img src="assets/img/macbook.jpg" alt="MacBook noir" width="500" height="372">
+            <span class="tag"><strong>9 500 pts</strong>MacBook pour pièces · repris le 25 oct.</span>
+          </a>
+        </div>
+        <div class="drawer__front">
+          <span class="drawer__handle" aria-hidden="true"></span>
+          <span class="drawer__count"><strong data-countup>63</strong>objets repris depuis le 1<sup>er</sup> septembre</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comment ça marche -->
+  <section class="lsec" id="comment">
+    <div class="wrap">
+      <div class="lsec__head reveal">
+        <h2>Comment ça marche</h2>
+      </div>
+      <ol class="steps3">
+        <li class="reveal">
+          <span class="steps3__n">1</span>
+          <h3>Décrivez votre appareil</h3>
+          <p>En ligne, avec le prix que vous espérez. Seul LBC voit ce prix.</p>
+          <div class="mini">
+            <div class="mini__row"><span>Modèle</span><strong>Redmi Note 8 · 64 Go</strong></div>
+            <div class="mini__row"><span>État</span><strong>Bon état</strong></div>
+            <div class="mini__row"><span><i data-icon="private" class="i--sm"></i> Prix souhaité</span><strong>35 000 pts</strong></div>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="steps3__n">2</span>
+          <h3>LBC l'examine au rendez-vous</h3>
+          <p>LBC vous annonce deux prix. Vous acceptez, ou vous gardez votre appareil.</p>
+          <div class="mini">
+            <div class="mini__row"><span>Vous recevez</span><span class="mini__big">30 000 pts</span></div>
+            <div class="mini__row"><span>Il sera proposé à</span><strong>40 000 pts</strong></div>
+            <span class="badge badge--ok" style="align-self:flex-start"><i data-icon="verified" class="i--sm"></i>Vérifié par LBC</span>
+          </div>
+        </li>
+        <li class="reveal">
+          <span class="steps3__n">3</span>
+          <h3>Prenez un objet sur le marché</h3>
+          <p>Vous payez en points. S'il en manque, vous complétez en francs par Wave, Orange Money ou en espèces.</p>
+          <div class="mini">
+            <div class="row" style="flex-wrap:nowrap;gap:12px"><img class="thumb" src="assets/img/airpods.jpg" alt="" width="44" height="44"><div><strong>AirPods</strong><div class="pts">21 500 pts</div></div></div>
+            <div class="jauge" aria-hidden="true"><span class="jauge__pts" style="width:100%"></span></div>
+            <div class="split"><span class="ok">Dans votre solde</span></div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- Le marché en ce moment -->
+  <section class="lsec lsec--tint">
+    <div class="wrap">
+      <div class="lsec__head reveal">
+        <h2>En ce moment sur le marché</h2>
+        <p>Jauges calculées pour un solde de 30 000 points.</p>
+      </div>
+      <div class="grid" data-stagger>
+        <a class="card" href="etudiant/fiche.html">
+          <div class="card__photo"><img src="assets/img/airpods.jpg" alt="AirPods et leur boîtier" width="500" height="318" loading="lazy"></div>
+          <div class="card__body">
+            <div class="card__name">AirPods · 1<sup>re</sup> génération</div>
+            <div class="card__meta"><span class="cond"><span class="cond__bars"><i class="on"></i><i></i><i></i></span>Usé</span></div>
+            <div class="card__price"><span class="pts">21 500 pts</span></div>
+            <div class="jauge" aria-hidden="true"><span class="jauge__pts" style="width:100%"></span></div>
+            <div class="split"><span class="ok">Dans ce solde</span></div>
+          </div>
+        </a>
+        <a class="card" href="etudiant/fiche.html">
+          <div class="card__photo"><img src="assets/img/casque.jpg" alt="Casque Sony WH-CH510" width="500" height="374" loading="lazy"></div>
+          <div class="card__body">
+            <div class="card__name">Casque Sony WH-CH510</div>
+            <div class="card__meta"><span class="cond"><span class="cond__bars"><i class="on"></i><i class="on"></i><i class="on"></i></span>Comme neuf</span></div>
+            <div class="card__price"><span class="pts">17 500 pts</span></div>
+            <div class="jauge" aria-hidden="true"><span class="jauge__pts" style="width:100%"></span></div>
+            <div class="split"><span class="ok">Dans ce solde</span></div>
+          </div>
+        </a>
+        <a class="card" href="etudiant/fiche.html">
+          <div class="card__photo"><img src="assets/img/galaxya12.jpg" alt="Galaxy A12 noir" width="720" height="960" loading="lazy"></div>
+          <div class="card__body">
+            <div class="card__name">Galaxy A12 · 64 Go</div>
+            <div class="card__meta"><span class="cond"><span class="cond__bars"><i class="on"></i><i class="on"></i><i></i></span>Bon état</span></div>
+            <div class="card__price"><span class="pts">42 000 pts</span></div>
+            <div class="jauge" aria-hidden="true"><span class="jauge__pts" style="width:71%"></span><span class="jauge__cfa" style="width:29%"></span></div>
+            <div class="split"><span>30 000 pts + 12 000 F</span></div>
+          </div>
+        </a>
+        <a class="card" href="etudiant/fiche.html">
+          <div class="card__photo"><img src="assets/img/ipad.jpg" alt="iPad 2017" width="453" height="640" loading="lazy"></div>
+          <div class="card__body">
+            <div class="card__name">iPad (2017) · 32 Go</div>
+            <div class="card__meta"><span class="cond"><span class="cond__bars"><i class="on"></i><i class="on"></i><i></i></span>Bon état</span></div>
+            <div class="card__price"><span class="pts">76 000 pts</span></div>
+            <div class="jauge" aria-hidden="true"><span class="jauge__pts" style="width:39%"></span><span class="jauge__cfa" style="width:61%"></span></div>
+            <div class="split"><span>30 000 pts + 46 000 F</span></div>
+          </div>
+        </a>
+      </div>
+      <div class="reveal" style="margin-top:40px"><a class="btn btn--lg" href="etudiant/marche.html">Voir les 17 objets<i data-icon="arrow-right" class="i--sm"></i></a></div>
+    </div>
+  </section>
+
+  <!-- Les deux prix -->
+  <section class="lsec lsec--dark" id="deux-prix">
+    <div class="wrap">
+      <div class="lsec__head reveal">
+        <h2>Deux prix, annoncés avant de signer</h2>
+        <p>Les points que vous recevez, et le prix auquel votre appareil sera revendu.</p>
+      </div>
+      <div class="prices reveal">
+        <div class="prices__num"><span data-countup>30 000</span><small>points pour vous, à la signature</small></div>
+        <div class="prices__photo"><img src="assets/img/redmi.jpg" alt="Le Redmi Note 8 de Moussa" width="480" height="640"></div>
+        <div class="prices__num prices__num--alt"><span data-countup>40 000</span><small>prix proposé à l'étudiant suivant</small></div>
+      </div>
+      <p class="prices__quote reveal">« Nous reprenons votre appareil à 30 000 points. Il sera proposé à 40 000 points. La différence couvre l'expertise, le stockage et la garantie. »</p>
+    </div>
+  </section>
+
+  <!-- La baisse mensuelle -->
+  <section class="lsec lsec--tint" id="baisse">
+    <div class="wrap">
+      <div class="cols cols--even" style="gap:48px;align-items:center">
+        <div class="lsec__head reveal" style="margin-bottom:0">
+          <h2>Vos points baissent de 5 % par mois. Les prix aussi.</h2>
+          <p>Le 1<sup>er</sup> de chaque mois, au même taux. Ce que vos points permettent de prendre ne change pas, et ils n'expirent pas.</p>
+        </div>
+        <div class="sim reveal" data-sim data-solde="30000" data-prix="24500" style="background:var(--surface)">
+          <label class="sim__label" for="mois-accueil">Dans <strong data-sim-out="mois">0 mois</strong></label>
+          <input class="range" type="range" id="mois-accueil" min="0" max="6" step="1" value="0">
+          <div class="sim__cols">
+            <div class="sim__cell"><span class="xs muted">Vos points</span><strong class="sim__num pts" data-sim-out="solde">30 000 pts</strong></div>
+            <div class="sim__cell"><span class="xs muted">Tecno Spark 4</span><strong class="sim__num" data-sim-out="prix">24 500 pts</strong></div>
+            <div class="sim__cell"><span class="xs muted">Il vous reste</span><strong class="sim__num" data-sim-out="reste">5 500 pts</strong></div>
+          </div>
+          <div class="jauge jauge--lg" aria-hidden="true"><span class="jauge__pts" style="width:82%"></span></div>
+          <p class="small" style="color:var(--ok);font-weight:700">Le Tecno coûte toujours 82 % de vos points, aujourd'hui comme dans 6 mois.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LBC -->
+  <section class="lsec" id="lbc">
+    <div class="wrap">
+      <div class="lsec__head reveal">
+        <h2>LBC, la boutique du campus</h2>
+        <p>Leye Business Company examine les appareils et garde le stock, sur le campus de l'UGB, entre les villages E et F.</p>
+      </div>
+      <div class="campus">
+        <div class="campus__map reveal" role="img" aria-label="LBC se trouve entre le village E et le village F">
+          <div class="campus__line">
+            <span class="campus__village">Village E</span>
+            <span class="campus__lbc"><span class="campus__pin"><span>LBC</span></span><span class="campus__name">Leye Business Company</span></span>
+            <span class="campus__village">Village F</span>
+          </div>
+        </div>
+        <ul class="facts reveal">
+          <li><span class="facts__ico"><i data-icon="calendar"></i></span><div><strong>Examen sur rendez-vous</strong><p>Vous choisissez le créneau en ligne. L'examen prend quelques minutes.</p></div></li>
+          <li id="retrait"><span class="facts__ico"><i data-icon="store"></i></span><div><strong>Retrait avec votre carte d'étudiant</strong><p>L'appareil est allumé et testé devant vous avant de partir.</p></div></li>
+          <li><span class="facts__ico"><i data-icon="verified"></i></span><div><strong>Garantie boutique de <span class="tbd" title="Durée à trancher avec LBC">7 jours</span></strong><p>En cas de défaut, LBC répare ou reprend l'appareil.</p></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Questions -->
+  <section class="lsec lsec--tint" id="questions">
+    <div class="wrap">
+      <div class="lsec__head reveal"><h2>Questions fréquentes</h2></div>
+      <div class="faq">
+        <div class="faq__item reveal"><h3>Combien vaut mon appareil ?</h3><p>LBC fixe le prix au rendez-vous, après examen. Wecce ne donne pas d'estimation en ligne, et vous pouvez refuser.</p></div>
+        <div class="faq__item reveal"><h3>Mes points expirent-ils ?</h3><p>Non. Ils baissent de 5 % le 1<sup>er</sup> de chaque mois, comme les prix du marché.</p></div>
+        <div class="faq__item reveal"><h3>Et si le prix de LBC ne me convient pas ?</h3><p>Vous repartez avec votre appareil, sans rien payer.</p></div>
+        <div class="faq__item reveal"><h3>Que faire si mes points ne suffisent pas ?</h3><p>Vous payez la différence en francs, par Wave, Orange Money ou en espèces au retrait, sans frais.</p></div>
+        <div class="faq__item reveal"><h3>Quels appareils sont acceptés ?</h3><p>Téléphones, ordinateurs, tablettes, audio et pièces détachées. L'appareil doit être déconnecté de vos comptes.</p></div>
+        <div class="faq__item reveal"><h3>Puis-je voir l'objet avant de le prendre ?</h3><p>Oui. Tout se retire chez LBC, où l'appareil est allumé devant vous.</p></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, accueil" href="accueil.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="accueil.html#comment" data-discover="true">Comment ça marche</a><a href="accueil.html#deux-prix" data-discover="true">Les deux prix</a><a href="accueil.html#baisse" data-discover="true">La baisse mensuelle</a><a href="accueil.html#questions" data-discover="true">Questions fréquentes</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Compte"><h2>Compte</h2><a href="connexion.html" data-discover="true">Se connecter</a><a href="connexion.html#inscription" data-discover="true">Créer un compte étudiant</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="accueil.html" aria-current="page"><i data-icon="grid"></i>Accueil</a>
+  <a href="etudiant/marche.html"><i data-icon="store"></i>Marché</a>
+  <a href="etudiant/deposer.html"><i data-icon="upload"></i>Déposer</a>
+  <a href="etudiant/solde.html"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

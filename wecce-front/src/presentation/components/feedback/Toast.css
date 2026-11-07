@@ -1,0 +1,12 @@
+/* Toast
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.toasts { position: fixed; z-index: 60; left: 50%; transform: translateX(-50%); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; width: max-content; max-width: calc(100vw - 32px); }
+.toast {
+  display: flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 999px;
+  background: var(--ink); color: var(--surface); font-size: var(--t-sm); font-weight: 600;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.18); opacity: 0; transform: translateY(18px) scale(.94);
+  transition: opacity 200ms var(--ease-std), transform 480ms var(--spring);
+}
+.toast .i { color: var(--mustard-vivid); }
+.toast.in { opacity: 1; transform: none; }

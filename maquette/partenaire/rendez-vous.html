@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Rendez-vous du jour</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Journée chargée|vide:Aucun rendez-vous|suspendu:Dépôts suspendus">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace partenaire · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="rendez-vous.html" aria-label="Wecce, espace partenaire">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>LBC · Leye Business Company</strong>Campus UGB, entre les villages E et F</div>
+    <nav aria-label="Espace partenaire">
+      <a href="rendez-vous.html" aria-current="page"><i data-icon="calendar"></i>Rendez-vous du jour<span class="badge">4</span></a>
+      <a href="expertise.html"><i data-icon="clipboard"></i>Expertise</a>
+      <a href="stock.html"><i data-icon="package"></i>Stock en boutique</a>
+      <a href="couverture.html"><i data-icon="scale"></i>Dette et couverture</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : comptoir 1</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div><h1>Rendez-vous du jour</h1><p>Vendredi 7 novembre 2026 · 6 rendez-vous, dont 4 encore à recevoir.</p></div>
+      <div class="seg" data-single><button type="button" aria-pressed="false">Hier</button><button type="button" aria-pressed="true">Aujourd'hui</button><button type="button" aria-pressed="false">Demain</button></div>
+    </div>
+
+    <div class="notice notice--warn" data-when="suspendu" hidden style="margin-bottom:18px">
+      <i data-icon="pause"></i>
+      <div><p><strong>Les nouveaux dépôts sont suspendus depuis ce matin.</strong></p><p class="small">Les rendez-vous déjà pris sont maintenus.</p></div>
+    </div>
+
+    <section class="panel" data-when="vide" hidden style="padding:36px 28px">
+      <div class="stack" style="max-width:52ch;gap:12px">
+        <i data-icon="calendar" class="i--lg" style="color:var(--muted)"></i>
+        <h2>Aucun rendez-vous aujourd'hui</h2>
+        <p class="muted">Pour un étudiant venu sans rendez-vous, cherchez son dépôt par sa référence.</p>
+        <label class="search" style="max-width:360px;background:var(--surface)"><i data-icon="search"></i><input type="search" placeholder="Référence du dépôt, par exemple WC-2026-0634"></label>
+      </div>
+    </section>
+
+    <section class="panel" data-unless="vide">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Heure</th><th>Étudiant</th><th>Appareil déclaré</th><th class="r">Prix souhaité</th><th>Statut</th><th></th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="num">9 h 30</td>
+              <td><div class="who"><span class="avatar">AS</span><div><div class="who__name">Awa S.</div><div class="who__sub">2023-0871 · WC-2026-0629</div></div></div></td>
+              <td><div class="who__name">Galaxy A32 · 128 Go</div><div class="who__sub">Téléphone · 1 à 2 ans · bon état</div></td>
+              <td class="r">45 000</td>
+              <td><span class="badge badge--ok"><i data-icon="check" class="i--sm"></i>Repris à 38 000</span></td>
+              <td class="r"><a class="link small" href="depot.html">Voir</a></td>
+            </tr>
+            <tr>
+              <td class="num">10 h 00</td>
+              <td><div class="who"><span class="avatar">IN</span><div><div class="who__name">I. N.</div><div class="who__sub">2025-0213 · WC-2026-0631</div></div></div></td>
+              <td><div class="who__name">Écouteurs Oraimo FreePods</div><div class="who__sub">Audio · 2 à 3 ans · usé</div></td>
+              <td class="r muted">non indiqué</td>
+              <td><span class="badge badge--danger">Refusé · batterie</span></td>
+              <td class="r"><a class="link small" href="depot-refuse.html">Voir</a></td>
+            </tr>
+            <tr style="background:var(--accent-tint-2)">
+              <td class="num"><strong>10 h 30</strong></td>
+              <td><div class="who"><span class="avatar">MD</span><div><div class="who__name">Moussa D.</div><div class="who__sub">2024-1183 · WC-2026-0634</div></div></div></td>
+              <td><div class="who__name">Lenovo IdeaPad 3 · 256 Go SSD</div><div class="who__sub">Ordinateur · 1 à 2 ans · bon état</div></td>
+              <td class="r">90 000</td>
+              <td><span class="badge badge--info"><span class="dot"></span>Arrivé</span></td>
+              <td class="r"><a class="btn btn--sm" href="expertise.html">Commencer l'expertise</a></td>
+            </tr>
+            <tr>
+              <td class="num">14 h 00</td>
+              <td><div class="who"><span class="avatar">FD</span><div><div class="who__name">F. D.</div><div class="who__sub">2024-0456 · WC-2026-0643</div></div></div></td>
+              <td><div class="who__name">iPhone XR · 64 Go</div><div class="who__sub">Téléphone · plus de 4 ans · usé</div></td>
+              <td class="r">70 000</td>
+              <td><span class="badge">À venir</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="num">15 h 30</td>
+              <td><div class="who"><span class="avatar">OB</span><div><div class="who__name">O. B.</div><div class="who__sub">2022-1120 · WC-2026-0647</div></div></div></td>
+              <td><div class="who__name">Disque dur 2,5″ · 500 Go</div><div class="who__sub">Pièce · âge inconnu · fonctionnel</div></td>
+              <td class="r">8 000</td>
+              <td><span class="badge">À venir</span></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td class="num muted">16 h 00</td>
+              <td><div class="who"><span class="avatar">KS</span><div><div class="who__name">K. S.</div><div class="who__sub">2025-0098 · WC-2026-0650</div></div></div></td>
+              <td><div class="who__name muted">Enceinte JBL Flip 4</div><div class="who__sub">Audio · 2 à 3 ans · bon état</div></td>
+              <td class="r muted">25 000</td>
+              <td><span class="badge badge--line">Annulé par l'étudiant</span></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

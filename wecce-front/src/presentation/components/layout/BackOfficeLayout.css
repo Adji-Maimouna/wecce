@@ -1,0 +1,37 @@
+/* BackOfficeLayout
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.app {
+  display: grid; grid-template-columns: 256px minmax(0, 1fr); min-height: 100vh;
+  background: linear-gradient(90deg, var(--surface-2) 0 255px, var(--line) 255px 256px, transparent 256px);
+}
+.side { background: var(--surface-2); color: var(--shell-ink); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; height: 100vh; }
+.side .brand { padding: 0 10px; }
+.side__ctx { padding: 0 10px; font-size: var(--t-xs); color: var(--shell-muted); line-height: 1.4; }
+.side__ctx strong { display: block; color: var(--shell-ink); font-size: var(--t-sm); font-weight: 600; }
+.side nav { display: flex; flex-direction: column; gap: 2px; }
+.side nav a {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 999px;
+  color: var(--shell-muted); font-size: var(--t-sm); font-weight: 600;
+  transition: background-color var(--m-in) var(--m-ease), color var(--m-in) var(--m-ease);
+}
+.side nav a:hover { background: var(--sunken); color: var(--shell-ink); }
+.side nav a[aria-current="page"] { background: var(--surface); color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
+.side nav a[aria-current="page"] .i { color: var(--accent); }
+.side nav a .badge { margin-left: auto; height: 20px; padding: 0 7px; background: var(--brand); color: var(--brand-ink); }
+.side__foot { margin-top: auto; padding: 0 10px; font-size: var(--t-xs); color: var(--shell-muted); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.side__out { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: var(--shell-ink); font-weight: 600; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-2, var(--line)); text-underline-offset: 3px; }
+.side__out:hover { text-decoration-color: currentColor; }
+.main { padding: 44px 52px 96px; min-width: 0; }
+.main .page-head { margin-bottom: 32px; }
+.side { view-transition-name: coque-laterale; }
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); background: none; }
+  .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .side nav { flex-direction: row; flex-wrap: wrap; }
+  .side__foot, .side__ctx { display: none; }
+  .main { padding: 22px var(--gutter-r) 56px var(--gutter); }
+}
+@media (max-width: 720px) {
+  .main { padding: 28px var(--gutter-r) 64px var(--gutter); }
+}

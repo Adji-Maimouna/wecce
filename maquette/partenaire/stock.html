@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Stock en boutique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Stock en cours|vide:Avant l'ouverture">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace partenaire · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="rendez-vous.html" aria-label="Wecce, espace partenaire">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>LBC · Leye Business Company</strong>Campus UGB, entre les villages E et F</div>
+    <nav aria-label="Espace partenaire">
+      <a href="rendez-vous.html"><i data-icon="calendar"></i>Rendez-vous du jour<span class="badge">4</span></a>
+      <a href="expertise.html"><i data-icon="clipboard"></i>Expertise</a>
+      <a href="stock.html" aria-current="page"><i data-icon="package"></i>Stock en boutique</a>
+      <a href="couverture.html"><i data-icon="scale"></i>Dette et couverture</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : comptoir 1</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div><h1>Stock en boutique</h1><p>Les prix baissent automatiquement le 1<sup>er</sup> de chaque mois.</p></div>
+      <a class="btn" href="article-nouveau.html"><i data-icon="plus" class="i--sm"></i>Ajouter un article de la boutique</a>
+    </div>
+
+    <section class="panel" data-when="vide" hidden style="padding:36px 28px">
+      <div class="stack" style="max-width:58ch;gap:14px">
+        <i data-icon="package" class="i--lg" style="color:var(--muted)"></i>
+        <h2>Ouvrez le marché avec 30 à 50 articles de votre boutique</h2>
+        <p class="muted">Les étudiants déposent plus volontiers quand il y a déjà des objets à prendre avec leurs points.</p>
+        <p class="small muted">Pour chaque article, une photo, l'état constaté et le prix en points. Ces articles ne créent aucune dette.</p>
+        <div><a class="btn" href="article-nouveau.html"><i data-icon="plus" class="i--sm"></i>Ajouter le premier article</a></div>
+      </div>
+    </section>
+
+    <div data-unless="vide" class="stack" style="gap:20px">
+      <section class="panel kpis" data-stagger>
+        <div class="kpi"><div class="kpi__label">En ligne</div><div class="kpi__value" data-countup>48</div><div class="kpi__sub">dont 21 de votre boutique</div></div>
+        <div class="kpi"><div class="kpi__label">Valeur affichée</div><div class="kpi__value" data-countup>1 612 000</div><div class="kpi__sub">points, au prix du jour</div></div>
+        <div class="kpi"><div class="kpi__label">Réservés</div><div class="kpi__value" data-countup>3</div><div class="kpi__sub">en attente de retrait</div></div>
+        <div class="kpi"><div class="kpi__label">Partis en octobre</div><div class="kpi__value" data-countup>19</div><div class="kpi__sub">dont 7 avec un complément</div></div>
+      </section>
+
+      <div class="row" style="gap:10px 14px">
+        <div class="chips" data-single data-filter-group="origine" role="group" aria-label="Origine">
+          <button class="chip" type="button" data-value="tout" aria-pressed="true">Tous <span class="count">51</span></button>
+          <button class="chip" type="button" data-value="depot" aria-pressed="false">Dépôts étudiants <span class="count">30</span></button>
+          <button class="chip" type="button" data-value="boutique" aria-pressed="false">Stock de la boutique <span class="count">21</span></button>
+        </div>
+        <span class="spacer"></span>
+        <label class="search" style="background:var(--surface);max-width:280px"><i data-icon="search"></i><input type="search" placeholder="Modèle ou référence"></label>
+      </div>
+
+      <section class="panel">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Objet</th><th>Origine</th><th>En ligne depuis</th><th class="r">Prix initial</th><th class="r">Prix du jour</th><th>Statut</th><th></th></tr></thead>
+            <tbody data-filter-target="origine">
+              <tr data-kind="depot" data-item><td><div class="who"><span class="thumb" style="display:inline-flex;align-items:center;justify-content:center;color:var(--muted)"><i data-icon="phone"></i></span><div><div class="who__name">Galaxy A32 · 128 Go</div><div class="who__sub">Bon état · examiné ce matin</div></div></div></td><td>Dépôt WC-2026-0629</td><td>7 nov.</td><td class="r">51 000</td><td class="r">51 000</td><td><span class="badge badge--info" data-status>À photographier</span></td><td class="r"><button class="btn btn--sm" type="button" data-after="En ligne|ok" data-toast="Galaxy A32 mis en ligne à 51 000 pts.">Mettre en ligne</button></td></tr>
+              <tr data-kind="depot"><td><div class="who"><img class="thumb" src="../assets/img/galaxya12.jpg" alt=""><div><div class="who__name">Galaxy A12 · 64 Go</div><div class="who__sub">Bon état · batterie 81 %</div></div></div></td><td>Dépôt WC-2026-0598</td><td>28 oct.</td><td class="r">44 200</td><td class="r">42 000</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="depot" data-item><td><div class="who"><img class="thumb" src="../assets/img/iphone11.jpg" alt=""><div><div class="who__name">iPhone 11 · 64 Go</div><div class="who__sub">Bon état · batterie 84 %</div></div></div></td><td>Dépôt WC-2026-0571</td><td>20 oct.</td><td class="r">124 200</td><td class="r">118 000</td><td><span class="badge badge--warn" data-status>Réservé · AQ-2026-1185</span></td><td class="r"><button class="btn btn--sm btn--ghost" type="button" data-after="Remis à l'étudiant|line" data-toast="iPhone 11 remis. L'acquisition AQ-2026-1185 est soldée, la garantie démarre.">Remettre l'objet</button></td></tr>
+              <tr data-kind="boutique"><td><div class="who"><img class="thumb" src="../assets/img/thinkpad.jpg" alt=""><div><div class="who__name">ThinkPad T480 · 8 Go</div><div class="who__sub">Comme neuf · batterie 92 %</div></div></div></td><td>Stock de la boutique</td><td>15 oct.</td><td class="r">149 500</td><td class="r">142 000</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="depot"><td><div class="who"><img class="thumb" src="../assets/img/casque.jpg" alt=""><div><div class="who__name">Casque Sony WH-CH510</div><div class="who__sub">Comme neuf</div></div></div></td><td>Dépôt WC-2026-0602</td><td>30 oct.</td><td class="r">18 400</td><td class="r">17 500</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="depot"><td><div class="who"><img class="thumb" src="../assets/img/macbook.jpg" alt=""><div><div class="who__name">MacBook noir, pour pièces</div><div class="who__sub">Défectueux · repris en pièces</div></div></div></td><td>Dépôt WC-2026-0587</td><td>25 oct.</td><td class="r">12 600</td><td class="r">12 000</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="depot"><td><div class="who"><img class="thumb" src="../assets/img/redmi.jpg" alt=""><div><div class="who__name">Redmi Note 8 · 64 Go</div><div class="who__sub">Bon état · batterie 86 %</div></div></div></td><td>Dépôt WC-2026-0412</td><td>14 sept.</td><td class="r">40 000</td><td class="r">36 100</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="boutique"><td><div class="who"><img class="thumb" src="../assets/img/jbl.jpg" alt=""><div><div class="who__name">Enceinte JBL Go</div><div class="who__sub">Bon état</div></div></div></td><td>Stock de la boutique</td><td>2 sept.</td><td class="r">12 200</td><td class="r">11 000</td><td><span class="badge badge--ok">En ligne</span></td><td class="r"><a class="link small" href="article.html">Modifier</a></td></tr>
+              <tr data-kind="depot"><td><div class="who"><img class="thumb" src="../assets/img/hdd.jpg" alt=""><div><div class="who__name">Disque dur IBM Travelstar 2,5″</div><div class="who__sub">Fonctionnel · 4 Go, interface IDE</div></div></div></td><td>Dépôt WC-2026-0433</td><td>18 sept.</td><td class="r">6 000</td><td class="r muted">5 420</td><td><span class="badge badge--line">Retiré · invendable</span></td><td class="r"><a class="link small" href="article.html">Voir</a></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel__foot small muted"><span>9 objets sur 51</span><span class="spacer"></span><button class="btn btn--sm btn--ghost" type="button">Afficher plus</button></div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

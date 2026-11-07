@@ -1,0 +1,14 @@
+/* Jauge
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.pts { color: var(--points); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fcfa { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.jauge { display: flex; height: 8px; border-radius: 999px; overflow: hidden; background: var(--sunken); }
+.jauge__pts { background: var(--points-fill); }
+.jauge__cfa { background: repeating-linear-gradient(135deg, var(--cobalt) 0 2px, transparent 2px 5px); opacity: .6; }
+.jauge--lg { height: 12px; }
+.split { display: flex; justify-content: space-between; gap: 8px; font-size: var(--t-xs); color: var(--muted); margin-top: 6px; }
+.split .ok { color: var(--points); font-weight: 700; }
+@keyframes fill-x { from { transform: scaleX(0); } }
+.jauge__pts, .jauge__cfa { transform-origin: left center; animation: fill-x 900ms var(--ease-emph-in) both; animation-delay: calc(var(--i, 0) * 45ms + 260ms); }
+.jauge__cfa { animation-delay: calc(var(--i, 0) * 45ms + 520ms); }

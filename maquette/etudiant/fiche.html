@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Galaxy A12</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Solde insuffisant|couvert:Dans votre solde|reserve:Déjà réservé">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace étudiant · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="marche.html" aria-current="page">Marché</a>
+    <a href="deposer.html">Déposer</a>
+    <a href="depots.html">Mes dépôts</a>
+    <a href="solde.html">Mon solde</a>
+  </nav>
+  <label class="search"><i data-icon="search"></i><input type="search" placeholder="Chercher un modèle" aria-label="Chercher un modèle"></label>
+  <div class="top__end">
+    <a class="balance" href="solde.html" aria-label="Votre solde : 32 490 points"><i data-icon="points"></i>32 490 pts</a>
+    <a class="avatar" href="profil.html" title="Moussa D. · mon profil" aria-label="Mon profil">MD</a>
+  </div>
+</div></header>
+
+<main class="page"><div class="wrap">
+  <nav class="crumbs" aria-label="Fil d'Ariane"><a href="marche.html">Marché</a><span aria-hidden="true">›</span><a href="marche.html">Téléphones</a><span aria-hidden="true">›</span><span>Galaxy A12</span></nav>
+
+  <div class="fiche-grid">
+    <div class="gallery fiche-g"><img src="../assets/img/galaxya12.jpg" alt="Galaxy A12 noir, vue de dos sur le bloc photo" width="720" height="960"></div>
+
+    <div class="stack sticky fiche-b" style="gap:20px">
+      <div>
+        <h1 style="font-size:var(--t-2xl)">Samsung Galaxy A12 · 64 Go</h1>
+        <div class="row" style="margin-top:10px;gap:8px 14px">
+          <span class="cond small"><span class="cond__bars"><i class="on"></i><i class="on"></i><i></i></span>Bon état</span>
+          <span class="small muted">Noir · 4 Go de mémoire vive · déposé par un étudiant</span>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="panel__body stack" style="gap:14px">
+          <div>
+            <div class="big-price">42 000 pts</div>
+            <p class="small muted" style="margin-top:4px">Le 1<sup>er</sup> décembre : 39 900 pts</p>
+          </div>
+
+          <div data-when="defaut">
+            <div class="jauge jauge--lg" aria-hidden="true"><span class="jauge__pts" style="width:77%"></span><span class="jauge__cfa" style="width:23%"></span></div>
+            <dl class="dl small" style="margin-top:14px">
+              <dt>Vos points</dt><dd class="pts">32 490 pts</dd>
+              <dt>À compléter en francs</dt><dd class="fcfa">9 510 F</dd>
+              <span class="sep"></span>
+              <dt class="total">Prix de l'objet</dt><dd class="total">42 000</dd>
+            </dl>
+          </div>
+          <div data-when="couvert" hidden>
+            <div class="jauge jauge--lg" aria-hidden="true"><span class="jauge__pts" style="width:100%"></span></div>
+            <p class="small" style="margin-top:12px">Il vous restera <span class="pts">8 490 pts</span> après l'échange.</p>
+          </div>
+          <div data-when="reserve" hidden>
+            <div class="notice"><i data-icon="lock"></i><div><p><strong>Réservé par un autre étudiant.</strong></p><p class="small">S'il ne le retire pas à temps, l'objet revient sur le marché.</p></div></div>
+          </div>
+
+          <a class="btn btn--lg btn--block" href="prendre.html" data-unless="reserve">Prendre cet objet</a>
+          <button class="btn btn--lg btn--block" type="button" disabled data-when="reserve" hidden>Réservé</button>
+
+          <details class="small" data-when="defaut">
+            <summary style="cursor:pointer;color:var(--ink-2)">Et si j'attends la baisse du 1<sup>er</sup> décembre ?</summary>
+            <p class="muted" style="margin-top:8px">L'objet passera à 39 900 pts et votre solde à 30 865 pts. Il vous manquera 9 035 F au lieu de 9 510 F, et un autre étudiant peut le prendre entre-temps.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="panel panel--sunken">
+        <div class="panel__body stack" style="gap:12px">
+          <div class="row row--top" style="gap:10px"><i data-icon="store"></i><p class="small"><strong>Retrait chez LBC</strong>, sur le campus entre les villages E et F, avec votre carte d'étudiant, dans les <span class="tbd" title="Durée de réservation à trancher avec le partenaire">3 jours</span> qui suivent.</p></div>
+          <div class="row row--top" style="gap:10px"><i data-icon="verified"></i><p class="small"><strong>Garantie boutique de <span class="tbd" title="Durée de garantie à trancher avec le partenaire">7 jours</span>.</strong> En cas de défaut, LBC répare ou reprend l'appareil.</p></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel fiche-c">
+      <div class="panel__head"><h2>Ce que la boutique a vérifié</h2><span class="badge badge--ok"><i data-icon="verified" class="i--sm"></i>Examiné le 28 octobre</span></div>
+      <div class="panel__body">
+        <ul class="checks">
+          <li><i data-icon="check"></i><span>Écran</span><span class="v">Une rayure fine en bas, invisible écran allumé</span></li>
+          <li><i data-icon="check"></i><span>Batterie</span><span class="v">81 % de sa capacité d'origine</span></li>
+          <li><i data-icon="check"></i><span>Compte Google</span><span class="v">Déconnecté, téléphone réinitialisé</span></li>
+          <li><i data-icon="check"></i><span>Appareils photo et micro</span><span class="v">Testés, fonctionnent</span></li>
+          <li><i data-icon="check"></i><span>Réseau</span><span class="v">Double SIM, tous opérateurs</span></li>
+          <li><i data-icon="check"></i><span>Numéro de série</span><span class="v num">R58R••••7KD</span></li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div></main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, marché" href="marche.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="questions.html" data-discover="true">Questions fréquentes</a><a href="questions.html#deux-prix" data-discover="true">Les deux prix</a><a href="questions.html#baisse" data-discover="true">La baisse mensuelle</a><a href="questions.html#retrait" data-discover="true">Retrait et garantie</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Mon compte"><h2>Mon compte</h2><a href="profil.html" data-discover="true">Mon profil</a><a href="solde.html#historique" data-discover="true">Historique des points</a><a href="../entree.html">Se déconnecter</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="../credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="marche.html" aria-current="page"><i data-icon="grid"></i>Marché</a>
+  <a href="deposer.html"><i data-icon="upload"></i>Déposer</a>
+  <a href="depots.html"><i data-icon="list"></i>Mes dépôts</a>
+  <a href="solde.html"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

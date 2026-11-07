@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Pilotage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Tout va bien|suspendu:Suspension en cours|ecart:Écart de solde">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Administration · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="pilotage.html" aria-label="Wecce, administration">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>Administration</strong>Campus UGB, Saint-Louis</div>
+    <nav aria-label="Administration">
+      <a href="pilotage.html" aria-current="page"><i data-icon="sliders"></i>Pilotage</a>
+      <a href="ajustement.html"><i data-icon="points"></i>Ajustement de points</a>
+      <a href="journal.html"><i data-icon="history"></i>Journal</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : administrateur</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div><h1>Pilotage</h1><p>Chaque changement demande un motif et s'inscrit au journal.</p></div>
+    </div>
+
+    <div class="notice notice--danger" data-when="ecart" hidden style="margin-bottom:18px">
+      <i data-icon="alert"></i>
+      <div><p><strong>Le contrôle de cette nuit a trouvé 1 compte dont le solde ne correspond pas à ses mouvements.</strong></p><p class="small">Compte de l'étudiant 2025-0213 : solde enregistré 12 300 pts, somme des mouvements 12 600 pts. Rien n'a été corrigé automatiquement. Vérifiez l'historique, puis corrigez par un ajustement motivé.</p><p class="small" style="margin-top:8px"><a class="link" href="ajustement.html">Ouvrir le compte 2025-0213</a></p></div>
+    </div>
+
+    <div class="cols cols--even" style="gap:20px">
+      <section class="panel">
+        <div class="panel__head"><h2>Dépôts</h2>
+          <span class="badge badge--ok" data-unless="suspendu"><span class="dot"></span>Ouverts</span>
+          <span class="badge badge--danger" data-when="suspendu" hidden><span class="dot"></span>Suspendus</span>
+        </div>
+        <div class="panel__body stack" style="gap:16px">
+          <dl class="dl small">
+            <dt>Couverture du jour</dt><dd>126 % · ouvert</dd>
+            <dt>Suspension automatique</dt><dd>sous <span class="tbd" title="Seuil à trancher (§11.5)">110 %</span></dd>
+            <dt>Rendez-vous à venir</dt><dd>14, maintenus en cas de suspension</dd>
+          </dl>
+          <hr class="divider">
+          <div class="row" style="justify-content:space-between;flex-wrap:nowrap;align-items:flex-start">
+            <div><div class="label">Suspendre les dépôts à la main</div><p class="hint">Par exemple pendant les examens ou une fermeture de la boutique.</p></div>
+            <label class="switch"><input type="checkbox" aria-label="Suspension manuelle" data-state-toggle="suspendu:defaut"><span></span></label>
+          </div>
+          <div class="field"><label for="motif-susp">Motif</label><input class="input" id="motif-susp" placeholder="Visible des étudiants sur la page de dépôt"></div>
+          <div data-when="suspendu" hidden class="notice notice--warn"><i data-icon="pause"></i><div><p class="small"><strong>Suspendus le 5 nov. à 8 h 10.</strong> Motif affiché aux étudiants : « Fermeture de la boutique pour inventaire jusqu'au 10 novembre. »</p></div></div>
+        </div>
+        <div class="panel__foot">
+          <button class="btn" type="button" data-unless="suspendu" data-go-state="suspendu" data-toast="Dépôts suspendus. Le motif s'affiche aux étudiants.">Suspendre les dépôts</button>
+          <button class="btn" type="button" data-when="suspendu" hidden data-go-state="defaut" data-toast="Dépôts rouverts.">Rouvrir les dépôts</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head"><h2>Bonus de lancement</h2><span class="badge badge--ok"><span class="dot"></span>Actif</span></div>
+        <div class="panel__body stack" style="gap:16px">
+          <div>
+            <div class="row" style="justify-content:space-between"><span class="small">63 dépôts bonifiés sur 100</span><span class="small muted">il en reste 37</span></div>
+            <div class="bar" style="margin-top:8px" role="progressbar" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100"><span style="width:63%"></span></div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label for="taux">Taux du bonus</label><div class="affix"><input class="input" id="taux" inputmode="numeric" value="20"><span class="affix__unit">%</span></div></div>
+            <div class="field"><label for="quota">Nombre de dépôts bonifiés</label><input class="input" id="quota" inputmode="numeric" value="100"></div>
+          </div>
+          <p class="hint">Le bonus est versé en points, jamais en argent.</p>
+          <div class="field"><label for="motif-bonus">Motif du changement</label><input class="input" id="motif-bonus" placeholder="Obligatoire pour enregistrer"></div>
+        </div>
+        <div class="panel__foot"><button class="btn" type="button" data-requires="#motif-bonus" data-toast="Bonus enregistré et inscrit au journal.">Enregistrer le bonus</button><span class="xs muted" data-requires-hint>Saisissez un motif pour enregistrer.</span></div>
+      </section>
+    </div>
+
+    <section class="panel" style="margin-top:20px">
+      <div class="panel__head"><h2>Tâches automatiques</h2><span class="small muted">Dernier passage de chaque tâche</span></div>
+      <div class="panel__body" style="padding-top:8px">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Tâche</th><th>Fréquence</th><th>Dernier passage</th><th>Résultat</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Baisse mensuelle</strong><div class="who__sub">Points et prix, même taux, même arrondi</div></td><td>Le 1<sup>er</sup> du mois</td><td>1<sup>er</sup> nov., 2 h 00</td><td><span class="badge badge--ok">58 comptes et 47 annonces</span></td></tr>
+              <tr><td><strong>Contrôle des soldes</strong><div class="who__sub">Solde enregistré face à la somme des mouvements</div></td><td>Chaque nuit</td><td>5 nov., 3 h 00</td><td><span class="badge badge--ok" data-unless="ecart">Aucun écart</span><span class="badge badge--danger" data-when="ecart" hidden>1 écart</span></td></tr>
+              <tr><td><strong>Couverture</strong><div class="who__sub">Dette en points face à la valeur du stock</div></td><td>Chaque matin</td><td>5 nov., 6 h 00</td><td><span class="badge badge--ok">126 %</span></td></tr>
+              <tr><td><strong>Rapprochement des paiements</strong><div class="who__sub">Paiements Wave et Orange Money restés en attente</div></td><td>Toutes les 10 min</td><td>5 nov., 14 h 30</td><td><span class="badge">1 en attente depuis 4 min</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+</body>
+</html>

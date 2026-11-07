@@ -1,0 +1,40 @@
+/* Form
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > label, .label { font-size: var(--t-sm); font-weight: 500; color: var(--ink); }
+.hint { font-size: var(--t-xs); color: var(--muted); }
+.err { font-size: var(--t-xs); color: var(--danger); display: flex; gap: 6px; align-items: center; }
+.input, .select, .textarea {
+  width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: var(--r);
+  background: var(--surface); color: var(--ink); font: inherit; font-size: var(--t-md);
+  transition: border-color var(--m-in) var(--m-ease), box-shadow var(--m-in) var(--m-ease);
+}
+.textarea { min-height: 88px; resize: vertical; }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.input::placeholder, .textarea::placeholder { color: var(--muted); }
+.input[aria-invalid="true"] { border-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-tint); }
+.affix { position: relative; }
+.affix .input { padding-right: 52px; font-variant-numeric: tabular-nums; }
+.affix__unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: var(--t-sm); pointer-events: none; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 18px; }
+.form-grid .full { grid-column: 1 / -1; }
+.choice {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 1px solid var(--line-strong);
+  border-radius: var(--r); background: var(--surface); cursor: pointer;
+  transition: border-color var(--m-in) var(--m-ease), background-color var(--m-in) var(--m-ease);
+}
+.choice:hover { border-color: var(--ink-2); }
+.choice input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+.choice:has(input:checked) { border-color: var(--accent); background: var(--accent-tint-2); box-shadow: 0 0 0 1px var(--accent) inset; }
+.choice__main { display: flex; flex-direction: column; }
+.choice__main small { color: var(--muted); font-size: var(--t-xs); }
+.choices { display: grid; gap: 10px; }
+.choices--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.choices--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 640px; }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: var(--t-sm); }
+.check input { accent-color: var(--accent); width: 18px; height: 18px; margin: 2px 0 0; flex: none; }
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .choices--3, .choices--2 { grid-template-columns: minmax(0, 1fr); }
+}

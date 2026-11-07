@@ -1,0 +1,21 @@
+# Dépendances et sorties
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# Journaux
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Éditeurs et système
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+Thumbs.db
+*.suo
+*.sw?

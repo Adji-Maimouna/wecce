@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Dette et couverture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Ouvert|surveillance:Surveillance|suspendu:Suspendu">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace partenaire · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="rendez-vous.html" aria-label="Wecce, espace partenaire">wecce<span class="brand__dot"></span></a>
+    <div class="side__ctx"><strong>LBC · Leye Business Company</strong>Campus UGB, entre les villages E et F</div>
+    <nav aria-label="Espace partenaire">
+      <a href="rendez-vous.html"><i data-icon="calendar"></i>Rendez-vous du jour<span class="badge">4</span></a>
+      <a href="expertise.html"><i data-icon="clipboard"></i>Expertise</a>
+      <a href="stock.html"><i data-icon="package"></i>Stock en boutique</a>
+      <a href="couverture.html" aria-current="page"><i data-icon="scale"></i>Dette et couverture</a>
+      <a href="profil.html"><i data-icon="user"></i>Mon profil</a>
+    </nav>
+    <div class="side__foot">Connecté : comptoir 1</div>
+  </aside>
+
+  <main class="main">
+    <div class="page-head">
+      <div><h1>Dette et couverture</h1><p>Votre stock doit toujours valoir plus que les points en circulation.</p></div>
+      <span class="small muted">Calculé ce matin à 6 h · 5 nov. 2026</span>
+    </div>
+
+    <div class="notice notice--warn" data-when="surveillance" hidden style="margin-bottom:18px">
+      <i data-icon="alert"></i>
+      <div><p><strong>Couverture à 116 % : sous le seuil de surveillance.</strong></p><p class="small">Pour la faire remonter, mettez en ligne des articles de la boutique ou baissez les valeurs de reprise. Sous <span class="tbd" title="Seuil à trancher (§11.5)">110 %</span>, les dépôts sont suspendus automatiquement.</p></div>
+    </div>
+    <div class="notice notice--danger" data-when="suspendu" hidden style="margin-bottom:18px">
+      <i data-icon="pause"></i>
+      <div><p><strong>Couverture à 104 % : les nouveaux dépôts sont suspendus.</strong></p><p class="small">Les étudiants peuvent toujours prendre des objets, ce qui fait baisser la dette. Les dépôts rouvriront automatiquement au-dessus de 120 %, ou sur décision de l'administration.</p></div>
+    </div>
+
+    <section class="panel kpis" style="margin-bottom:20px">
+      <div class="kpi">
+        <div class="kpi__label">Couverture</div>
+        <div class="kpi__value"><span data-when="defaut" data-countup>126 %</span><span data-when="surveillance" hidden>116 %</span><span data-when="suspendu" hidden>104 %</span></div>
+        <div class="kpi__sub"><span class="badge badge--ok" data-when="defaut">Ouvert</span><span class="badge badge--warn" data-when="surveillance" hidden>Surveillance</span><span class="badge badge--danger" data-when="suspendu" hidden>Suspendu</span></div>
+      </div>
+      <div class="kpi"><div class="kpi__label">Points en circulation</div><div class="kpi__value" data-countup>1 284 300</div><div class="kpi__sub">sur 58 comptes étudiants</div></div>
+      <div class="kpi"><div class="kpi__label">Valeur du stock en ligne</div><div class="kpi__value" data-countup>1 612 000</div><div class="kpi__sub">48 objets, prix du jour</div></div>
+      <div class="kpi"><div class="kpi__label">Seuils</div><div class="kpi__value" style="font-size:var(--t-lg);margin-top:10px"><span class="tbd" title="Seuils à trancher (§11.5)">120 % · 110 %</span></div><div class="kpi__sub">surveillance · suspension</div></div>
+    </section>
+
+    <div class="cols" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+      <section class="panel">
+        <div class="panel__head"><h2>Depuis l'ouverture</h2><span class="small muted">Une mesure par semaine</span></div>
+        <div class="panel__body stack" style="gap:12px">
+          <svg class="chart" viewBox="0 0 720 250" role="img" aria-labelledby="cv-t" style="width:100%;height:auto">
+            <title id="cv-t">Valeur du stock, points en circulation et seuil de suspension, du 1er septembre au 5 novembre 2026. La dette monte de 0 à 1 284 300 points ; le stock passe de 1 380 000 à 1 612 000 points.</title>
+            <line class="grid-line" x1="64" x2="700" y1="51.7" y2="51.7"/>
+            <line class="grid-line" x1="64" x2="700" y1="104.4" y2="104.4"/>
+            <line class="grid-line" x1="64" x2="700" y1="157.2" y2="157.2"/>
+            <line class="axis" x1="64" x2="700" y1="210" y2="210"/>
+            <text x="56" y="55" text-anchor="end">1,5 M</text>
+            <text x="56" y="108" text-anchor="end">1 M</text>
+            <text x="56" y="161" text-anchor="end">500 000</text>
+            <text x="56" y="214" text-anchor="end">0</text>
+            <text x="64" y="232" text-anchor="middle">1er sept.</text>
+            <text x="191.2" y="232" text-anchor="middle">15 sept.</text>
+            <text x="318.4" y="232" text-anchor="middle">29 sept.</text>
+            <text x="445.6" y="232" text-anchor="middle">13 oct.</text>
+            <text x="572.8" y="232" text-anchor="middle">27 oct.</text>
+            <text x="654.6" y="248" text-anchor="middle">5 nov.</text>
+            <polyline class="ln-ink" fill="none" stroke-width="2.5" stroke-linejoin="round" points="64,64.3 127.6,60.1 191.2,56.4 254.8,54.8 318.4,52.7 382,54.8 445.6,50.6 509.2,46.9 572.8,43.2 636.4,41.6 654.6,39.8"/>
+            <polyline class="ln-danger" fill="none" stroke-width="1.5" stroke-dasharray="5 4" points="64,210 127.6,198.9 191.2,173.8 254.8,153.6 318.4,139.2 382,128.5 445.6,114.8 509.2,101.4 572.8,86.8 636.4,67.2 654.6,60.9"/>
+            <polyline class="ln-points" fill="none" stroke-width="3.5" stroke-linejoin="round" points="64,210 127.6,199.9 191.2,177.1 254.8,158.7 318.4,145.6 382,135.9 445.6,123.4 509.2,111.3 572.8,98 636.4,80.2 654.6,74.4"/>
+            <circle class="dot-ink hit" cx="654.6" cy="39.8" r="5.5" stroke-width="2" data-tip="5 nov. · stock en ligne : 1 612 000 pts"/>
+            <circle class="dot-points hit" cx="654.6" cy="74.4" r="6" stroke-width="2" data-tip="5 nov. · points en circulation : 1 284 300 pts"/>
+            <circle class="dot-points hit" cx="382" cy="135.9" r="5" stroke-width="2" data-tip="6 oct. · après la baisse du 1er octobre : 702 000 pts"/>
+            <circle class="dot-points hit" cx="636.4" cy="80.2" r="5" stroke-width="2" data-tip="3 nov. · après la baisse du 1er novembre : 1 230 000 pts"/>
+            <text class="tx-ink" x="664" y="38">1,61 M</text>
+            <text class="tx-points" x="664" y="86">1,28 M</text>
+          </svg>
+          <div class="legend"><span><i style="background:var(--cobalt)"></i>Valeur du stock</span><span><i style="background:var(--points-fill)"></i>Points en circulation</span><span><i style="background:repeating-linear-gradient(90deg,var(--danger) 0 4px,transparent 4px 7px)"></i>Seuil de suspension (dette + <span class="tbd" title="Seuil à trancher">10 %</span>)</span></div>
+          <p class="small muted">Depuis septembre, la dette monte plus vite que la valeur du stock.</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head"><h2>Votre marge réelle</h2></div>
+        <div class="panel__body stack" style="gap:12px">
+          <p class="small muted">Écart moyen entre vos deux prix, mesuré sur vos expertises acceptées.</p>
+          <table class="table table--wrap">
+            <thead><tr><th>Mois</th><th class="r">Expertises</th><th class="r">Marge moyenne</th></tr></thead>
+            <tbody>
+              <tr><td>Septembre</td><td class="r">21</td><td class="r">24,6 %</td></tr>
+              <tr><td>Octobre</td><td class="r">34</td><td class="r">25,9 %</td></tr>
+              <tr><td>Novembre, en cours</td><td class="r">8</td><td class="r">24,1 %</td></tr>
+            </tbody>
+          </table>
+          <p class="xs muted">Marge = (prix d'affichage − reprise) ÷ prix d'affichage. Les reprises en pièces sont comptées à part.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+</body>
+</html>

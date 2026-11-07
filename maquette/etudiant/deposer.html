@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Déposer un objet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Formulaire|suspendu:Dépôts suspendus">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace étudiant · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="marche.html">Marché</a>
+    <a href="deposer.html" aria-current="page">Déposer</a>
+    <a href="depots.html">Mes dépôts</a>
+    <a href="solde.html">Mon solde</a>
+  </nav>
+  <label class="search"><i data-icon="search"></i><input type="search" placeholder="Chercher un modèle" aria-label="Chercher un modèle"></label>
+  <div class="top__end">
+    <a class="balance" href="solde.html" aria-label="Votre solde : 32 490 points"><i data-icon="points"></i>32 490 pts</a>
+    <a class="avatar" href="profil.html" title="Moussa D. · mon profil" aria-label="Mon profil">MD</a>
+  </div>
+</div></header>
+
+<main class="page"><div class="wrap" style="max-width:1040px">
+
+  <!-- Dépôts suspendus -->
+  <section data-when="suspendu" hidden class="panel" style="padding:36px 28px">
+    <div class="stack" style="max-width:56ch;gap:14px">
+      <i data-icon="pause" class="i--lg" style="color:var(--warn)"></i>
+      <h1 style="font-size:var(--t-2xl)">Les dépôts sont suspendus</h1>
+      <p class="muted">Vos rendez-vous déjà pris sont maintenus.</p>
+      <p class="muted">Vous pouvez toujours prendre des objets avec vos points.</p>
+      <div class="row"><a class="btn" href="marche.html">Voir le marché</a><a class="btn btn--ghost" href="depots.html">Mes dépôts</a></div>
+    </div>
+  </section>
+
+  <div data-unless="suspendu">
+    <div class="page-head">
+      <div>
+        <h1>Déposer un objet</h1>
+        <p>Vous ne vous engagez à rien avant l'examen chez LBC.</p>
+      </div>
+    </div>
+
+    <div class="notice notice--ok" style="margin-bottom:22px">
+      <i data-icon="gift"></i>
+      <div><p><strong>Bonus de lancement : + 20 % de points sur les 100 premiers dépôts.</strong></p><p class="small">Il en reste 37. Le bonus est crédité à la signature.</p></div>
+    </div>
+
+    <ol class="steps" aria-label="Étapes du dépôt">
+      <li aria-current="step"><span>Votre appareil</span></li>
+      <li><span>Prix souhaité</span></li>
+      <li><span>Rendez-vous</span></li>
+      <li><span>Vérification</span></li>
+    </ol>
+
+    <form data-stepper>
+      <!-- Étape 1 -->
+      <section class="panel" data-step="1">
+        <div class="panel__head"><h2>Votre appareil</h2></div>
+        <div class="panel__body form-grid">
+          <fieldset class="full" style="border:0;margin:0;padding:0">
+            <legend class="label" style="margin-bottom:10px">Catégorie</legend>
+            <div class="chips" data-single data-cat-switch>
+              <button class="chip" type="button" data-value="tel" aria-pressed="false"><i data-icon="phone" class="i--sm"></i>Téléphone</button>
+              <button class="chip" type="button" data-value="ordi" aria-pressed="true"><i data-icon="laptop" class="i--sm"></i>Ordinateur</button>
+              <button class="chip" type="button" data-value="tab" aria-pressed="false"><i data-icon="tablet" class="i--sm"></i>Tablette</button>
+              <button class="chip" type="button" data-value="audio" aria-pressed="false"><i data-icon="audio" class="i--sm"></i>Audio</button>
+              <button class="chip" type="button" data-value="piece" aria-pressed="false"><i data-icon="piece" class="i--sm"></i>Pièce détachée</button>
+            </div>
+            <p class="hint" style="margin-top:8px">Une pièce seule (disque, barrette de mémoire, batterie) est acceptée.</p>
+          </fieldset>
+          <div class="field"><label for="modele">Marque et modèle</label><input class="input" id="modele" value="Lenovo IdeaPad 3"></div>
+          <div class="field"><label for="stockage">Stockage</label><input class="input" id="stockage" value="256 Go SSD"></div>
+          <fieldset class="full" style="border:0;margin:0;padding:0">
+            <legend class="label" style="margin-bottom:10px">Âge de l'appareil</legend>
+            <div class="seg" data-single data-age>
+              <button type="button" aria-pressed="false">Moins d'un an</button>
+              <button type="button" aria-pressed="true">1 à 2 ans</button>
+              <button type="button" aria-pressed="false">2 à 3 ans</button>
+              <button type="button" aria-pressed="false"><span class="tbd" title="Le schéma n'a pas de tranche 3 à 4 ans : PLUS_4ANS suit directement 2_3ANS">Plus de 4 ans</span></button>
+              <button type="button" aria-pressed="false">Je ne sais pas</button>
+            </div>
+          </fieldset>
+          <fieldset class="full" style="border:0;margin:0;padding:0">
+            <legend class="label" style="margin-bottom:10px">État, selon vous</legend>
+            <div class="choices choices--3" data-for="appareil">
+              <label class="choice"><input type="radio" name="etat"><span class="choice__main"><strong>Comme neuf</strong><small>Aucune trace d'usage</small></span></label>
+              <label class="choice"><input type="radio" name="etat" checked><span class="choice__main"><strong>Bon état</strong><small>Rayures légères, tout fonctionne</small></span></label>
+              <label class="choice"><input type="radio" name="etat"><span class="choice__main"><strong>Usé</strong><small>Traces visibles, tout fonctionne</small></span></label>
+            </div>
+            <div class="choices choices--2" data-for="piece" hidden>
+              <label class="choice"><input type="radio" name="etat-piece" checked><span class="choice__main"><strong>Fonctionnel</strong><small>Testé dans un appareil, il marche</small></span></label>
+              <label class="choice"><input type="radio" name="etat-piece"><span class="choice__main"><strong>Défectueux</strong><small>Pour récupérer des composants</small></span></label>
+            </div>
+          </fieldset>
+          <div class="full field">
+            <span class="label">Photos</span>
+            <div class="photos-drop">
+              <label class="photo-slot"><i data-icon="camera" class="i--lg"></i><span>Face, écran allumé</span><input type="file" accept="image/*" hidden></label>
+              <label class="photo-slot"><i data-icon="camera" class="i--lg"></i><span>Dos ou dessous</span><input type="file" accept="image/*" hidden></label>
+              <label class="photo-slot"><i data-icon="camera" class="i--lg"></i><span>Clavier ou détail</span><input type="file" accept="image/*" hidden></label>
+              <label class="photo-slot"><i data-icon="plus" class="i--lg"></i><span>Autre photo</span><input type="file" accept="image/*" hidden></label>
+            </div>
+            <span class="hint">Le prix est fixé à l'examen, pas sur les photos.</span>
+          </div>
+        </div>
+        <div class="panel__foot"><span class="spacer"></span><button class="btn" type="button" data-next>Continuer</button></div>
+      </section>
+
+      <!-- Étape 2 -->
+      <section class="panel" data-step="2" hidden>
+        <div class="panel__head"><h2>Ce que vous espérez en recevoir</h2></div>
+        <div class="panel__body stack" style="gap:18px">
+          <div class="field" style="max-width:320px">
+            <label for="souhait">Prix souhaité <span class="muted" style="font-weight:400">(facultatif)</span></label>
+            <div class="affix"><input class="input" id="souhait" inputmode="numeric" value="90 000"><span class="affix__unit">pts</span></div>
+          </div>
+          <div class="notice"><i data-icon="private"></i><div><p><strong>Seuls vous et LBC voyez ce prix.</strong></p><p class="small">Il n'apparaît jamais sur le marché.</p></div></div>
+          <div class="cols--even cols" style="gap:18px">
+            <div class="stack" style="gap:6px">
+              <h3 style="font-size:var(--t-md)">Wecce n'estime pas votre appareil</h3>
+              <p class="small muted">À l'examen, LBC vous annonce deux prix : les points que vous recevez et le prix de revente. Vous acceptez, ou vous gardez votre appareil.</p>
+            </div>
+            <div class="stack" style="gap:6px">
+              <h3 style="font-size:var(--t-md)">Les reprises passées</h3>
+              <p class="small muted">Pas encore assez de reprises d'ordinateurs de 1 à 2 ans pour donner un repère.</p>
+            </div>
+          </div>
+        </div>
+        <div class="panel__foot"><button class="btn btn--ghost" type="button" data-prev><i data-icon="arrow-left" class="i--sm"></i>Retour</button><span class="spacer"></span><button class="btn" type="button" data-next>Continuer</button></div>
+      </section>
+
+      <!-- Étape 3 -->
+      <section class="panel" data-step="3" hidden>
+        <div class="panel__head"><h2>Rendez-vous en boutique</h2><span class="small muted">LBC · campus de l'UGB, entre les villages E et F</span></div>
+        <div class="panel__body stack" style="gap:20px">
+          <div class="days" data-single data-days>
+            <button class="day" type="button" data-value="0,3,4,6" aria-pressed="true"><strong>Vendredi 7</strong><small>novembre · 4 créneaux</small></button>
+            <button class="day" type="button" data-value="1,2" aria-pressed="false"><strong>Samedi 8</strong><small>novembre · 6 créneaux</small></button>
+            <button class="day" type="button" data-value="" aria-pressed="false"><strong>Lundi 10</strong><small>novembre · 8 créneaux</small></button>
+            <button class="day" type="button" data-value="0,5" aria-pressed="false"><strong>Mardi 11</strong><small>novembre · 6 créneaux</small></button>
+          </div>
+          <div class="slots" data-single data-slots>
+            <button class="slot" type="button" disabled>9 h 30</button>
+            <button class="slot" type="button" aria-pressed="false">10 h 00</button>
+            <button class="slot" type="button" aria-pressed="true">10 h 30</button>
+            <button class="slot" type="button" disabled>11 h 00</button>
+            <button class="slot" type="button" disabled>14 h 00</button>
+            <button class="slot" type="button" aria-pressed="false">15 h 00</button>
+            <button class="slot" type="button" disabled>15 h 30</button>
+            <button class="slot" type="button" aria-pressed="false">16 h 30</button>
+          </div>
+          <div class="notice"><i data-icon="info"></i><div><p><strong>Avant de venir</strong></p><p class="small">Apportez votre carte d'étudiant et le chargeur. Déconnectez votre compte Google, Microsoft ou iCloud et réinitialisez l'appareil, sinon LBC ne peut pas le reprendre.</p></div></div>
+        </div>
+        <div class="panel__foot"><button class="btn btn--ghost" type="button" data-prev><i data-icon="arrow-left" class="i--sm"></i>Retour</button><span class="spacer"></span><button class="btn" type="button" data-next>Continuer</button></div>
+      </section>
+
+      <!-- Étape 4 -->
+      <section class="panel" data-step="4" hidden>
+        <div class="panel__head"><h2>Vérifiez avant de confirmer</h2></div>
+        <div class="panel__body cols cols--even" style="gap:24px">
+          <dl class="dl small" style="align-content:start">
+            <dt>Appareil</dt><dd data-recap="appareil">Lenovo IdeaPad 3 · 256 Go SSD</dd>
+            <dt>Âge et état</dt><dd data-recap="etat">1 à 2 ans · bon état</dd>
+            <dt>Photos</dt><dd data-recap="photos">aucune pour l'instant</dd>
+            <dt>Prix souhaité</dt><dd data-recap="souhait">90 000 pts</dd>
+            <dt>Rendez-vous</dt><dd data-recap="rdv">Vendredi 7 novembre, 10 h 30</dd>
+          </dl>
+          <div class="stack" style="gap:10px">
+            <h3 style="font-size:var(--t-md)">Au rendez-vous</h3>
+            <ol class="small muted" style="margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px">
+              <li>L'agent vérifie l'écran, la batterie, les comptes et le fonctionnement.</li>
+              <li>Il vous annonce les deux prix.</li>
+              <li>Vous signez le renoncement, ou vous gardez votre appareil.</li>
+              <li>Les points sont crédités à la signature, bonus compris.</li>
+            </ol>
+            <p class="xs muted">La boutique peut refuser un appareil : <span class="tbd" title="Critères de refus à trancher (§11.3)">écran cassé, compte encore lié, batterie sous 70 %, modèle introuvable</span>.</p>
+          </div>
+        </div>
+        <div class="panel__foot"><button class="btn btn--ghost" type="button" data-prev><i data-icon="arrow-left" class="i--sm"></i>Retour</button><span class="spacer"></span><a class="btn btn--lg" href="depots.html" data-finish>Prendre rendez-vous</a></div>
+      </section>
+    </form>
+  </div>
+</div></main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, marché" href="marche.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="questions.html" data-discover="true">Questions fréquentes</a><a href="questions.html#deux-prix" data-discover="true">Les deux prix</a><a href="questions.html#baisse" data-discover="true">La baisse mensuelle</a><a href="questions.html#retrait" data-discover="true">Retrait et garantie</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Mon compte"><h2>Mon compte</h2><a href="profil.html" data-discover="true">Mon profil</a><a href="solde.html#historique" data-discover="true">Historique des points</a><a href="../entree.html">Se déconnecter</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="../credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="marche.html"><i data-icon="grid"></i>Marché</a>
+  <a href="deposer.html" aria-current="page"><i data-icon="upload"></i>Déposer</a>
+  <a href="depots.html"><i data-icon="list"></i>Mes dépôts</a>
+  <a href="solde.html"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

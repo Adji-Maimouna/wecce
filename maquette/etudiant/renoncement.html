@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Renoncement de propriété</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:À signer|signe:Signé|pieces:Repris en pièces">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Signé en boutique, sur la tablette du comptoir · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <span class="small muted">LBC · Leye Business Company · campus de l'UGB</span>
+  <div class="top__end"><span class="avatar" title="Moussa D.">MD</span></div>
+</div></header>
+
+<main class="page"><div class="wrap" style="max-width:820px">
+
+  <div class="notice notice--ok" data-when="signe" hidden style="margin-bottom:20px">
+    <i data-icon="check-circle"></i>
+    <div><p><strong>Signé. 86 400 points ont été crédités sur votre compte.</strong></p><p class="small">Votre solde passe à <span class="pts" data-countup>118 890 pts</span>. Une copie de ce document reste dans « Mes dépôts ».</p></div>
+  </div>
+
+  <article class="doc">
+    <header class="doc__head">
+      <div>
+        <h1 style="font-size:var(--t-2xl)">Renoncement de propriété</h1>
+        <p class="small muted" style="margin-top:6px">Dépôt WC-2026-0634 · LBC, campus de l'UGB, entre les villages E et F · vendredi 7 novembre 2026, 10 h 48</p>
+      </div>
+      <span class="badge badge--info" data-when="defaut pieces"><i data-icon="pen" class="i--sm"></i>À signer</span>
+      <span class="badge badge--ok" data-when="signe" hidden><i data-icon="check" class="i--sm"></i>Signé à 10 h 52</span>
+    </header>
+
+    <div class="doc__body">
+      <section class="cols cols--even" style="gap:18px 28px">
+        <div class="stack" style="gap:6px">
+          <span class="xs muted">Déposant</span>
+          <strong>Moussa D.</strong>
+          <span class="small muted">Carte d'étudiant 2024-1183 · L3 Informatique</span>
+        </div>
+        <div class="stack" style="gap:6px">
+          <span class="xs muted">Appareil examiné</span>
+          <strong data-unless="pieces">Lenovo IdeaPad 3 · 256 Go SSD</strong>
+          <strong data-when="pieces" hidden>Lenovo IdeaPad 3, repris en pièces</strong>
+          <span class="small muted">N° de série PF3K••••2B · état constaté : bon · batterie 88 %</span>
+        </div>
+      </section>
+
+      <p class="doc__quote" data-unless="pieces">« Nous reprenons votre appareil à <strong>72 000 points</strong>. Il sera proposé à <strong>96 000 points</strong>. La différence couvre l'expertise, le stockage et la garantie. »</p>
+      <p class="doc__quote" data-when="pieces" hidden>« L'appareil ne peut pas repartir entier, mais ses pièces ont de la valeur. Nous le reprenons à <strong>18 000 points</strong>. Ses pièces seront proposées pour <strong>24 000 points</strong> au total. »</p>
+
+      <dl class="dl" data-unless="pieces">
+        <dt>Votre prix souhaité, indiqué en ligne</dt><dd class="muted">90 000 pts</dd>
+        <dt>Valeur de reprise fixée par la boutique</dt><dd>72 000 pts</dd>
+        <dt>Bonus de lancement (+ 20 %)</dt><dd>+ 14 400 pts</dd>
+        <span class="sep"></span>
+        <dt class="total">Crédité sur votre compte à la signature</dt><dd class="total pts">86 400 pts</dd>
+        <dt>Prix de mise en vente sur le marché</dt><dd>96 000 pts</dd>
+      </dl>
+      <dl class="dl" data-when="pieces" hidden>
+        <dt>Votre prix souhaité, indiqué en ligne</dt><dd class="muted">90 000 pts</dd>
+        <dt>Valeur de reprise en pièces</dt><dd>18 000 pts</dd>
+        <dt>Bonus de lancement (+ 20 %)</dt><dd>+ 3 600 pts</dd>
+        <span class="sep"></span>
+        <dt class="total">Crédité sur votre compte à la signature</dt><dd class="total pts">21 600 pts</dd>
+      </dl>
+
+      <section class="stack" style="gap:10px">
+        <h2 style="font-size:var(--t-md)">Ce que vous acceptez en signant</h2>
+        <ol class="doc__clauses small">
+          <li>L'appareil ne vous appartient plus à partir de la signature.</li>
+          <li>Les points sont crédités immédiatement. 1 point vaut 1 franc sur le marché Wecce ; il ne s'échange pas contre de l'argent.</li>
+          <li>Le 1<sup>er</sup> de chaque mois, vos points et les prix affichés baissent ensemble de 5 %. Votre pouvoir d'achat reste le même. Vos points n'expirent pas.</li>
+          <li>Il n'y a pas de délai de rétractation.</li>
+        </ol>
+      </section>
+    </div>
+
+    <footer class="doc__foot" data-unless="signe">
+      <div class="field">
+        <div class="row" style="justify-content:space-between"><span class="label">Votre signature</span><button class="btn btn--ghost btn--sm" type="button" data-clear-signature>Effacer</button></div>
+        <canvas class="sigpad" data-signature aria-label="Zone de signature : signez au doigt ou à la souris"></canvas>
+      </div>
+      <label class="check"><input type="checkbox" id="lu"><span>J'ai lu les deux prix et j'accepte de céder l'appareil contre <strong data-unless="pieces">86 400 points</strong><strong data-when="pieces" hidden>21 600 points</strong>.</span></label>
+      <div class="row">
+        <button class="btn btn--lg" type="button" data-sign disabled><span data-unless="pieces">Signer et recevoir 86 400 points</span><span data-when="pieces" hidden>Signer et recevoir 21 600 points</span></button>
+        <button class="btn btn--lg btn--ghost" type="button" data-toast="Vous repartez avec votre appareil. Aucun point n'a été crédité.">Refuser et reprendre mon appareil</button>
+      </div>
+    </footer>
+
+    <footer class="doc__foot" data-when="signe" hidden>
+      <div class="cols cols--even" style="gap:12px 28px">
+        <dl class="dl small">
+          <dt>Signé le</dt><dd>7 nov. 2026, 10 h 52</dd>
+          <dt>Lieu</dt><dd>LBC, campus de l'UGB</dd>
+          <dt>Agent</dt><dd>Comptoir 1</dd>
+        </dl>
+        <div class="stack" style="gap:6px">
+          <span class="xs muted">Empreinte du document (preuve qu'il n'a pas été modifié)</span>
+          <span class="hash">3f9a6c1e0b74d2a85e9f13c7a40b6de2915c8f07ab34e6d1c2f5098b7e4a1c21</span>
+        </div>
+      </div>
+      <div class="row"><a class="btn" href="solde.html">Voir mon solde</a><a class="btn btn--ghost" href="marche.html">Aller au marché</a></div>
+    </footer>
+  </article>
+</div></main>
+</body>
+</html>

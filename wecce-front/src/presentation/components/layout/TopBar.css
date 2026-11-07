@@ -1,0 +1,62 @@
+/* TopBar
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.top {
+  background: var(--shell-bg);
+  color: var(--shell-ink);
+  border-bottom: 1px solid var(--shell-line);
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+}
+.top .small.muted { color: var(--shell-muted); }
+.top__in { display: flex; align-items: center; gap: 32px; height: 68px; }
+.nav { display: flex; align-items: stretch; gap: 22px; height: 100%; }
+.nav a {
+  position: relative; display: inline-flex; align-items: center; color: var(--shell-muted);
+  font-size: var(--t-sm); font-weight: 600; transition: color var(--m-in) var(--m-ease);
+}
+.nav a:hover { color: var(--shell-ink); }
+.nav a[aria-current="page"] { color: var(--shell-ink); }
+.nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--shell-accent); transform: scaleX(0); transition: transform 300ms var(--ease-emph-in); }
+.nav a:hover::after { transform: scaleX(.5); }
+.nav a[aria-current="page"]::after { transform: scaleX(1); }
+.search {
+  flex: 1; max-width: 340px; display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px;
+  background: var(--surface-2); color: var(--muted);
+  transition: border-color var(--m-in) var(--m-ease), box-shadow var(--m-in) var(--m-ease);
+}
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.search input { border: 0; background: transparent; font: inherit; font-size: var(--t-sm); color: var(--ink); width: 100%; outline: none; }
+.search input::placeholder { color: var(--muted); }
+.top .search { background: var(--shell-field); border-color: var(--shell-line); color: var(--shell-muted); }
+.top .search input { color: var(--shell-ink); }
+.top .search input::placeholder { color: var(--shell-muted); }
+.top .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.top__end { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+.balance {
+  display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 14px 0 10px;
+  border-radius: 999px; background: var(--brand); color: var(--brand-ink);
+  font-weight: 700; font-size: var(--t-sm); font-variant-numeric: tabular-nums;
+  transition: background-color var(--m-in) var(--m-ease);
+}
+.balance:hover { background: #f0c235; }
+.avatar {
+  width: 36px; height: 36px; border-radius: 50%; background: var(--sunken); color: var(--ink-2);
+  display: inline-flex; align-items: center; justify-content: center; font-size: var(--t-xs); font-weight: 700;
+}
+.top .avatar { background: var(--shell-field); color: var(--shell-ink); }
+.top .balance .i, .balance .i { color: var(--brand-ink); }
+.menu-btn { display: none; }
+.top { view-transition-name: coque; }
+.top .top__cta { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.top .btn--ghost { color: var(--shell-ink); border-color: var(--shell-line); }
+@media (max-width: 1100px) {
+  .search { max-width: 240px; }
+}
+@media (max-width: 900px) {
+  .nav, .search { display: none; }
+  .menu-btn { display: inline-flex; }
+}
+@media (max-width: 720px) {
+  .top .top__cta .btn--ghost { display: none; }
+}

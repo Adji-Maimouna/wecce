@@ -1,0 +1,18 @@
+/* Mouvement Material 3 partagé (transitions, cascade, onde, éclats, apparition)
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+@view-transition { navigation: auto; }
+::view-transition-old(root) { animation: 160ms var(--ease-emph-out) both vt-out; }
+::view-transition-new(root) { animation: 360ms var(--ease-emph-in) both vt-in; }
+@keyframes vt-out { to { opacity: 0; transform: translateY(-6px); } }
+@keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes rise { from { opacity: 0; transform: translateY(20px) scale(.98); } }
+[data-stagger] > * { animation: rise 560ms var(--ease-emph-in) both; animation-delay: calc(var(--i, 0) * 45ms); }
+.btn, .chip, .seg button, .slot, .day { position: relative; overflow: hidden; isolation: isolate; }
+.ripple { position: absolute; border-radius: 50%; pointer-events: none; background: currentColor; opacity: .24; transform: scale(0); z-index: -1; animation: ripple 600ms var(--ease-std) forwards; }
+@keyframes ripple { to { transform: scale(1); opacity: 0; } }
+.btn:not(:active), .chip:not(:active) { transition-property: background-color, border-color, color, transform; transition-timing-function: var(--m-ease), var(--m-ease), var(--m-ease), var(--spring); }
+.burst { position: fixed; width: 10px; height: 10px; border-radius: 50%; z-index: 70; pointer-events: none; }
+@keyframes drop { from { opacity: 0; transform: translateY(-70px) rotate(calc(var(--r, 0deg) * -2)) scale(.9); } }
+.js .reveal { transition: transform 800ms var(--ease-emph-in), opacity 600ms var(--ease-std); }
+.js .reveal:not(.in) { transform: translateY(36px); opacity: .55; }

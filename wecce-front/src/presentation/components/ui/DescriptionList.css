@@ -1,0 +1,8 @@
+/* DescriptionList
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 13px 20px; margin: 0; }
+.dl dt { color: var(--muted); }
+.dl dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.dl .total { font-weight: 600; color: var(--ink); }
+.dl .sep { grid-column: 1 / -1; height: 1px; background: var(--line); }

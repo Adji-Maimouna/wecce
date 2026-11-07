@@ -1,0 +1,279 @@
+@startuml wecce-modele-simplifie
+' =====================================================================
+'  WECCE — modèle de classes simplifié
+'  Hypothèses retenues :
+'   · un seul partenaire d'expertise
+'   · aucun barème en base : c'est l'agent qui fixe la valeur
+'   · les constantes de calcul (fonte, seuil) vivent dans le code
+'   · les résultats de calcul, eux, sont persistés
+' =====================================================================
+
+skinparam shadowing false
+skinparam nodesep 40
+skinparam ranksep 55
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #3E3E3A
+  ArrowColor #3E3E3A
+  FontName DejaVu Sans
+}
+hide circle
+
+package "Comptes" {
+
+  abstract class Utilisateur {
+    - id : UUID
+    - nom : String
+    - prenom : String
+    - email : String
+    - telephone : String
+    - motDePasseHash : String
+    - role : {ETUDIANT, AGENT, ADMIN}
+    - actif : boolean
+    - creeLe : DateTime
+    + authentifier(mdp) : boolean
+  }
+
+  class Etudiant {
+    - numeroCarte : String
+    - niveau : String
+    - ufr : String
+  }
+
+  class Agent {
+    - fonction : String
+    - peutExpertiser : boolean
+  }
+
+  class Administrateur {
+    - portee : String
+    + suspendreDepots(motif) : void
+    + ajusterPoints(compte, montant, motif) : MouvementPoints
+    + retirerAnnonce(annonce, motif) : void
+  }
+}
+
+package "Administration" {
+
+  class ConfigurationPlateforme {
+    - id : int
+    - depotsOuverts : boolean
+    - suspensionManuelle : boolean
+    - motifSuspension : String
+    - bonusActif : boolean
+    - bonusTaux : decimal
+    - bonusQuota : int
+    - bonusConsomme : int
+    - misAJourLe : DateTime
+    + bonusDisponible() : boolean
+  }
+
+  class JournalAdministration {
+    - id : UUID
+    - action : {SUSPENSION, REPRISE, AJUSTEMENT_POINTS, RETRAIT_ANNONCE,\n   CATEGORIE, COMPTE, CONFIGURATION}
+    - cibleType : String
+    - cibleId : UUID
+    - avant : JSON
+    - apres : JSON
+    - motif : String
+    - effectueLe : DateTime
+    - adresseIp : String
+  }
+}
+
+package "Objets et dépôt" {
+
+  class Categorie {
+    - code : String
+    - libelle : String
+    - actif : boolean
+  }
+
+  class Appareil {
+    - id : UUID
+    - designation : String
+    - stockage : String
+    - numeroSerie : String
+    - ageDeclare : {MOINS_1AN, 1_2ANS, 2_3ANS, PLUS_4ANS}
+    - etatDeclare : {COMME_NEUF, BON, USE}
+    - etatConstate : {COMME_NEUF, BON, USE}
+    - batteriePourcent : int
+    - statut : {DECLARE, EN_STOCK, EN_LIGNE, RETIRE, REFUSE}
+  }
+
+  class Photo {
+    - id : UUID
+    - url : String
+    - ordre : int
+  }
+
+  class Depot {
+    - id : UUID
+    - reference : String
+    - prixSouhaite : int
+    - dateRendezVous : DateTime
+    - statut : {BROUILLON, RDV_PRIS, EXPERTISE, VALIDE, REFUSE, ANNULE}
+    - creeLe : DateTime
+    - clotureLe : DateTime
+    + planifier(creneau) : void
+    + annuler(motif) : void
+  }
+
+  class Expertise {
+    - id : UUID
+    - realiseeLe : DateTime
+    - etatConstate : {COMME_NEUF, BON, USE}
+    - batteriePourcent : int
+    - valeurReprise : int
+    - prixAffichage : int
+    - decision : {ACCEPTE, REFUSE}
+    - motifRefus : String
+    - commentaire : String
+    + ecartBoutique() : int
+    + ecartAuSouhait() : int
+  }
+
+  class Renoncement {
+    - id : UUID
+    - signeLe : DateTime
+    - lieu : String
+    - numeroSerieConstate : String
+    - valeurCedee : int
+    - prixAffichage : int
+    - signatureImage : byte[]
+    - empreinte : String
+    + verifierIntegrite() : boolean
+  }
+}
+
+package "Points" {
+
+  class ComptePoints {
+    - id : UUID
+    - solde : int
+    - statut : {ACTIF, DORMANT, CLOTURE}
+    - derniereFonteLe : Date
+    + peutPayer(montant) : boolean
+    + soldeRecalcule() : int
+  }
+
+  class MouvementPoints {
+    - id : UUID
+    - type : {CREDIT_DEPOT, BONUS, DEBIT_RETRAIT, FONTE, AJUSTEMENT}
+    - montant : int
+    - tauxApplique : decimal
+    - soldeApres : int
+    - libelle : String
+    - effectueLe : DateTime
+    - effectuePar : UUID
+  }
+}
+
+package "Marché et retrait" {
+
+  class Annonce {
+    - id : UUID
+    - origine : {DEPOT_ETUDIANT, STOCK_PARTENAIRE}
+    - prixInitial : int
+    - prixCourant : int
+    - derniereFonteLe : Date
+    - miseEnLigneLe : DateTime
+    - statut : {EN_LIGNE, RESERVEE, VENDUE, RETIREE}
+    + appliquerFonte() : void
+  }
+
+  class Acquisition {
+    - id : UUID
+    - prixTotal : int
+    - pointsDebites : int
+    - complementDu : int
+    - retireLe : DateTime
+    - garantieJusquAu : Date
+    + soldeeParPoints() : boolean
+  }
+
+  class Paiement {
+    - id : UUID
+    - moyen : {WAVE, ORANGE_MONEY, ESPECES}
+    - montantFcfa : int
+    - reference : String
+    - statut : {EN_ATTENTE, CONFIRME, ECHOUE}
+    - confirmeLe : DateTime
+  }
+}
+
+package "Pilotage" {
+
+  class SnapshotCouverture {
+    - id : UUID
+    - arreteLe : Date
+    - detteEnPoints : int
+    - valeurStock : int
+    - nbObjetsEnStock : int
+    - tauxCouverture : decimal
+    - niveau : {OUVERT, SURVEILLANCE, SUSPENDU}
+    + depotsSuspendus() : boolean
+  }
+}
+
+' ---------------------------------------------------------------------
+Utilisateur <|-- Etudiant
+Utilisateur <|-- Agent
+Utilisateur <|-- Administrateur
+
+Administrateur "1" -- "0..*" JournalAdministration : trace >
+Administrateur "1" -- "0..*" ConfigurationPlateforme : met à jour >
+Administrateur "0..1" -- "0..*" MouvementPoints : ajuste >
+
+Etudiant "1" -- "0..*" Depot : dépose >
+Depot "1" *-- "1" Appareil : porte sur >
+Appareil "1" *-- "0..*" Photo
+Appareil "0..*" --> "1" Categorie
+Depot "1" *-- "0..1" Expertise : donne lieu à >
+Expertise "0..*" --> "1" Agent : réalisée par >
+Expertise "1" *-- "0..1" Renoncement : scelle >
+
+Etudiant "1" -- "1" ComptePoints : détient >
+ComptePoints "1" *-- "0..*" MouvementPoints : journalise >
+Renoncement "1" -- "1" MouvementPoints : crédite >
+
+Appareil "1" -- "0..1" Annonce : proposé via >
+Annonce "1" -- "0..1" Acquisition : soldée par >
+Acquisition "0..*" --> "1" Etudiant : au profit de >
+Acquisition "1" -- "0..1" MouvementPoints : débite >
+Acquisition "1" *-- "0..*" Paiement : réglée par >
+
+note right of Expertise
+  L'agent saisit lui-même les deux prix.
+  L'écart n'est plus une règle calculée,
+  c'est une donnée observée — d'où
+  valeurReprise ET prixAffichage stockés.
+end note
+
+note right of MouvementPoints
+  Journal en ajout seul : le solde du compte
+  n'est qu'un cache. tauxApplique garde la
+  trace du taux de fonte du mois, même si
+  la constante change dans le code.
+  effectuePar n'est renseigné que pour les
+  AJUSTEMENT : un point créé à la main a
+  toujours un responsable.
+end note
+
+note bottom of ConfigurationPlateforme
+  Une seule ligne, verrouillée par contrainte.
+  Ne contient QUE les leviers opérationnels
+  que l'admin doit pouvoir actionner sans
+  redéploiement. Les constantes de calcul
+  (taux de fonte, seuil de couverture)
+  restent dans le code.
+end note
+
+note bottom of JournalAdministration
+  Toute action d'administration y est écrite
+  avec l'état avant et après. Sans ça, un
+  ajustement de points est indistinguable
+  d'une fraude.
+end note
+
+@enduml

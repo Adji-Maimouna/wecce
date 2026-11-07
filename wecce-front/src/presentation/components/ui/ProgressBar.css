@@ -1,0 +1,5 @@
+/* ProgressBar
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.bar { height: 8px; border-radius: 999px; background: var(--sunken); overflow: hidden; }
+.bar > span { display: block; height: 100%; background: var(--accent); border-radius: 999px; }

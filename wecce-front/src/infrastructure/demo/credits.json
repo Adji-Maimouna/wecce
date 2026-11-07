@@ -1,0 +1,128 @@
+{
+ "iphone11": {
+  "file": "iphone11.jpg",
+  "title": "File:IPhone 11 RED.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:IPhone_11_RED.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Ahmadkurdi44"
+ },
+ "galaxya12": {
+  "file": "galaxya12.jpg",
+  "title": "File:Close angled view of a Samsung Galaxy A12's Camera.png",
+  "page": "https://commons.wikimedia.org/wiki/File:Close_angled_view_of_a_Samsung_Galaxy_A12%27s_Camera.png",
+  "license": "CC BY-SA 4.0",
+  "artist": "Bralyn Fuller"
+ },
+ "redmi": {
+  "file": "redmi.jpg",
+  "title": "File:Redmi Note 8 front.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Redmi_Note_8_front.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Юный рыбак"
+ },
+ "tecno": {
+  "file": "tecno.jpg",
+  "title": "File:Spark-4-Back.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Spark-4-Back.jpg",
+  "license": "CC BY 3.0",
+  "artist": "Fact Man"
+ },
+ "galaxys9": {
+  "file": "galaxys9.jpg",
+  "title": "File:Samsung Galaxy S9+ and Wikipedia, side view.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Samsung_Galaxy_S9%2B_and_Wikipedia,_side_view.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Skorp24"
+ },
+ "probook": {
+  "file": "probook.jpg",
+  "title": "File:IMG-20190927-WA0014.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:IMG-20190927-WA0014.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Allan Kibe"
+ },
+ "latitude": {
+  "file": "latitude.jpg",
+  "title": "File:Dell Latitude E6540.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Dell_Latitude_E6540.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "PolarisLakewell"
+ },
+ "macbook": {
+  "file": "macbook.jpg",
+  "title": "File:MacBook Air black.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:MacBook_Air_black.jpg",
+  "license": "CC BY 2.0",
+  "artist": "Tim Malabuyo from Santa Cruz"
+ },
+ "thinkpad": {
+  "file": "thinkpad.jpg",
+  "title": "File:ThinkPad T480 (2) (cropped).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:ThinkPad_T480_(2)_(cropped).jpg",
+  "license": "CC BY 2.0",
+  "artist": "Elizabeth K. Joseph"
+ },
+ "ipad": {
+  "file": "ipad.jpg",
+  "title": "File:IPad 2017 tablet.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:IPad_2017_tablet.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Frmorrison"
+ },
+ "galaxytab": {
+  "file": "galaxytab.jpg",
+  "title": "File:Samsung Galaxy Tab A (2016) with S Pen.png",
+  "page": "https://commons.wikimedia.org/wiki/File:Samsung_Galaxy_Tab_A_(2016)_with_S_Pen.png",
+  "license": "CC BY-SA 4.0",
+  "artist": "Dienthoaiquangcao2"
+ },
+ "airpods": {
+  "file": "airpods.jpg",
+  "title": "File:AirPods (cropped).jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:AirPods_(cropped).jpg",
+  "license": "CC BY 2.0",
+  "artist": "Maurizio Pesce from Milan, Italia"
+ },
+ "jbl": {
+  "file": "jbl.jpg",
+  "title": "File:JBL GO 1st generation.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:JBL_GO_1st_generation.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Apiiroja"
+ },
+ "casque": {
+  "file": "casque.jpg",
+  "title": "File:Sony WH-CH510 Bluetooth Over-Ear Headphone.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Sony_WH-CH510_Bluetooth_Over-Ear_Headphone.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "RPSkokie"
+ },
+ "ram": {
+  "file": "ram.jpg",
+  "title": "File:DDR 4 RAM SO-DIMM 16GB by Micron-top back PNr°0841.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:DDR_4_RAM_SO-DIMM_16GB_by_Micron-top_back_PNr%C2%B00841.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "D-Kuru"
+ },
+ "hdd": {
+  "file": "hdd.jpg",
+  "title": "File:IBM Travelstar 4GT late 90s 2.5 inch Hard Disk Drive.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:IBM_Travelstar_4GT_late_90s_2.5_inch_Hard_Disk_Drive.jpg",
+  "license": "CC0",
+  "artist": "CodeMaximus XT"
+ },
+ "ssd": {
+  "file": "ssd.jpg",
+  "title": "File:Innovation IT SSD 2.5\" 1 TB SATA III TLC-7140.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Innovation_IT_SSD_2.5%22_1_TB_SATA_III_TLC-7140.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Raimond Spekking"
+ },
+ "batterie": {
+  "file": "batterie.jpg",
+  "title": "File:Fujitsu Siemens Computers Amilo L7300 - Lithium ion battery-0150.jpg",
+  "page": "https://commons.wikimedia.org/wiki/File:Fujitsu_Siemens_Computers_Amilo_L7300_-_Lithium_ion_battery-0150.jpg",
+  "license": "CC BY-SA 4.0",
+  "artist": "Raimond Spekking"
+ }
+}

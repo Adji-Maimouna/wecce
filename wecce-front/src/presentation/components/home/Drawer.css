@@ -1,0 +1,46 @@
+/* Drawer
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.drawer { position: relative; margin-top: 18px; }
+.drawer__box {
+  position: relative; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 26px;
+  padding: 44px 40px 92px; border-radius: 30px 30px 0 0; background: var(--inv-surface);
+  box-shadow: inset 0 22px 40px rgb(0 0 0 / 0.45), inset 0 -2px 0 rgb(255 255 255 / 0.06);
+}
+.drawer__front {
+  position: absolute; z-index: 3; left: -18px; right: -18px; bottom: 0; height: 104px; border-radius: 24px 24px 0 0;
+  background: var(--inv-bg); display: flex; align-items: center; justify-content: center; gap: 24px;
+  box-shadow: 0 -14px 34px rgb(0 0 0 / 0.28), inset 0 2px 0 rgb(255 255 255 / 0.12);
+}
+.drawer__handle { width: 180px; height: 18px; border-radius: 999px; background: var(--brand); box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.18); }
+.drawer__count { color: #fff; font-size: var(--t-sm); font-weight: 600; }
+.drawer__count strong { font-family: var(--font-display); font-size: 1.5rem; color: var(--mustard); margin-right: 6px; }
+.drawer__item {
+  position: relative; z-index: 2; display: block; aspect-ratio: 3 / 4; color: inherit; margin-bottom: -64px;
+  transform: rotate(var(--r, 0deg)); transition: transform 520ms var(--spring);
+  animation: drop 900ms var(--spring) both; animation-delay: calc(var(--i, 0) * 110ms + 250ms);
+}
+.drawer__item img { width: 100%; height: 100%; object-fit: cover; border-radius: 18px; box-shadow: 0 18px 32px rgb(0 0 0 / 0.42); }
+.tag {
+  position: absolute; top: -14px; left: 14px; z-index: 2; padding: 9px 13px 10px 22px; border-radius: 10px;
+  background: var(--surface); color: var(--ink); font-size: 12.5px; line-height: 1.25; box-shadow: 0 8px 18px rgb(0 0 0 / 0.25);
+  transform-origin: 10px 10px; transition: transform 520ms var(--spring);
+}
+.tag::before { content: ""; position: absolute; left: 8px; top: 12px; width: 7px; height: 7px; border-radius: 50%; background: var(--sunken); box-shadow: inset 0 1px 1px rgb(0 0 0 / .25); }
+.tag strong { display: block; font-family: var(--font-display); font-size: 1.15rem; font-weight: 800; letter-spacing: -0.02em; color: var(--points); }
+@media (hover: hover) and (pointer: fine) {
+  .drawer__item:hover { transform: rotate(0deg) translateY(-14px) scale(1.03); z-index: 4; }
+  .drawer__item:hover .tag { transform: rotate(-7deg); }
+}
+@media (max-width: 1100px) {
+  .drawer__box { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .drawer__item:nth-child(5) { display: none; }
+}
+@media (max-width: 720px) {
+  .drawer__box { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 30px 18px 92px; gap: 26px 16px; }
+  .drawer__item:nth-child(n+5) { display: none; }
+  .drawer__item { margin-bottom: 0; }
+  .drawer__item:nth-child(n+3) { margin-bottom: -64px; }
+  .drawer__front { left: -8px; right: -8px; flex-direction: column; gap: 8px; }
+  .drawer__handle { width: 120px; }
+}

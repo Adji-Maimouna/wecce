@@ -1,0 +1,20 @@
+/* Fiche
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.fiche-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: "g b" "c b"; gap: 28px 40px; align-items: start; }
+.fiche-g { grid-area: g; }
+.fiche-b { grid-area: b; }
+.fiche-c { grid-area: c; }
+.gallery { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; aspect-ratio: 4 / 4.2; }
+.gallery img { width: 100%; height: 100%; object-fit: cover; }
+.big-price { font-family: var(--font-display); font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.03em; color: var(--points); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: var(--t-sm); }
+.checks li:last-child { border-bottom: 0; }
+.checks li .i { color: var(--ok); margin-top: 1px; }
+.checks li .v { color: var(--muted); text-align: right; }
+@media (max-width: 900px) {
+  .fiche-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "g" "b" "c"; }
+  .checks li { grid-template-columns: 22px minmax(0, 1fr); }
+  .checks li .v { grid-column: 2; text-align: left; }
+}

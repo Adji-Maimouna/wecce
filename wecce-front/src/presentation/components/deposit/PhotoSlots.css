@@ -1,0 +1,17 @@
+/* PhotoSlots
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.photo-slot--filled > :not(img) { display: none; }
+.photos-drop { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 150px)); gap: 10px; }
+.photo-slot {
+  aspect-ratio: 1; border-radius: var(--r); border: 1px dashed var(--line-strong); background: var(--surface-2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--muted);
+  font-size: var(--t-xs); text-align: center; padding: 8px; cursor: pointer;
+  transition: border-color var(--m-in) var(--m-ease), color var(--m-in) var(--m-ease);
+}
+.photo-slot:hover { border-color: var(--ink-2); color: var(--ink); }
+.photo-slot--filled { border-style: solid; padding: 0; overflow: hidden; }
+.photo-slot--filled img { width: 100%; height: 100%; object-fit: cover; }
+@media (max-width: 720px) {
+  .photos-drop { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

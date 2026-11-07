@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Mes dépôts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Plusieurs dépôts|vide:Aucun dépôt">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace étudiant · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="marche.html">Marché</a>
+    <a href="deposer.html">Déposer</a>
+    <a href="depots.html" aria-current="page">Mes dépôts</a>
+    <a href="solde.html">Mon solde</a>
+  </nav>
+  <label class="search"><i data-icon="search"></i><input type="search" placeholder="Chercher un modèle" aria-label="Chercher un modèle"></label>
+  <div class="top__end">
+    <a class="balance" href="solde.html" aria-label="Votre solde : 32 490 points"><i data-icon="points"></i>32 490 pts</a>
+    <a class="avatar" href="profil.html" title="Moussa D. · mon profil" aria-label="Mon profil">MD</a>
+  </div>
+</div></header>
+
+<main class="page"><div class="wrap" style="max-width:1040px">
+  <div class="page-head">
+    <div><h1>Mes dépôts</h1></div>
+    <a class="btn" href="deposer.html"><i data-icon="plus" class="i--sm"></i>Déposer un objet</a>
+  </div>
+
+  <section class="panel" data-when="vide" hidden style="padding:40px 28px">
+    <div class="stack" style="max-width:54ch;gap:14px">
+      <i data-icon="upload" class="i--lg" style="color:var(--muted)"></i>
+      <h2>Vous n'avez encore rien déposé</h2>
+      <p class="muted">Décrivez un appareil et prenez rendez-vous chez LBC.</p>
+      <div><a class="btn" href="deposer.html">Déposer un premier objet</a></div>
+    </div>
+  </section>
+
+  <div class="stack" data-unless="vide" style="gap:28px">
+    <section>
+      <h2 style="font-size:var(--t-lg);margin-bottom:12px">En cours</h2>
+      <div class="panel" data-stagger>
+        <article class="deposit" data-item>
+          <div class="deposit__icon"><i data-icon="laptop" class="i--lg"></i></div>
+          <div>
+            <div class="deposit__title"><h3>Lenovo IdeaPad 3 · 256 Go SSD</h3><span class="badge badge--info" data-status><i data-icon="calendar" class="i--sm"></i>Rendez-vous pris</span><span class="deposit__ref">WC-2026-0634</span></div>
+            <div class="deposit__facts"><span>Vendredi 7 novembre, 10 h 30</span><span>Prix souhaité : 90 000 pts</span></div>
+            <div class="track" aria-label="Avancement : rendez-vous pris">
+              <span class="done">Décrit</span><span class="now">Rendez-vous</span><span>Examen</span><span>Signature</span><span>En vente</span>
+            </div>
+          </div>
+          <div class="deposit__actions" data-actions>
+            <a class="btn btn--ghost btn--sm" href="changer-rendez-vous.html">Changer le rendez-vous</a>
+            <button class="btn btn--danger btn--sm" type="button" data-confirm="annul-0634">Annuler le dépôt</button>
+          </div>
+          <div class="confirm" id="annul-0634" hidden>
+            <p><strong>Annuler ce dépôt ?</strong> Le créneau du vendredi 7 novembre à 10 h 30 sera libéré.</p>
+            <button class="btn btn--danger btn--sm" type="button" data-confirm-yes data-after="Annulé|line" data-toast="Dépôt WC-2026-0634 annulé. Le créneau est libéré.">Annuler le dépôt</button>
+            <button class="btn btn--ghost btn--sm" type="button" data-confirm-no>Garder le rendez-vous</button>
+          </div>
+        </article>
+        <article class="deposit">
+          <div class="deposit__icon"><i data-icon="piece" class="i--lg"></i></div>
+          <div>
+            <div class="deposit__title"><h3>Disque dur externe · 1 To</h3><span class="badge">Brouillon</span><span class="deposit__ref">WC-2026-0655</span></div>
+            <div class="deposit__facts"><span>Il manque les photos et le rendez-vous</span></div>
+            <div class="track" aria-label="Avancement : brouillon">
+              <span class="now">Décrit</span><span>Rendez-vous</span><span>Examen</span><span>Signature</span><span>En vente</span>
+            </div>
+          </div>
+          <div class="deposit__actions"><a class="btn btn--sm" href="deposer.html">Reprendre le dépôt</a></div>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2 style="font-size:var(--t-lg);margin-bottom:12px">Terminés</h2>
+      <div class="panel" data-stagger>
+        <article class="deposit">
+          <div class="deposit__icon"><img src="../assets/img/redmi.jpg" alt="" width="72" height="72"></div>
+          <div>
+            <div class="deposit__title"><h3>Redmi Note 8 · 64 Go</h3><span class="badge badge--ok"><i data-icon="check" class="i--sm"></i>Repris</span><span class="deposit__ref">WC-2026-0412</span></div>
+            <div class="deposit__facts"><span>Signé le 14 septembre</span><span>Repris <span class="pts">30 000 pts</span> + bonus 6 000</span><span>Proposé 40 000, aujourd'hui 36 100</span></div>
+            <div class="track" aria-label="Avancement : en vente">
+              <span class="done">Décrit</span><span class="done">Rendez-vous</span><span class="done">Examen</span><span class="done">Signature</span><span class="done">En vente</span>
+            </div>
+          </div>
+          <div class="deposit__actions">
+            <a class="btn btn--ghost btn--sm" href="fiche.html">Voir l'annonce</a>
+          </div>
+        </article>
+        <article class="deposit">
+          <div class="deposit__icon"><i data-icon="phone" class="i--lg"></i></div>
+          <div>
+            <div class="deposit__title"><h3>Tecno Camon 12 · 64 Go</h3><span class="badge badge--danger"><i data-icon="x-circle" class="i--sm"></i>Refusé</span><span class="deposit__ref">WC-2026-0521</span></div>
+            <div class="deposit__facts"><span>Examiné le 3 octobre</span><span>Motif : écran fissuré sur toute la largeur</span></div>
+            <p class="small muted" style="margin-top:8px">Une fois l'écran remplacé, vous pouvez le déposer à nouveau.</p>
+          </div>
+          <div class="deposit__actions"><a class="btn btn--ghost btn--sm" href="deposer.html">Déposer à nouveau</a></div>
+        </article>
+        <article class="deposit">
+          <div class="deposit__icon"><i data-icon="audio" class="i--lg"></i></div>
+          <div>
+            <div class="deposit__title"><h3>Casque JBL Tune 500</h3><span class="badge badge--line">Annulé</span><span class="deposit__ref">WC-2026-0488</span></div>
+            <div class="deposit__facts"><span>Annulé par vous le 22 septembre, avant le rendez-vous</span></div>
+          </div>
+          <div class="deposit__actions"></div>
+        </article>
+      </div>
+    </section>
+  </div>
+</div></main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, marché" href="marche.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="questions.html" data-discover="true">Questions fréquentes</a><a href="questions.html#deux-prix" data-discover="true">Les deux prix</a><a href="questions.html#baisse" data-discover="true">La baisse mensuelle</a><a href="questions.html#retrait" data-discover="true">Retrait et garantie</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Mon compte"><h2>Mon compte</h2><a href="profil.html" data-discover="true">Mon profil</a><a href="solde.html#historique" data-discover="true">Historique des points</a><a href="../entree.html">Se déconnecter</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="../credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="marche.html"><i data-icon="grid"></i>Marché</a>
+  <a href="deposer.html"><i data-icon="upload"></i>Déposer</a>
+  <a href="depots.html" aria-current="page"><i data-icon="list"></i>Mes dépôts</a>
+  <a href="solde.html"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

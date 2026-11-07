@@ -1,0 +1,14 @@
+/* Panel
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.panel__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 26px 28px 0; }
+.panel__body { padding: 22px 28px 28px; }
+.panel__foot { padding: 18px 28px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.panel--sunken { background: var(--surface-2); }
+.divider { height: 1px; background: var(--line); border: 0; margin: 0; }
+@media (max-width: 720px) {
+  .panel__head { padding: 20px 18px 0; }
+  .panel__body { padding: 18px 18px 22px; }
+  .panel__foot { padding: 14px 18px; }
+}

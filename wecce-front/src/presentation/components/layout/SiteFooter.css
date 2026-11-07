@@ -1,0 +1,29 @@
+/* SiteFooter
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.footer { border-top: 1px solid var(--line); padding-block: 24px; font-size: var(--t-xs); color: var(--muted); }
+.site-foot { background: var(--foot-bg); color: var(--foot-ink); margin-top: 0; }
+.site-foot__in { display: grid; grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); gap: 40px 48px; padding-block: 64px 48px; }
+.site-foot .brand { color: var(--foot-ink); font-size: 2rem; }
+.site-foot .brand__dot { background: var(--foot-accent); }
+.site-foot__brand p { margin-top: 14px; color: var(--foot-muted); max-width: 34ch; }
+.site-foot__col { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.site-foot__col h2 { font-family: var(--font); font-size: var(--t-sm); font-weight: 700; color: var(--foot-accent); letter-spacing: 0; margin-bottom: 4px; }
+.site-foot__col p { color: var(--foot-muted); font-size: var(--t-sm); }
+.site-foot__col p strong { color: var(--foot-ink); }
+.site-foot a { color: var(--foot-ink); font-size: var(--t-sm); text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color var(--m-out) var(--ease-std), color var(--m-out) var(--ease-std); }
+.site-foot a:hover { text-decoration-color: var(--foot-accent); }
+.site-foot__link { appearance: none; background: none; border: 0; padding: 0; font: inherit; font-size: var(--t-sm); color: var(--foot-ink); cursor: pointer; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 4px; transition: text-decoration-color var(--m-out) var(--ease-std); }
+.site-foot__link:hover { text-decoration-color: var(--foot-accent); }
+.site-foot :focus-visible { outline-color: var(--foot-accent); }
+.site-foot__pin { display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; padding: 8px 14px; border-radius: 999px; background: rgb(255 255 255 / 0.08); }
+.site-foot__legal { display: flex; flex-wrap: wrap; gap: 8px 24px; padding-block: 20px 28px; border-top: 1px solid rgb(255 255 255 / 0.14); font-size: var(--t-xs); color: var(--foot-muted); }
+.site-foot__legal a { font-size: var(--t-xs); }
+.footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+@media (max-width: 900px) {
+  .site-foot__in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-foot__brand { grid-column: 1 / -1; }
+}
+@media (max-width: 720px) {
+  .site-foot__in { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-block: 44px 32px; }
+}

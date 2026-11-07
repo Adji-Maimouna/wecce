@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Mon solde</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="../assets/wecce.css">
+<script src="../assets/wecce.js" defer></script>
+</head>
+<body data-states="defaut:Compte actif|vide:Nouveau compte">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note">Espace étudiant · données de démonstration</span>
+  <a href="../sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<header class="top"><div class="wrap top__in">
+  <a class="brand" href="../accueil.html" aria-label="Wecce, accueil">wecce<span class="brand__dot"></span></a>
+  <nav class="nav" aria-label="Navigation principale">
+    <a href="marche.html">Marché</a>
+    <a href="deposer.html">Déposer</a>
+    <a href="depots.html">Mes dépôts</a>
+    <a href="solde.html" aria-current="page">Mon solde</a>
+  </nav>
+  <label class="search"><i data-icon="search"></i><input type="search" placeholder="Chercher un modèle" aria-label="Chercher un modèle"></label>
+  <div class="top__end">
+    <a class="balance" href="solde.html" aria-label="Votre solde"><i data-icon="points"></i><span data-unless="vide">32 490 pts</span><span data-when="vide" hidden>0 pt</span></a>
+    <a class="avatar" href="profil.html" title="Moussa D. · mon profil" aria-label="Mon profil">MD</a>
+  </div>
+</div></header>
+
+<main class="page"><div class="wrap" style="max-width:1100px">
+
+  <section class="panel" data-when="vide" hidden style="padding:40px 32px;margin-bottom:28px">
+    <div class="stack" style="max-width:56ch;gap:16px">
+      <h1>Votre solde est de 0 point</h1>
+      <p class="muted">Vous recevez des points quand LBC reprend un appareil que vous avez déposé.</p>
+      <div class="row"><a class="btn" href="deposer.html">Déposer un objet</a><a class="btn btn--ghost" href="marche.html">Voir le marché</a></div>
+    </div>
+  </section>
+
+  <div data-unless="vide" class="stack" style="gap:32px">
+    <div class="cols" style="grid-template-columns:minmax(0,1fr) minmax(0,1.45fr)">
+      <section class="panel">
+        <div class="panel__body stack" style="gap:20px">
+          <div>
+            <h1 class="small muted" style="font-family:var(--font);font-size:var(--t-sm);font-weight:600;letter-spacing:0">Mon solde</h1>
+            <div class="big-price" style="font-size:var(--t-4xl);margin-top:8px" data-countup>32 490 pts</div>
+            <p class="small muted" style="margin-top:8px">1 point = 1 franc sur le marché Wecce. Vos points n'expirent pas.</p>
+          </div>
+          <hr class="divider">
+          <dl class="dl small">
+            <dt>Prochaine baisse</dt><dd>1<sup>er</sup> décembre</dd>
+            <dt>Solde après la baisse</dt><dd>30 865 pts</dd>
+            <dt>Objets dans votre solde aujourd'hui</dt><dd>8</dd>
+          </dl>
+          <a class="btn btn--block btn--lg" href="marche.html">Voir les objets dans mon solde</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head"><h2>Votre pouvoir d'achat ne baisse pas</h2></div>
+        <div class="panel__body stack" style="gap:20px">
+          <p class="muted" style="max-width:60ch">Le 1<sup>er</sup> de chaque mois, vos points et les prix du marché baissent de 5 %.</p>
+
+          <div class="sim" data-sim data-solde="32490" data-prix="24500">
+            <label class="sim__label" for="mois">Dans <strong data-sim-out="mois">0 mois</strong></label>
+            <input class="range" type="range" id="mois" min="0" max="6" step="1" value="0">
+            <div class="sim__cols">
+              <div class="sim__cell">
+                <span class="xs muted">Votre solde</span>
+                <strong class="sim__num pts" data-sim-out="solde">32 490 pts</strong>
+              </div>
+              <div class="sim__cell">
+                <span class="xs muted">Tecno Spark 4 sur le marché</span>
+                <strong class="sim__num" data-sim-out="prix">24 500 pts</strong>
+              </div>
+              <div class="sim__cell">
+                <span class="xs muted">Il vous reste après l'avoir pris</span>
+                <strong class="sim__num" data-sim-out="reste">7 990 pts</strong>
+              </div>
+            </div>
+            <div class="jauge jauge--lg" aria-hidden="true"><span class="jauge__pts" style="width:75%"></span></div>
+            <p class="small" data-sim-out="phrase" style="color:var(--ok);font-weight:600">Le Tecno coûte 75 % de vos points, aujourd'hui comme dans 6 mois.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panel__head"><h2>Depuis votre premier dépôt</h2><span class="small muted">Survolez un point pour lire sa valeur</span></div>
+      <div class="panel__body stack" style="gap:14px">
+        <svg class="chart chart--wide" viewBox="0 0 640 236" role="img" aria-labelledby="chart-t" style="width:100%;height:auto;max-height:300px">
+          <title id="chart-t">Votre solde et le prix du Redmi Note 8 baissent au même rythme, de septembre à décembre.</title>
+          <line class="grid-line" x1="56" x2="610" y1="45.7" y2="45.7"/>
+          <line class="grid-line" x1="56" x2="610" y1="110" y2="110"/>
+          <line class="grid-line" x1="56" x2="610" y1="174.3" y2="174.3"/>
+          <text x="48" y="49" text-anchor="end">40 000</text>
+          <text x="48" y="114" text-anchor="end">35 000</text>
+          <text x="48" y="178" text-anchor="end">30 000</text>
+          <line class="axis" x1="56" x2="610" y1="200" y2="200"/>
+          <text x="80" y="222" text-anchor="middle">14 sept.</text>
+          <text x="191" y="222" text-anchor="middle">1er oct.</text>
+          <text x="394" y="222" text-anchor="middle">1er nov.</text>
+          <text x="590" y="222" text-anchor="middle">1er déc.</text>
+          <polyline class="ln-ref" points="80,45.7 191,71.4 394,95.9" fill="none" stroke-width="2.5" stroke-linejoin="round"/>
+          <polyline class="ln-ref" points="394,95.9 590,119.1" fill="none" stroke-width="2.5" stroke-dasharray="5 5"/>
+          <polyline class="ln-points" points="80,97.1 191,120.3 394,142.3" fill="none" stroke-width="3.5" stroke-linejoin="round"/>
+          <polyline class="ln-points" points="394,142.3 590,163.1" fill="none" stroke-width="3.5" stroke-dasharray="5 5"/>
+          <g class="hits">
+            <circle class="dot-ref hit" cx="80" cy="45.7" r="6" stroke-width="2" data-tip="14 sept. · Redmi Note 8 mis en vente à 40 000 pts"/>
+            <circle class="dot-ref hit" cx="191" cy="71.4" r="6" stroke-width="2" data-tip="1er oct. · Redmi Note 8 à 38 000 pts"/>
+            <circle class="dot-ref hit" cx="394" cy="95.9" r="6" stroke-width="2" data-tip="1er nov. · Redmi Note 8 à 36 100 pts"/>
+            <circle class="dot-ref hit" cx="590" cy="119.1" r="6" stroke-width="2" data-tip="1er déc. (prévu) · Redmi Note 8 à 34 295 pts"/>
+            <circle class="dot-points hit" cx="80" cy="97.1" r="7" stroke-width="2" data-tip="14 sept. · votre solde : 36 000 pts (dépôt + bonus)"/>
+            <circle class="dot-points hit" cx="191" cy="120.3" r="7" stroke-width="2" data-tip="1er oct. · votre solde : 34 200 pts"/>
+            <circle class="dot-points hit" cx="394" cy="142.3" r="7" stroke-width="2" data-tip="1er nov. · votre solde : 32 490 pts"/>
+            <circle class="dot-points hit" cx="590" cy="163.1" r="7" stroke-width="2" data-tip="1er déc. (prévu) · votre solde : 30 865 pts"/>
+          </g>
+        </svg>
+        <div class="legend"><span><i style="background:var(--points-fill)"></i>Votre solde</span><span><i style="background:var(--cobalt)"></i>Prix du Redmi Note 8 que vous avez déposé</span><span><i style="background:repeating-linear-gradient(90deg,var(--muted) 0 4px,transparent 4px 7px)"></i>Prévu</span></div>
+      </div>
+    </section>
+
+    <section class="panel" id="historique" style="scroll-margin-top:96px">
+      <div class="panel__head">
+        <h2>Tous les mouvements</h2>
+        <div class="chips" data-single data-filter-group="mvt" role="group" aria-label="Type de mouvement">
+          <button class="chip" type="button" data-value="tout" aria-pressed="true">Tout</button>
+          <button class="chip" type="button" data-value="gain" aria-pressed="false">Gains</button>
+          <button class="chip" type="button" data-value="baisse" aria-pressed="false">Baisses mensuelles</button>
+          <button class="chip" type="button" data-value="depense" aria-pressed="false">Dépenses</button>
+        </div>
+      </div>
+      <div class="panel__body" style="padding-top:12px">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Date</th><th>Opération</th><th>Détail</th><th class="r">Points</th><th class="r">Solde après</th></tr></thead>
+            <tbody data-filter-target="mvt">
+              <tr data-kind="baisse"><td>1<sup>er</sup> nov. 2026</td><td><span class="badge"><i data-icon="down" class="i--sm"></i>Baisse mensuelle</span></td><td class="muted">5 % de 34 200</td><td class="r">− 1 710</td><td class="r">32 490</td></tr>
+              <tr data-kind="baisse"><td>1<sup>er</sup> oct. 2026</td><td><span class="badge"><i data-icon="down" class="i--sm"></i>Baisse mensuelle</span></td><td class="muted">5 % de 36 000</td><td class="r">− 1 800</td><td class="r">34 200</td></tr>
+              <tr data-kind="gain"><td>14 sept. 2026</td><td><span class="badge badge--ok"><i data-icon="gift" class="i--sm"></i>Bonus de lancement</span></td><td class="muted">+ 20 % sur la reprise du dépôt WC-2026-0412</td><td class="r pts">+ 6 000</td><td class="r">36 000</td></tr>
+              <tr data-kind="gain"><td>14 sept. 2026</td><td><span class="badge badge--ok"><i data-icon="store" class="i--sm"></i>Dépôt repris</span></td><td class="muted">Redmi Note 8, renoncement signé en boutique</td><td class="r pts">+ 30 000</td><td class="r">30 000</td></tr>
+              <tr data-filter-empty hidden><td colspan="5" class="muted" style="padding:28px 14px;text-align:center">Aucune dépense pour l'instant.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div></main>
+
+<footer class="site-foot"><div class="wrap site-foot__in"><div class="site-foot__brand"><a class="brand" aria-label="Wecce, marché" href="marche.html" data-discover="true">wecce<span class="brand__dot"></span></a><p>L'échange d'électronique par points, entre étudiants de l'UGB.</p></div><nav class="site-foot__col" aria-label="Aide"><h2>Aide</h2><a href="questions.html" data-discover="true">Questions fréquentes</a><a href="questions.html#deux-prix" data-discover="true">Les deux prix</a><a href="questions.html#baisse" data-discover="true">La baisse mensuelle</a><a href="questions.html#retrait" data-discover="true">Retrait et garantie</a></nav><div class="site-foot__col"><h2>La boutique LBC</h2><p><strong>Leye Business Company</strong><br>Campus de l'UGB, entre les villages E&nbsp;et&nbsp;F</p><p>Rendez-vous du lundi au samedi, de 9&nbsp;h&nbsp;30 à 16&nbsp;h&nbsp;30</p><a class="site-foot__pin" href="https://www.openstreetmap.org/search?query=Universit%C3%A9%20Gaston%20Berger%20Saint-Louis" target="_blank" rel="noreferrer"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 10 4 4h16l2 6"></path><path d="M4 10v10h16V10"></path><path d="M2 10h20"></path><path d="M10 20v-5h4v5"></path></svg>Voir le campus sur la carte</a></div><nav class="site-foot__col" aria-label="Mon compte"><h2>Mon compte</h2><a href="profil.html" data-discover="true">Mon profil</a><a href="solde.html#historique" data-discover="true">Historique des points</a><a href="../entree.html">Se déconnecter</a></nav></div><div class="wrap"><div class="site-foot__legal"><span>© 2026 Wecce, avec LBC</span><a href="../credits.html" data-discover="true">Crédits photos</a></div></div></footer>
+
+<nav class="tabbar" aria-label="Navigation">
+  <a href="marche.html"><i data-icon="grid"></i>Marché</a>
+  <a href="deposer.html"><i data-icon="upload"></i>Déposer</a>
+  <a href="depots.html"><i data-icon="list"></i>Mes dépôts</a>
+  <a href="solde.html" aria-current="page"><i data-icon="points"></i>Solde</a>
+</nav>
+</body>
+</html>

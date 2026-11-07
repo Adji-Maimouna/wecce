@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wecce · Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Figtree:wght@400..800&display=swap">
+<link rel="stylesheet" href="assets/wecce.css">
+<script src="assets/wecce.js" defer></script>
+</head>
+<body data-states="connexion:Se connecter|erreur:Mot de passe refusé|oubli:Mot de passe oublié|envoye:Lien envoyé|inscription:Créer un compte|cree:Compte créé">
+
+<div class="mq"><div class="wrap mq__in">
+  <span class="mq__name">Maquette Wecce</span>
+  <span class="mq__note mq__note--keep">Essai : « lbc » ou « admin » dans l'identifiant, « erreur » en mot de passe</span>
+  <a href="sommaire.html">Sommaire des écrans</a>
+  <div class="mq__states"></div>
+</div></div>
+
+<main class="gate gate--auth">
+  <div class="gate__main">
+    <div class="gate__inner auth">
+      <div class="auth__head">
+        <a class="brand" href="entree.html" aria-label="Wecce, page d'entrée">wecce<span class="brand__dot"></span></a>
+        <a class="link small" href="accueil.html">Continuer sans compte</a>
+      </div>
+
+      <!-- Se connecter : tout le monde, le compte décide de l'espace -->
+      <form data-auth="login" data-when="connexion erreur" novalidate aria-labelledby="t-connexion">
+        <h1 id="t-connexion">Se connecter</h1>
+
+        <div class="notice notice--danger" role="alert" data-when="erreur" hidden>
+          <i data-icon="alert"></i>
+          <div><p><strong>Identifiant ou mot de passe incorrect.</strong></p></div>
+        </div>
+
+        <div class="field">
+          <label for="identifiant">E-mail ou numéro de téléphone</label>
+          <input class="input" id="identifiant" name="identifiant" autocomplete="username" required>
+          <p class="err" data-err-for="identifiant" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre e-mail ou votre numéro.</p>
+        </div>
+        <div class="field">
+          <label for="mdp">Mot de passe</label>
+          <div class="pw">
+            <input class="input" id="mdp" name="mdp" type="password" autocomplete="current-password" required>
+            <button type="button" aria-pressed="false" aria-controls="mdp">Afficher</button>
+          </div>
+          <p class="err" data-err-for="mdp" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre mot de passe.</p>
+        </div>
+        <div class="auth__row">
+          <label class="check"><input type="checkbox" checked>Rester connecté</label>
+          <a class="link" href="#oubli" data-go-state="oubli">Mot de passe oublié ?</a>
+        </div>
+        <button class="btn btn--lg btn--block" type="submit">Se connecter</button>
+        <p class="auth__alt">Pas encore de compte ? <a href="#inscription" data-go-state="inscription">Créer un compte</a></p>
+      </form>
+
+      <!-- Mot de passe oublié -->
+      <form data-auth="reset" data-when="oubli" hidden novalidate aria-labelledby="t-oubli">
+        <h1 id="t-oubli">Mot de passe oublié</h1>
+        <p class="muted">Nous vous envoyons par e-mail un lien pour en choisir un nouveau.</p>
+        <div class="field">
+          <label for="email-oubli">E-mail</label>
+          <input class="input" id="email-oubli" type="email" autocomplete="email" required>
+          <p class="err" data-err-for="email-oubli" hidden><i data-icon="alert" class="i--sm"></i>Indiquez l'e-mail de votre compte.</p>
+        </div>
+        <button class="btn btn--lg btn--block" type="submit">Envoyer le lien</button>
+        <p class="auth__alt"><a href="#connexion" data-go-state="connexion">Revenir à la connexion</a></p>
+      </form>
+
+      <!-- Lien envoyé -->
+      <section class="welcome" data-when="envoye" hidden aria-labelledby="t-envoye">
+        <span class="welcome__mark"><i data-icon="check"></i></span>
+        <h1 id="t-envoye">Lien envoyé</h1>
+        <p class="muted">Si cette adresse correspond à un compte Wecce, vous recevrez le lien par e-mail.</p>
+        <div class="welcome__actions"><a class="btn btn--lg btn--ghost" href="#connexion" data-go-state="connexion">Revenir à la connexion</a></div>
+      </section>
+
+      <!-- Créer un compte : étudiants seulement -->
+      <form data-auth="signup" data-when="inscription" hidden novalidate aria-labelledby="t-inscription">
+        <h1 id="t-inscription">Créer un compte</h1>
+        <p class="muted">Réservé aux étudiants de l'UGB.</p>
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="prenom">Prénom</label>
+            <input class="input" id="prenom" autocomplete="given-name" required>
+            <p class="err" data-err-for="prenom" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre prénom.</p>
+          </div>
+          <div class="field">
+            <label for="nom">Nom</label>
+            <input class="input" id="nom" autocomplete="family-name" required>
+            <p class="err" data-err-for="nom" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre nom.</p>
+          </div>
+          <div class="field full">
+            <label for="carte">Numéro de carte d'étudiant</label>
+            <input class="input" id="carte" maxlength="16" autocomplete="off" required>
+            <p class="err" data-err-for="carte" hidden><i data-icon="alert" class="i--sm"></i>Indiquez le numéro de votre carte.</p>
+          </div>
+          <div class="field">
+            <label for="tel">Téléphone</label>
+            <input class="input" id="tel" type="tel" autocomplete="tel" inputmode="tel" required>
+            <p class="err" data-err-for="tel" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre numéro.</p>
+          </div>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input class="input" id="email" type="email" autocomplete="email" required>
+            <p class="err" data-err-for="email" hidden><i data-icon="alert" class="i--sm"></i>Indiquez votre e-mail.</p>
+          </div>
+          <div class="field">
+            <label for="niveau">Niveau <span class="muted">(facultatif)</span></label>
+            <select class="select" id="niveau">
+              <option value="">Choisir</option>
+              <option>Licence 1</option><option>Licence 2</option><option>Licence 3</option>
+              <option>Master 1</option><option>Master 2</option><option>Doctorat</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ufr">UFR <span class="muted">(facultatif)</span></label>
+            <select class="select" id="ufr">
+              <option value="">Choisir</option>
+              <option>SAT</option><option>SJP</option><option>SEG</option><option>LSH</option>
+              <option>S2ATA</option><option>SEFS</option><option>2S</option><option>CRAC</option>
+              <option>Autre</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="mdp-new">Mot de passe</label>
+            <div class="pw">
+              <input class="input" id="mdp-new" type="password" autocomplete="new-password" minlength="8" required aria-describedby="mdp-aide">
+              <button type="button" aria-pressed="false" aria-controls="mdp-new">Afficher</button>
+            </div>
+            <p class="hint" id="mdp-aide">8 caractères au moins.</p>
+            <p class="err" data-err-for="mdp-new" hidden><i data-icon="alert" class="i--sm"></i>Choisissez un mot de passe de 8 caractères au moins.</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="check"><input type="checkbox" id="fonte" required>J'ai compris que mes points et les prix baissent de 5&nbsp;% chaque mois.</label>
+          <p class="err" data-err-for="fonte" hidden><i data-icon="alert" class="i--sm"></i>Cochez la case pour continuer.</p>
+        </div>
+        <button class="btn btn--lg btn--block" type="submit">Créer mon compte</button>
+        <p class="auth__alt">Déjà inscrit ? <a href="#connexion" data-go-state="connexion">Se connecter</a></p>
+      </form>
+
+      <!-- Compte créé -->
+      <section class="welcome" data-when="cree" hidden aria-labelledby="t-cree">
+        <span class="welcome__mark"><i data-icon="check"></i></span>
+        <h1 id="t-cree">Compte créé</h1>
+        <p class="muted">Déposez un appareil chez LBC pour recevoir vos premiers points.</p>
+        <div class="welcome__actions">
+          <a class="btn btn--lg" href="etudiant/deposer.html">Déposer un objet</a>
+          <a class="btn btn--lg btn--ghost" href="etudiant/marche.html">Voir le marché</a>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="gate__art" aria-hidden="true">
+    <div class="pile">
+      <span class="pile__item" style="--i:0;--r:-5deg"><img src="assets/img/ipad.jpg" alt="" width="453" height="640"></span>
+      <span class="pile__item" style="--i:1;--r:6deg"><img src="assets/img/jbl.jpg" alt="" width="500" height="375"></span>
+      <span class="pile__item" style="--i:2;--r:-2deg"><img src="assets/img/tecno.jpg" alt="" width="309" height="640"></span>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+/* Chip
+   Porté de maquette/assets/wecce.css, à l'identique. */
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 14px;
+  border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+  font: inherit; font-size: var(--t-sm); font-weight: 500; cursor: pointer;
+  transition: background-color var(--m-in) var(--m-ease), border-color var(--m-in) var(--m-ease), color var(--m-in) var(--m-ease);
+}
+.chip:hover { border-color: var(--line-strong); }
+.chip .count { color: var(--faint); font-weight: 400; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent-tint); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.chip[aria-pressed="true"] .count { color: var(--accent); opacity: .7; }
+.chip--points[aria-pressed="true"] { background: var(--points-fill); border-color: var(--points-fill); color: var(--points-ink); }
+.chip--points[aria-pressed="true"] .count { color: inherit; opacity: .75; }
+.chip:active { transform: scale(.96); }
+@media (max-width: 720px) {
+  .chips--scroll {
+    flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    margin-left: calc(-1 * var(--gutter)); margin-right: calc(-1 * var(--gutter-r));
+    padding-left: var(--gutter); padding-right: var(--gutter-r); width: calc(100% + var(--gutter) + var(--gutter-r));
+  }
+  .chips--scroll::-webkit-scrollbar { display: none; }
+  .chip { flex: none; }
+}
