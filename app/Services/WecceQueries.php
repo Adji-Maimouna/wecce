@@ -47,6 +47,7 @@ class WecceQueries
             return [
                 'agent' => $this->agentEntity($user->id),
                 'appointmentsToReceive' => $this->appointmentsToReceive(),
+                'partnerTodo' => $this->partnerTodo(),
             ];
         }
 
@@ -103,6 +104,17 @@ class WecceQueries
             'email' => $u->email,
             'telephone' => $u->telephone,
             'portee' => $u->administrateur?->portee ?? 'GLOBAL',
+        ];
+    }
+
+    /** Compteurs de la barre latérale LBC : ce qui attend une action de la boutique. */
+    public function partnerTodo(): array
+    {
+        return [
+            'requests' => Depot::query()->where('statut', 'RDV_DEMANDE')->count(),
+            'purchases' => Acquisition::query()->where('statut', 'A_VALIDER')->count(),
+            'handovers' => Acquisition::query()->where('statut', 'RESERVE')->count(),
+            'toPublish' => Annonce::query()->whereIn('statut', ['A_PHOTOGRAPHIER', 'EN_BOUTIQUE'])->where('origine', 'DEPOT_ETUDIANT')->count(),
         ];
     }
 
@@ -369,7 +381,7 @@ class WecceQueries
         if ($firstPhoto) {
             $base['photo'] = $firstPhoto;
         }
-        if ($d->prix_souhaite !== null && in_array($statusFront, ['brouillon', 'rendez-vous', 'a-signer'], true)) {
+        if ($d->prix_souhaite !== null && in_array($statusFront, ['brouillon', 'demande-rdv', 'rendez-vous', 'a-signer'], true)) {
             $base['wish'] = (int) $d->prix_souhaite;
         }
 
@@ -386,6 +398,14 @@ class WecceQueries
                 if (count($missingParts)) {
                     $base['missing'] = 'Il manque ' . implode(' et ', $missingParts);
                 }
+                return $base;
+
+            case 'demande-rdv':
+                $base['stageIndex'] = 1;
+                $base['request'] = [
+                    'sentAt' => WecceClock::dayMonth($d->cree_le),
+                    'summary' => $this->availabilitySummary($d->disponibilites),
+                ];
                 return $base;
 
             case 'rendez-vous':
@@ -460,7 +480,7 @@ class WecceQueries
             ->where('etudiant_id', $viewerId)
             ->get();
 
-        $openStatuses = ['BROUILLON', 'RDV_PRIS', 'EXPERTISE'];
+        $openStatuses = ['BROUILLON', 'RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'];
 
         $current = $mine
             ->filter(fn (Depot $d) => in_array($d->statut, $openStatuses, true))
@@ -595,22 +615,17 @@ class WecceQueries
             ->with(['appareil.photos', 'expertise.renoncement', 'annonce'])
             ->where('reference', strtoupper($ref))
             ->where('etudiant_id', $viewerId)
-            ->where('statut', 'RDV_PRIS')
+            ->whereIn('statut', ['RDV_DEMANDE', 'RDV_PRIS'])
             ->first();
 
         if (!$d) {
             return null;
         }
 
-        $s = $this->schedule($d->reference);
-        $current = $this->slotPosition($d->date_rendez_vous, $s);
-
         return [
             'deposit' => $this->toDeposit($d),
-            'days' => $s['days'],
-            'times' => $s['times'],
-            'current' => $current,
-            'initial' => $current ?? $this->firstFree($s),
+            'availabilityDays' => $this->availabilityDays(),
+            'availability' => is_array($d->disponibilites) ? $d->disponibilites : null,
         ];
     }
 
@@ -949,6 +964,7 @@ class WecceQueries
 
         $statusMap = [
             'BROUILLON' => 'a-venir',
+            'RDV_DEMANDE' => 'a-planifier',
             'RDV_PRIS' => 'a-venir',
             'EXPERTISE' => 'a-signer',
             'VALIDE' => 'repris',
@@ -985,8 +1001,145 @@ class WecceQueries
         if ($e && $e->decision === 'REFUSE' && $e->motif_refus) {
             $app['refusalShort'] = WecceCodes::REFUSAL_SHORT[$e->motif_refus] ?? $e->motif_refus;
         }
+        if (is_array($d->disponibilites) && in_array($d->statut, ['RDV_DEMANDE', 'RDV_PRIS'], true)) {
+            $app['request'] = [
+                'sentAt' => WecceClock::capitalize(WecceClock::dayMonthShort($d->cree_le)) . ', ' . WecceClock::time($d->cree_le),
+                'summary' => $this->availabilitySummary($d->disponibilites),
+                'days' => array_values($d->disponibilites['days'] ?? []),
+                'moment' => $d->disponibilites['moment'] ?? 'indifferent',
+                'note' => $d->disponibilites['note'] ?? '',
+            ];
+        }
 
         return $app;
+    }
+
+    /** Jours d'ouverture proposés à l'étudiant pour indiquer ses disponibilités (6 jours, sans dimanche). */
+    public function availabilityDays(int $count = 6): array
+    {
+        $today = WecceClock::today();
+        $lastTime = WecceClock::parseTime((string) last(config('wecce.appointment_times')));
+        $start = WecceClock::minutesOf(WecceClock::now()) >= WecceClock::minutesOf("{$today}T{$lastTime}") ? 1 : 0;
+
+        $days = [];
+        for ($i = $start; count($days) < $count; $i++) {
+            $d = WecceClock::addDays($today, $i);
+            if (WecceClock::weekday($d) === 0) {
+                continue;
+            }
+            $picker = WecceClock::pickerDay($d);
+            $days[] = [
+                'date' => $d,
+                'label' => $d === $today ? "Aujourd'hui" : $picker['label'],
+                'month' => $picker['month'],
+            ];
+        }
+
+        return $days;
+    }
+
+    /** « lun. 23 nov., mar. 24 nov. · le matin · « après 10 h » » */
+    public function availabilitySummary(?array $av): string
+    {
+        if (!$av || empty($av['days'])) {
+            return 'Disponibilités non indiquées';
+        }
+        $days = array_map(function (string $d): string {
+            $p = WecceClock::parts($d);
+            $wd = mb_substr(WecceClock::WEEKDAYS[WecceClock::weekday($d)], 0, 3, 'UTF-8');
+            return "{$wd}. " . WecceClock::dayNumber($p['d']) . ' ' . WecceClock::MONTHS_SHORT[$p['m']];
+        }, $av['days']);
+        $moment = ['matin' => 'le matin', 'apres-midi' => "l'après-midi", 'indifferent' => 'toute la journée'][$av['moment'] ?? 'indifferent'] ?? 'toute la journée';
+        $txt = implode(', ', $days) . ' · ' . $moment;
+        if (!empty($av['note'])) {
+            $txt .= ' · « ' . $av['note'] . ' »';
+        }
+
+        return $txt;
+    }
+
+    /** Demandes de rendez-vous en attente d'un créneau fixé par LBC, la plus ancienne d'abord. */
+    public function appointmentRequests(): array
+    {
+        return Depot::query()
+            ->with(['etudiant.utilisateur', 'appareil', 'expertise'])
+            ->where('statut', 'RDV_DEMANDE')
+            ->get()
+            ->sortBy(fn (Depot $d) => WecceClock::toIso($d->cree_le))
+            ->values()
+            ->map(fn (Depot $d) => $this->toAppointment($d))
+            ->all();
+    }
+
+    /**
+     * Page Rendez-vous de LBC : un jour choisi librement (navigation précédent / suivant, calendrier),
+     * la semaine qui le contient, les demandes à planifier et les rendez-vous manqués.
+     */
+    public function rendezVousPage(?string $date = null): array
+    {
+        $today = WecceClock::today();
+        $day = (is_string($date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1) ? $date : $today;
+
+        $weekday = WecceClock::weekday($day);
+        $monday = WecceClock::addDays($day, $weekday === 0 ? -6 : 1 - $weekday);
+
+        $active = Depot::query()
+            ->whereNotNull('date_rendez_vous')
+            ->where('statut', '<>', 'BROUILLON')
+            ->get(['date_rendez_vous', 'statut']);
+        $countOn = fn (string $d): array => [
+            'total' => $active->filter(fn (Depot $x) => WecceClock::dateOf($x->date_rendez_vous) === $d && $x->statut !== 'ANNULE')->count(),
+            'open' => $active->filter(fn (Depot $x) => WecceClock::dateOf($x->date_rendez_vous) === $d && in_array($x->statut, ['RDV_PRIS', 'EXPERTISE'], true))->count(),
+        ];
+
+        $week = [];
+        for ($i = 0; $i < 6; $i++) {
+            $d = WecceClock::addDays($monday, $i);
+            $p = WecceClock::parts($d);
+            $c = $countOn($d);
+            $week[] = [
+                'date' => $d,
+                'weekday' => WecceClock::capitalize(mb_substr(WecceClock::WEEKDAYS[WecceClock::weekday($d)], 0, 3, 'UTF-8')) . '.',
+                'day' => $p['d'],
+                'count' => $c['total'],
+                'open' => $c['open'],
+                'isToday' => $d === $today,
+            ];
+        }
+
+        $prev = $this->openingDay($day, -1);
+        $next = $this->openingDay($day, 1);
+
+        $relative = match (true) {
+            $day === $today => "Aujourd'hui",
+            $day === WecceClock::addDays($today, 1) => 'Demain',
+            $day === WecceClock::addDays($today, -1) => 'Hier',
+            default => null,
+        };
+
+        $first = $active->filter(fn (Depot $x) => $x->statut !== 'ANNULE')->map(fn (Depot $x) => WecceClock::dateOf($x->date_rendez_vous))->sort()->values();
+        $upcoming = $first->first(fn (string $d) => $d > $day);
+        $past = $first->reverse()->first(fn (string $d) => $d < $day);
+
+        return [
+            'date' => $day,
+            'today' => $today,
+            'label' => WecceClock::longDate($day),
+            'relative' => $relative,
+            'isPast' => $day < $today,
+            'closed' => WecceClock::weekday($day) === 0,
+            'appointments' => $this->appointmentsOn($day),
+            'week' => $week,
+            'prevDate' => $prev,
+            'nextDate' => $next,
+            'prevWeek' => WecceClock::addDays($monday, -7),
+            'nextWeek' => WecceClock::addDays($monday, 7),
+            'nearestBefore' => $past,
+            'nearestAfter' => $upcoming,
+            'requests' => $this->appointmentRequests(),
+            'missed' => $this->missedAppointments(),
+            'times' => array_map(fn (string $t) => ['label' => $t, 'value' => WecceClock::parseTime($t)], config('wecce.appointment_times')),
+        ];
     }
 
     public function appointmentsOn(string $date): array
@@ -1759,7 +1912,7 @@ class WecceQueries
 
         // Réconciliation exacte des dépôts : total = accepted + pending + refused + cancelled
         $acceptedDeposits = $depots->where('statut', 'VALIDE')->count();
-        $pendingDeposits = $depots->whereIn('statut', ['RDV_PRIS', 'EXPERTISE'])->count();
+        $pendingDeposits = $depots->whereIn('statut', ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'])->count();
         $refusedDeposits = $depots->where('statut', 'REFUSE')->count();
         $cancelledDeposits = $depots->where('statut', 'ANNULE')->count();
         $decidedDeposits = $acceptedDeposits + $refusedDeposits;
@@ -1795,7 +1948,7 @@ class WecceQueries
 
             $depTotal = $catDepots->count();
             $depAccepted = $catDepots->where('statut', 'VALIDE')->count();
-            $depPending = $catDepots->whereIn('statut', ['RDV_PRIS', 'EXPERTISE'])->count();
+            $depPending = $catDepots->whereIn('statut', ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'])->count();
             $depRefused = $catDepots->where('statut', 'REFUSE')->count();
             $depCancelled = $catDepots->where('statut', 'ANNULE')->count();
 

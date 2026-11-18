@@ -14,6 +14,12 @@ export const makeSubmitExpertise = (partner: PartnerGateway) => async (input: Ex
 export const makeRefuseDeposit = (partner: PartnerGateway) => (depositRef: string, reason: RefusalReason, comment: string) =>
   partner.refuseDeposit(depositRef, reason, comment.trim());
 
+/** LBC fixe le rendez-vous demandé par un étudiant. */
+export const makeScheduleAppointment = (partner: PartnerGateway) => async (depositRef: string, date: string, time: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{1,2}:\d{2}$/.test(time)) throw new RuleViolation("creneau-invalide", "Choisissez un jour et une heure.");
+  return partner.scheduleAppointment(depositRef, date, time);
+};
+
 export const makePublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.publishArticle(articleId);
 
 /** Valider un achat demandé par un étudiant : c'est à ce moment que ses points sont débités. */

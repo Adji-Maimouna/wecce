@@ -125,6 +125,10 @@ export const demoPorts: Ports = {
       }),
     cancel: (ref) => act(() => engine.cancelDeposit(data(), me("ETUDIANT").id, ref, now())),
     reschedule: (ref, day, slot) => act(() => engine.reschedule(data(), me("ETUDIANT").id, ref, slotFrom(day, slot, ref))),
+    requestAppointment: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
   },
 
   payments: {
@@ -196,6 +200,10 @@ export const demoPorts: Ports = {
           { pieces: input.pieces, condition: input.condition, battery: input.battery || null, serial: input.serial, takeBack: input.takeBack, listPrice: input.listPrice },
           now(),
         );
+      }),
+    scheduleAppointment: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
       }),
     refuseDeposit: (ref, reason, comment) => act(() => engine.refuse(data(), me("AGENT").id, ref, reason, comment, now())),
     publishArticle: (id) =>

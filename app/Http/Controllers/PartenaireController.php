@@ -18,14 +18,29 @@ class PartenaireController extends Controller
         private readonly WecceQueries $queries,
     ) {}
 
-    public function rendezVous(): Response
+    public function rendezVous(Request $request): Response
     {
         $suspension = $this->queries->depositsSuspension();
 
-        return Inertia::render('partenaire/RendezVous', [
-            'days' => $this->queries->counterDays(),
-            'missed' => $this->queries->missedAppointments(),
-            'depositsSuspended' => $suspension['suspended'],
+        return Inertia::render('partenaire/RendezVous', array_merge(
+            $this->queries->rendezVousPage($request->query('date')),
+            ['depositsSuspended' => $suspension['suspended']],
+        ));
+    }
+
+    public function scheduleAppointment(Request $request, string $ref): JsonResponse
+    {
+        $slot = $this->engine->scheduleAppointment(
+            $request->user()->id,
+            $ref,
+            (string) $request->input('date', ''),
+            (string) $request->input('time', ''),
+            WecceClock::now()
+        );
+
+        return response()->json([
+            'ok' => true,
+            'label' => WecceClock::capitalize(WecceClock::weekdayDayMonth($slot)) . ' à ' . WecceClock::time($slot),
         ]);
     }
 
@@ -41,7 +56,7 @@ class PartenaireController extends Controller
             return redirect("/partenaire/depots/{$ref}");
         }
 
-        $declared = ($state && $state['status'] === 'rendez-vous') ? $this->queries->declaredDevice($ref) : null;
+        $declared = ($state && in_array($state['status'], ['rendez-vous', 'demande-rdv'], true)) ? $this->queries->declaredDevice($ref) : null;
 
         $props = [
             'declared' => $declared,

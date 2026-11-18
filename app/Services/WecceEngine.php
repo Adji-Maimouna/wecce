@@ -157,7 +157,12 @@ class WecceEngine
             $photos = array_values(array_filter($req['photos'] ?? []));
             $photoCount = $req['photoCount'] ?? count($photos);
             $wish = isset($req['wish']) && $req['wish'] !== null && $req['wish'] !== '' ? (int) $req['wish'] : null;
-            $statutSql = $slot ? 'RDV_PRIS' : 'BROUILLON';
+            $availability = isset($req['availability']) && is_array($req['availability'])
+                ? self::normalizeAvailability($req['availability'])
+                : null;
+            // Un créneau précis (données historiques) vaut rendez-vous ; sinon l'étudiant envoie une demande
+            // et LBC fixe le jour et l'heure.
+            $statutSql = $slot ? 'RDV_PRIS' : ($availability ? 'RDV_DEMANDE' : 'BROUILLON');
 
             if ($draftRef) {
                 $draft = Depot::query()->where('reference', $draftRef)->first();
@@ -189,6 +194,7 @@ class WecceEngine
                     'prix_souhaite' => $wish,
                     'nb_photos_declarees' => $photoCount,
                     'date_rendez_vous' => $slot,
+                    'disponibilites' => $availability,
                     'statut' => $statutSql,
                 ]);
 
@@ -222,6 +228,7 @@ class WecceEngine
                 'prix_souhaite' => $wish,
                 'nb_photos_declarees' => $photoCount,
                 'date_rendez_vous' => $slot,
+                'disponibilites' => $availability,
                 'statut' => $statutSql,
                 'cree_le' => $at,
             ]);
@@ -236,7 +243,7 @@ class WecceEngine
         if (!$depot || $depot->etudiant_id !== $userId) {
             throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
         }
-        if (!in_array($depot->statut, ['RDV_PRIS', 'BROUILLON'], true)) {
+        if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'BROUILLON'], true)) {
             throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
         }
 
@@ -264,6 +271,105 @@ class WecceEngine
     }
 
     /**
+     * Disponibilités saisies par l'étudiant, nettoyées : jours au format AAAA-MM-JJ (6 au plus),
+     * moment de la journée et un mot libre.
+     *
+     * @param array<string, mixed> $raw
+     * @return array{days: array<int, string>, moment: string, note: string}|null
+     */
+    public static function normalizeAvailability(array $raw): ?array
+    {
+        $days = [];
+        foreach ((array) ($raw['days'] ?? []) as $d) {
+            if (is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) === 1) {
+                $days[$d] = true;
+            }
+        }
+        $days = array_slice(array_keys($days), 0, 6);
+        sort($days);
+        $moment = in_array($raw['moment'] ?? '', ['matin', 'apres-midi', 'indifferent'], true) ? $raw['moment'] : 'indifferent';
+        $note = mb_substr(trim((string) ($raw['note'] ?? '')), 0, 200, 'UTF-8');
+
+        if (count($days) === 0) {
+            return null;
+        }
+
+        return ['days' => $days, 'moment' => $moment, 'note' => $note];
+    }
+
+    /**
+     * L'étudiant demande un (autre) rendez-vous : le dépôt repasse en demande, le créneau éventuel est libéré.
+     *
+     * @param array<string, mixed> $availability
+     */
+    public function requestAppointment(string $userId, string $ref, array $availability, string $at): void
+    {
+        DB::transaction(function () use ($userId, $ref, $availability) {
+            $depot = Depot::query()->where('reference', strtoupper($ref))->lockForUpdate()->first();
+            if (!$depot || $depot->etudiant_id !== $userId) {
+                throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
+            }
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS'], true)) {
+                throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
+            }
+            $clean = self::normalizeAvailability($availability);
+            if (!$clean) {
+                throw new RuleViolationException('disponibilites-manquantes', 'Cochez au moins un jour où vous pouvez passer chez LBC.');
+            }
+
+            $depot->update([
+                'statut' => 'RDV_DEMANDE',
+                'date_rendez_vous' => null,
+                'disponibilites' => $clean,
+                'rdv_fixe_le' => null,
+                'rdv_fixe_par' => null,
+            ]);
+        });
+    }
+
+    /**
+     * LBC fixe le jour et l'heure d'un rendez-vous (première fois, ou après un rendez-vous manqué).
+     */
+    public function scheduleAppointment(string $agentId, string $ref, string $date, string $time, string $at): string
+    {
+        return DB::transaction(function () use ($agentId, $ref, $date, $time, $at) {
+            $depot = Depot::query()->where('reference', strtoupper($ref))->lockForUpdate()->first();
+            if (!$depot) {
+                throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
+            }
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS'], true)) {
+                throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
+            }
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1 || preg_match('/^\d{1,2}:\d{2}$/', $time) !== 1) {
+                throw new RuleViolationException('creneau-invalide', 'Choisissez un jour et une heure.');
+            }
+            [$hh, $mm] = array_map('intval', explode(':', $time));
+            if ($hh < 8 || $hh > 19 || $mm < 0 || $mm > 59) {
+                throw new RuleViolationException('creneau-invalide', 'La boutique reçoit entre 8 h et 19 h.');
+            }
+            if (WecceClock::weekday($date) === 0) {
+                throw new RuleViolationException('creneau-invalide', 'LBC est fermé le dimanche.');
+            }
+            $slot = sprintf('%sT%02d:%02d', $date, $hh, $mm);
+            if ($slot < WecceClock::now()) {
+                throw new RuleViolationException('creneau-passe', 'Ce créneau est déjà passé.');
+            }
+            if ($this->slotTaken($slot, $depot->reference)) {
+                throw new RuleViolationException('creneau-pris', 'Un autre étudiant a déjà rendez-vous à cette heure.');
+            }
+
+            $depot->update([
+                'statut' => 'RDV_PRIS',
+                'date_rendez_vous' => $slot,
+                'rdv_fixe_le' => $at,
+                'rdv_fixe_par' => $agentId,
+            ]);
+
+            return $slot;
+        });
+    }
+
+    /**
      * @param array{pieces: bool, condition: string, battery: int|null, serial: string, takeBack: int, listPrice: int} $values
      */
     public function recordExpertise(string $agentId, string $ref, array $values, string $at): Expertise
@@ -273,7 +379,7 @@ class WecceEngine
             if (!$depot) {
                 throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
             }
-            if (!in_array($depot->statut, ['RDV_PRIS', 'EXPERTISE'], true)) {
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'], true)) {
                 throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été traité.');
             }
 
@@ -341,7 +447,7 @@ class WecceEngine
             if (!$depot) {
                 throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
             }
-            if (!in_array($depot->statut, ['RDV_PRIS', 'EXPERTISE'], true)) {
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'], true)) {
                 throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été traité.');
             }
 

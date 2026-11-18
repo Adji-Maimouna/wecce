@@ -1,7 +1,7 @@
 import { Notice } from "@/presentation/components/ui/Notice";
 import { Panel, PanelBody, PanelHead } from "@/presentation/components/ui/Panel";
-import type { AppointmentDay } from "@/domain/entities";
-import { AppointmentPicker } from "./AppointmentPicker";
+import type { AvailabilityDay } from "@/domain/entities";
+import { AvailabilityPicker } from "./AvailabilityPicker";
 import type { DepositDraft } from "./useDepositDraft";
 import { WizardFoot } from "./WizardFoot";
 
@@ -10,17 +10,19 @@ type StepProps = {
   update: (p: Partial<DepositDraft>) => void;
   onPrev: () => void;
   onNext: () => void;
-  days: AppointmentDay[];
-  times: string[];
+  days: AvailabilityDay[];
 };
 
-/** Étape 3 : rendez-vous chez LBC. */
-export function StepAppointment({ draft, update, onPrev, onNext, days, times }: StepProps) {
+/** Étape 3 : demande de rendez-vous. L'étudiant donne ses disponibilités, LBC fixe le jour et l'heure. */
+export function StepAppointment({ draft, update, onPrev, onNext, days }: StepProps) {
   return (
     <Panel>
-      <PanelHead title="Rendez-vous en boutique" aside="LBC · campus de l'UGB, entre les villages E et F" />
+      <PanelHead title="Demande de rendez-vous" aside="LBC · campus de l'UGB, entre les villages E et F" />
       <PanelBody className="stack" style={{ gap: 20 }}>
-        <AppointmentPicker days={days} times={times} day={draft.day} slot={draft.slot} onChange={(day, slot) => update({ day, slot })} />
+        <Notice icon="calendar" title="C'est LBC qui fixe le jour et l'heure.">
+          Indiquez quand vous pouvez passer. La boutique vous répond avec un rendez-vous, visible dans « Mes dépôts ».
+        </Notice>
+        <AvailabilityPicker days={days} value={draft.availability} onChange={(availability) => update({ availability })} />
         <Notice title="Avant de venir">
           Apportez votre carte d'étudiant et le chargeur. Déconnectez votre compte Google, Microsoft ou iCloud et réinitialisez l'appareil,
           sinon LBC ne peut pas le reprendre.

@@ -42,6 +42,7 @@ final class WecceCodes
 
     public const DEPOSIT_STATUS_TO_SQL = [
         'brouillon' => 'BROUILLON',
+        'demande-rdv' => 'RDV_DEMANDE',
         'rendez-vous' => 'RDV_PRIS',
         'a-signer' => 'EXPERTISE',
         'repris' => 'VALIDE',
@@ -51,6 +52,7 @@ final class WecceCodes
 
     public const DEPOSIT_STATUS_FROM_SQL = [
         'BROUILLON' => 'brouillon',
+        'RDV_DEMANDE' => 'demande-rdv',
         'RDV_PRIS' => 'rendez-vous',
         'EXPERTISE' => 'a-signer',
         'VALIDE' => 'repris',

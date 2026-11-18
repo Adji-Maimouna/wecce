@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { RuleViolation } from "@/application";
-import type { AppointmentDay } from "@/domain/entities";
+import type { AvailabilityDay } from "@/domain/entities";
 import { useToast } from "@/presentation/components/feedback/toastContext";
 import { DepositsSuspended } from "@/presentation/components/deposit/DepositsSuspended";
 import { StepAppointment } from "@/presentation/components/deposit/StepAppointment";
@@ -25,18 +25,18 @@ export type DeposerProps = {
   suspensionReason?: string;
   /** Bonus de lancement en cours, ou null. */
   bonus: { rate: number; quota: number; left: number; cap?: number; onePerStudent?: boolean } | null;
-  days: AppointmentDay[];
-  times: string[];
-  /** Point de départ du formulaire : brouillon repris (?brouillon=REF) et premier créneau libre. */
+  /** Jours d'ouverture proposés pour les disponibilités (LBC fixe ensuite le rendez-vous). */
+  availabilityDays: AvailabilityDay[];
+  /** Point de départ du formulaire : brouillon repris (?brouillon=REF). */
   start: DraftStart;
   /** Brouillon en cours récupéré depuis la session serveur. */
   hasPending?: boolean;
 };
 
-const STEP_LABELS = ["Votre appareil", "Prix souhaité", "Rendez-vous", "Vérification"];
+const STEP_LABELS = ["Votre appareil", "Prix souhaité", "Disponibilités", "Vérification"];
 
 /** Déposer un objet : quatre étapes, rien n'est engagé avant l'examen chez LBC. */
-export default function Deposer({ depositsSuspended, suspensionReason, bonus, days, times, start, hasPending }: DeposerProps) {
+export default function Deposer({ depositsSuspended, suspensionReason, bonus, availabilityDays = [], start, hasPending }: DeposerProps) {
   const [step, setStep] = useState(hasPending ? 4 : 1);
 
   const [busy, setBusy] = useState(false);
@@ -69,7 +69,7 @@ export default function Deposer({ depositsSuspended, suspensionReason, bonus, da
           <div>
             <PageHead
               title="Déposer un objet"
-              lead={start.draftRef ? `Brouillon ${start.draftRef} : complétez-le et prenez rendez-vous.` : "Vous ne vous engagez à rien avant l'examen chez LBC."}
+              lead={start.draftRef ? `Brouillon ${start.draftRef} : complétez-le et envoyez votre demande de rendez-vous.` : "Vous ne vous engagez à rien avant l'examen chez LBC."}
             />
             {bonus && (
               <Notice tone="ok" icon="gift" title={`Bonus de lancement : + ${bonus.rate} % de points sur les ${bonus.quota} premiers dépôts.`} style={{ marginBottom: 22 }}>
@@ -90,15 +90,14 @@ export default function Deposer({ depositsSuspended, suspensionReason, bonus, da
                 />
               )}
               {step === 2 && <StepWish draft={draft} update={update} onPrev={() => goTo(1)} onNext={() => goTo(3)} pastTakeBacks={null} />}
-              {step === 3 && <StepAppointment draft={draft} update={update} days={days} times={times} onPrev={() => goTo(2)} onNext={() => goTo(4)} />}
+              {step === 3 && <StepAppointment draft={draft} update={update} days={availabilityDays} onPrev={() => goTo(2)} onNext={() => goTo(4)} />}
               {step === 4 && (
                 <StepReview
                   draft={draft}
-                  days={days}
-                  times={times}
+                  days={availabilityDays}
                   busy={busy}
                   onPrev={() => goTo(3)}
-                  onConfirm={async (rdv) => {
+                  onConfirm={async () => {
                     if (!student) {
                       setBusy(true);
                       try {
@@ -114,11 +113,11 @@ export default function Deposer({ depositsSuspended, suspensionReason, bonus, da
                     setBusy(true);
                     try {
                       const { ref } = await submitDeposit(toDepositRequest(draft));
-                      toast(`Rendez-vous confirmé : ${rdv}. Dépôt ${ref}.`);
+                      toast(`Demande envoyée à LBC (dépôt ${ref}). Vous verrez le rendez-vous dans « Mes dépôts ».`);
                       window.setTimeout(() => go(paths.depots), 1200);
                     } catch (e) {
                       setBusy(false);
-                      toast(e instanceof RuleViolation ? e.message : "Le rendez-vous n'a pas pu être pris. Réessayez.");
+                      toast(e instanceof RuleViolation ? e.message : "La demande n'a pas pu être envoyée. Réessayez.");
                     }
                   }}
                 />

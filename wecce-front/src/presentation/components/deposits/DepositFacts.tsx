@@ -7,6 +7,7 @@ import { REFUSAL_LABELS } from "@/presentation/lib/labels";
 export function DepositFacts({ d }: { d: Deposit }) {
   const facts: ReactNode[] = [];
   if (d.status === "rendez-vous" && d.appointment) facts.push(d.appointment.label);
+  if (d.status === "demande-rdv" && d.request) facts.push(`Demande envoyée le ${d.request.sentAt}`, `Vos disponibilités : ${d.request.summary}`);
   if (d.wish) facts.push(`Prix souhaité : ${pts(d.wish)}`);
   if (d.missing) facts.push(d.missing);
   if (d.status === "a-signer" && d.examinedOn) facts.push(`Examiné le ${d.examinedOn}, signature en attente`);

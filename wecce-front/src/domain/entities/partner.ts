@@ -2,7 +2,7 @@ import type { AgeBand, DeviceCondition, PartCondition } from "./deposit";
 import type { Category, Condition } from "./market";
 
 /** « a-signer » : les deux prix sont fixés, la signature au comptoir reste à faire. */
-export type AppointmentStatus = "a-venir" | "arrive" | "a-signer" | "repris" | "refuse" | "annule";
+export type AppointmentStatus = "a-planifier" | "a-venir" | "arrive" | "a-signer" | "repris" | "refuse" | "annule";
 
 /** Rendez-vous du jour au comptoir LBC (table rendez_vous). */
 export type Appointment = {
@@ -18,7 +18,12 @@ export type Appointment = {
   /** Reprise effectuée (statut « repris »). */
   takeBack?: number;
   refusalShort?: string;
+  /** Disponibilités envoyées par l'étudiant (demande de rendez-vous). */
+  request?: { sentAt: string; summary: string; days: string[]; moment: "matin" | "apres-midi" | "indifferent"; note: string };
 };
+
+/** Un jour de la semaine affichée sur la page Rendez-vous. */
+export type CounterWeekDay = { date: string; weekday: string; day: number; count: number; open: number; isToday: boolean };
 
 /** Ce que l'étudiant a déclaré en ligne, montré à l'agent pendant l'expertise. */
 export type DeclaredDevice = {

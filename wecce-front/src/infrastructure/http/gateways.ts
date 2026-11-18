@@ -83,6 +83,10 @@ export const httpPorts: Ports = {
       request("PUT", `/etudiant/depots/${encodeURIComponent(ref)}/rendez-vous`, { day, slot }).then(() => {
         reloadProps();
       }),
+    requestAppointment: (ref, availability) =>
+      request("PUT", `/etudiant/depots/${encodeURIComponent(ref)}/rendez-vous`, { availability }).then(() => {
+        reloadProps();
+      }),
     saveDraft: (req) =>
       request<{ ok: boolean; redirect?: string | null; draftRef?: string | null }>("POST", "/etudiant/depots/brouillon", req),
   },
@@ -133,6 +137,11 @@ export const httpPorts: Ports = {
     refuseDeposit: (depositRef, reason, comment) =>
       request("POST", `/partenaire/depots/${encodeURIComponent(depositRef)}/refus`, { reason, comment }).then(() => {
         reloadProps();
+      }),
+    scheduleAppointment: (depositRef, date, time) =>
+      request<{ label: string }>("POST", `/partenaire/depots/${encodeURIComponent(depositRef)}/rendez-vous`, { date, time }).then((r) => {
+        reloadProps();
+        return r;
       }),
     publishArticle: (articleId) =>
       request("POST", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {

@@ -4,6 +4,8 @@ import type { ArticleInput, ExpertiseInput, RefusalReason } from "@/domain/entit
 export interface PartnerGateway {
   submitExpertise(input: ExpertiseInput): Promise<void>;
   refuseDeposit(depositRef: string, reason: RefusalReason, comment: string): Promise<void>;
+  /** Fixer le jour (AAAA-MM-JJ) et l'heure (HH:MM) du rendez-vous d'un dépôt. Renvoie le libellé du créneau. */
+  scheduleAppointment(depositRef: string, date: string, time: string): Promise<{ label: string }>;
   publishArticle(articleId: string): Promise<void>;
   /** Valider un achat : les points de l'étudiant sont débités, l'objet lui est réservé. */
   validateAcquisition(acquisitionRef: string): Promise<{ points: number; complement: number }>;

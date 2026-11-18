@@ -92,6 +92,7 @@ Route::middleware('role:AGENT')->prefix('partenaire')->group(function () {
     // Actions (POST / PUT / DELETE)
     Route::post('/expertises', [PartenaireController::class, 'submitExpertise'])->name('partenaire.expertises.store');
     Route::post('/depots/{ref}/refus', [PartenaireController::class, 'refuseDeposit'])->name('partenaire.depots.refus');
+    Route::post('/depots/{ref}/rendez-vous', [PartenaireController::class, 'scheduleAppointment'])->name('partenaire.depots.rdv');
     Route::post('/depots/{ref}/renoncement/signature', [PartenaireController::class, 'signWaiver'])->name('partenaire.renoncement.sign');
     Route::post('/depots/{ref}/renoncement/refus', [PartenaireController::class, 'declineWaiver'])->name('partenaire.renoncement.decline');
     Route::post('/stock/{id}/publication', [PartenaireController::class, 'publishArticle'])->name('partenaire.stock.publish');

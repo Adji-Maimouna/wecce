@@ -113,8 +113,7 @@ export const screens: Screen[] = [
           depositsSuspended={suspension.suspended}
           suspensionReason={suspension.reason}
           bonus={server.bonusOffer()}
-          days={s.days}
-          times={s.times}
+          availabilityDays={s.days.map((d, i) => ({ date: `demo-${i}`, label: d.label, month: d.month }))}
           start={{ ...draft, ...server.firstFree(s) }}
         />
       );
@@ -152,7 +151,27 @@ export const screens: Screen[] = [
   {
     path: "/partenaire/rendez-vous",
     access: "AGENT",
-    render: () => <RendezVous days={server.counterDays()} depositsSuspended={server.depositsSuspension().suspended} />,
+    // Serveur simulé : seul le jour courant est servi (la navigation par date vient de Laravel).
+    render: () => {
+      const day = server.counterDays().aujourdhui;
+      return (
+        <RendezVous
+          date=""
+          today=""
+          label={day.label}
+          relative="Aujourd'hui"
+          appointments={day.appointments}
+          week={[]}
+          prevDate=""
+          nextDate=""
+          prevWeek=""
+          nextWeek=""
+          requests={[]}
+          times={[]}
+          depositsSuspended={server.depositsSuspension().suspended}
+        />
+      );
+    },
   },
   {
     path: "/partenaire/expertise",

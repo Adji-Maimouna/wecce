@@ -51,10 +51,10 @@ export function StudentLayout({ section, flush, children }: StudentLayoutProps) 
                 {missedDeposits.map((m) => (
                   <div key={m.ref} className="row" style={{ gap: 12, justifyContent: "space-between", flexWrap: "wrap" }}>
                     <span className="small">
-                      <strong>{m.deviceName}</strong> ({m.ref}) · créneau prévu le {m.scheduledAt}. Souhaitez-vous prendre un nouveau rendez-vous ?
+                      <strong>{m.deviceName}</strong> ({m.ref}) · créneau prévu le {m.scheduledAt}. Indiquez vos disponibilités : LBC vous proposera un nouveau créneau.
                     </span>
                     <ButtonLink href={paths.reschedule(m.ref)} size="sm">
-                      Prendre un nouveau rendez-vous
+                      Demander un nouveau rendez-vous
                     </ButtonLink>
                   </div>
                 ))}

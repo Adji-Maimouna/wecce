@@ -31,6 +31,7 @@
 @import "../components/fiche/Fiche.css";
 @import "../components/deposits/DepositRow.css";
 @import "../components/deposit/AppointmentPicker.css";
+@import "../components/partner/RendezVous.css";
 @import "../components/waiver/Waiver.css";
 @import "../components/ui/ConfirmInline.css";
 @import "../components/feedback/Toast.css";

@@ -1,10 +1,11 @@
-import type { DepositRequest } from "@/domain/entities";
+import type { DepositRequest, AppointmentAvailability } from "@/domain/entities";
 import { RuleViolation } from "@/application/errors";
 import type { AcquisitionRequest, DepositGateway, PaymentGateway, WaiverGateway } from "@/application/ports";
 
 /** Prendre rendez-vous pour un dépôt. Rien n'est engagé avant l'examen chez LBC. */
 export const makeSubmitDeposit = (deposits: DepositGateway) => async (request: DepositRequest) => {
-  if (request.slot === null) throw new RuleViolation("creneau-manquant", "Choisissez un créneau.");
+  if (!request.availability?.days.length && request.slot === null)
+    throw new RuleViolation("disponibilites-manquantes", "Cochez au moins un jour où vous pouvez passer chez LBC.");
   if (!request.modele.trim()) throw new RuleViolation("modele-manquant", "Indiquez la marque et le modèle.");
   return deposits.submit(request);
 };
@@ -13,6 +14,12 @@ export const makeSubmitDeposit = (deposits: DepositGateway) => async (request: D
 export const makeRescheduleDeposit = (deposits: DepositGateway) => async (ref: string, day: number, slot: number | null) => {
   if (slot === null) throw new RuleViolation("creneau-manquant", "Choisissez un créneau.");
   await deposits.reschedule(ref, day, slot);
+};
+
+/** Demander un rendez-vous (ou un autre) : l'étudiant donne ses disponibilités, LBC fixe le créneau. */
+export const makeRequestAppointment = (deposits: DepositGateway) => async (ref: string, availability: AppointmentAvailability) => {
+  if (!availability.days.length) throw new RuleViolation("disponibilites-manquantes", "Cochez au moins un jour où vous pouvez passer chez LBC.");
+  await deposits.requestAppointment(ref, { ...availability, note: availability.note.trim() });
 };
 
 /** Annuler un dépôt : le créneau est libéré. */

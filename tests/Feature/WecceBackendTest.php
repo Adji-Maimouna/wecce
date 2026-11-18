@@ -192,8 +192,7 @@ class WecceBackendTest extends TestCase
         );
         $this->get('/etudiant/deposer')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Deposer')
-            ->has('days')
-            ->has('times')
+            ->has('availabilityDays', 6)
         );
         $this->get('/etudiant/questions')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Questions')
@@ -238,8 +237,7 @@ class WecceBackendTest extends TestCase
         );
         $this->get('/etudiant/deposer')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Deposer')
-            ->has('days')
-            ->has('times')
+            ->has('availabilityDays', 6)
         );
         $this->get('/etudiant/depots')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Depots')
@@ -268,8 +266,18 @@ class WecceBackendTest extends TestCase
 
         $this->get('/partenaire/rendez-vous')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/RendezVous')
-            ->has('days')
+            ->where('date', '2026-11-07')
+            ->has('appointments', 6)
+            ->has('week', 6)
+            ->has('requests')
             ->where('auth.appointmentsToReceive', 3)
+            ->where('auth.partnerTodo.purchases', 1)
+        );
+        // Navigation libre dans le calendrier du comptoir
+        $this->get('/partenaire/rendez-vous?date=2026-11-09')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('date', '2026-11-09')
+            ->where('relative', null)
+            ->has('appointments', 2)
         );
         $this->get('/partenaire/expertise?depot=WC-2026-0634')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/Expertise')
@@ -357,11 +365,30 @@ class WecceBackendTest extends TestCase
             ->component('etudiant/Solde')
             ->where('auth.missedDeposits.0.ref', 'WC-2026-0643')
         );
-        $this->putJson('/etudiant/depots/WC-2026-0643/rendez-vous', ['day' => 1, 'slot' => 0])->assertOk();
+        // L'étudiant demande un nouveau rendez-vous ; c'est LBC qui fixe le jour et l'heure.
+        $this->putJson('/etudiant/depots/WC-2026-0643/rendez-vous', [
+            'availability' => ['days' => ['2026-11-19', '2026-11-20'], 'moment' => 'apres-midi', 'note' => 'Après 15 h'],
+        ])->assertOk();
         $this->get('/etudiant/solde')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Solde')
             ->has('auth.missedDeposits', 0)
         );
+        $this->get('/etudiant/depots')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('current.0.status', 'demande-rdv')
+        );
+        $this->actingAs($agent);
+        $this->get('/partenaire/rendez-vous')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('requests.0.depositRef', 'WC-2026-0643')
+            ->where('requests.0.status', 'a-planifier')
+        );
+        $this->postJson('/partenaire/depots/WC-2026-0643/rendez-vous', ['date' => '2026-11-22', 'time' => '15:30'])
+            ->assertStatus(422); // dimanche
+        $this->postJson('/partenaire/depots/WC-2026-0643/rendez-vous', ['date' => '2026-11-20', 'time' => '15:30'])->assertOk();
+        $this->get('/partenaire/rendez-vous?date=2026-11-20')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('requests', 0)
+            ->where('appointments.0.depositRef', 'WC-2026-0643')
+        );
+        $this->actingAs($fatou);
         config(['wecce.reference_date' => '2026-11-07']);
         $this->actingAs($agent);
         $this->get('/partenaire/profil')->assertOk()->assertInertia(fn (Assert $page) => $page->component('partenaire/Profil'));
