@@ -1,7 +1,18 @@
 import type { Ports } from "./ports";
 import { makeLogin, makeLogout, makeRegisterStudent, makeRequestPasswordReset } from "./use-cases/auth";
 import { makeAdjustPoints, makeSaveBonus, makeSetDepositsSuspended } from "./use-cases/admin";
-import { makeHandOver, makePublishArticle, makeRefuseDeposit, makeSaveArticle, makeSubmitExpertise, makeWithdrawArticle } from "./use-cases/partner";
+import {
+  makeHandOver,
+  makePublishArticle,
+  makeUnpublishArticle,
+  makeRefuseAcquisition,
+  makeRefuseDeposit,
+  makeSaveArticle,
+  makeScheduleAppointment,
+  makeSubmitExpertise,
+  makeValidateAcquisition,
+  makeWithdrawArticle,
+} from "./use-cases/partner";
 import { makeChangePassword, makeUpdateContact } from "./use-cases/profile";
 import {
   makeAcquireItem,
@@ -9,6 +20,7 @@ import {
   makeCancelDeposit,
   makeCancelPayment,
   makeDeclineWaiver,
+  makeRequestAppointment,
   makeRescheduleDeposit,
   makeSaveDepositDraft,
   makeSignWaiver,
@@ -29,6 +41,7 @@ export function makeUseCases(ports: Ports) {
     saveDepositDraft: makeSaveDepositDraft(ports.deposits),
     cancelDeposit: makeCancelDeposit(ports.deposits),
     rescheduleDeposit: makeRescheduleDeposit(ports.deposits),
+    requestAppointment: makeRequestAppointment(ports.deposits),
     acquireItem: makeAcquireItem(ports.payments),
     awaitPayment: makeAwaitPayment(ports.payments),
     cancelPayment: makeCancelPayment(ports.payments),
@@ -38,7 +51,11 @@ export function makeUseCases(ports: Ports) {
     changePassword: makeChangePassword(ports.profile),
     submitExpertise: makeSubmitExpertise(ports.partner),
     refuseDeposit: makeRefuseDeposit(ports.partner),
+    scheduleAppointment: makeScheduleAppointment(ports.partner),
     publishArticle: makePublishArticle(ports.partner),
+    unpublishArticle: makeUnpublishArticle(ports.partner),
+    validateAcquisition: makeValidateAcquisition(ports.partner),
+    refuseAcquisition: makeRefuseAcquisition(ports.partner),
     handOver: makeHandOver(ports.partner),
     saveArticle: makeSaveArticle(ports.partner),
     withdrawArticle: makeWithdrawArticle(ports.partner),

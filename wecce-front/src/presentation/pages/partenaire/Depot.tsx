@@ -18,7 +18,7 @@ export default function Depot({ deposit: d }: { deposit: ProcessedDeposit }) {
   return (
     <BackOfficeLayout space="partenaire" current="rendez-vous">
       <PageTitle>{`Dépôt ${d.ref}`}</PageTitle>
-      <Crumbs items={[{ label: "Rendez-vous du jour", href: paths.rendezVous }, { label: d.ref }]} />
+      <Crumbs items={[{ label: "Rendez-vous", href: paths.rendezVous }, { label: d.ref }]} />
       <PageHead
         title={d.device}
         lead={`${d.student.name} · carte ${d.student.card} · dépôt ${d.ref}`}
@@ -52,10 +52,25 @@ export default function Depot({ deposit: d }: { deposit: ProcessedDeposit }) {
                   </>
                 )}
                 <span className="sep" />
-                <dt className="total">Crédité à l'étudiant</dt>
-                <dd className="total pts">{pts(o.takeBack + o.bonus)}</dd>
-                <dt>Prix d&apos;affichage (−5 % / mois)</dt>
+                {o.mode === "echange-objet" ? (
+                  <>
+                    <dt className="total">Échangé contre</dt>
+                    <dd className="total">{o.counterpart ?? "un objet de la boutique"}</dd>
+                  </>
+                ) : (
+                  <>
+                    <dt className="total">Crédité à l'étudiant</dt>
+                    <dd className="total pts">{pts(o.takeBack + o.bonus)}</dd>
+                  </>
+                )}
+                <dt>{o.mode && o.mode !== "vente" ? "Prix si mis en ligne" : "Prix d'affichage (−5 % / mois)"}</dt>
                 <dd>{pts(o.listPrice)}</dd>
+                {o.mode && o.mode !== "vente" && (
+                  <>
+                    <dt>Mode de reprise</dt>
+                    <dd>{o.mode === "echange-objet" ? "Échange direct contre un objet LBC" : "Échange direct contre des points"} · gardé en boutique</dd>
+                  </>
+                )}
               </dl>
             ) : (
               <>

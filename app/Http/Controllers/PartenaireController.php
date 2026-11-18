@@ -18,14 +18,34 @@ class PartenaireController extends Controller
         private readonly WecceQueries $queries,
     ) {}
 
-    public function rendezVous(): Response
+    public function tableau(): Response
+    {
+        return Inertia::render('partenaire/Tableau', $this->queries->partnerDashboard());
+    }
+
+    public function rendezVous(Request $request): Response
     {
         $suspension = $this->queries->depositsSuspension();
 
-        return Inertia::render('partenaire/RendezVous', [
-            'days' => $this->queries->counterDays(),
-            'missed' => $this->queries->missedAppointments(),
-            'depositsSuspended' => $suspension['suspended'],
+        return Inertia::render('partenaire/RendezVous', array_merge(
+            $this->queries->rendezVousPage($request->query('date')),
+            ['depositsSuspended' => $suspension['suspended']],
+        ));
+    }
+
+    public function scheduleAppointment(Request $request, string $ref): JsonResponse
+    {
+        $slot = $this->engine->scheduleAppointment(
+            $request->user()->id,
+            $ref,
+            (string) $request->input('date', ''),
+            (string) $request->input('time', ''),
+            WecceClock::now()
+        );
+
+        return response()->json([
+            'ok' => true,
+            'label' => WecceClock::capitalize(WecceClock::weekdayDayMonth($slot)) . ' à ' . WecceClock::time($slot),
         ]);
     }
 
@@ -41,14 +61,15 @@ class PartenaireController extends Controller
             return redirect("/partenaire/depots/{$ref}");
         }
 
-        $declared = ($state && $state['status'] === 'rendez-vous') ? $this->queries->declaredDevice($ref) : null;
+        $declared = ($state && in_array($state['status'], ['rendez-vous', 'demande-rdv'], true)) ? $this->queries->declaredDevice($ref) : null;
 
         $props = [
             'declared' => $declared,
-            'bonus' => $this->queries->expertiseBonus(),
+            'bonus' => $declared ? $this->queries->expertiseBonus($ref) : null,
             'controls' => $declared ? $this->queries->expertiseControls($declared['category']) : [],
             'queue' => $this->queries->expertiseQueue(),
             'missedQueue' => $this->queries->missedAppointments(),
+            'shopItems' => $declared ? $this->queries->exchangeableShopItems() : [],
         ];
         if ($ref !== '' && !$declared) {
             $props['missingRef'] = $ref;
@@ -87,9 +108,14 @@ class PartenaireController extends Controller
         ]);
     }
 
-    public function stock(): RedirectResponse
+    public function stock(Request $request): Response
     {
-        return redirect('/partenaire/statistiques#catalogue');
+        $tab = (string) $request->query('onglet', '');
+
+        return Inertia::render('partenaire/Stock', array_merge(
+            $this->queries->stockTab(),
+            ['tab' => in_array($tab, ['achats', 'depots', 'catalogue'], true) ? $tab : null],
+        ));
     }
 
     public function nouvelArticle(): Response
@@ -118,7 +144,7 @@ class PartenaireController extends Controller
     {
         return Inertia::render('partenaire/Statistiques', $this->queries->statisticsPage(
             $request->query('periode', 'tout'),
-            includeCatalog: true,
+            includeCatalog: false,
             fromDate: $request->query('du'),
             toDate: $request->query('au'),
         ));
@@ -144,6 +170,9 @@ class PartenaireController extends Controller
                 'serial' => (string) $request->input('serial', ''),
                 'takeBack' => (int) $request->input('takeBack', 0),
                 'listPrice' => (int) $request->input('listPrice', 0),
+                'mode' => (string) $request->input('mode', 'vente'),
+                'counterpartLabel' => $request->input('counterpartLabel'),
+                'counterpartArticleId' => $request->input('counterpartArticleId'),
             ],
             WecceClock::now()
         );
@@ -186,9 +215,34 @@ class PartenaireController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function handOver(string $ref): JsonResponse
+    public function unpublishArticle(string $id): JsonResponse
     {
-        $this->engine->handOver($ref, WecceClock::now());
+        $this->engine->unpublish($id, WecceClock::now());
+        return response()->json(['ok' => true]);
+    }
+
+    public function validateAcquisition(Request $request, string $ref): JsonResponse
+    {
+        $q = $this->engine->validateAcquisition($request->user()->id, $ref, WecceClock::now());
+
+        return response()->json(['ok' => true, 'points' => (int) $q->points_debites, 'complement' => (int) $q->complement_du]);
+    }
+
+    public function refuseAcquisition(Request $request, string $ref): JsonResponse
+    {
+        $res = $this->engine->refuseAcquisition(
+            $request->user()->id,
+            $ref,
+            (string) $request->input('reason', ''),
+            WecceClock::now()
+        );
+
+        return response()->json(['ok' => true, 'refundFcfa' => $res['refundFcfa']]);
+    }
+
+    public function handOver(Request $request, string $ref): JsonResponse
+    {
+        $this->engine->handOver($ref, WecceClock::now(), $request->user()->id);
         return response()->json(['ok' => true]);
     }
 
@@ -202,6 +256,7 @@ class PartenaireController extends Controller
             'battery' => $request->input('battery') !== null && $request->input('battery') !== '' ? (int) $request->input('battery') : null,
             'info' => $request->input('info'),
             'price' => (int) $request->input('price', 0),
+            'online' => $request->has('online') ? $request->boolean('online') : true,
         ];
 
         if ($request->exists('photo')) {

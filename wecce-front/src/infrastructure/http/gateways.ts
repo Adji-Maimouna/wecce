@@ -83,6 +83,10 @@ export const httpPorts: Ports = {
       request("PUT", `/etudiant/depots/${encodeURIComponent(ref)}/rendez-vous`, { day, slot }).then(() => {
         reloadProps();
       }),
+    requestAppointment: (ref, availability) =>
+      request("PUT", `/etudiant/depots/${encodeURIComponent(ref)}/rendez-vous`, { availability }).then(() => {
+        reloadProps();
+      }),
     saveDraft: (req) =>
       request<{ ok: boolean; redirect?: string | null; draftRef?: string | null }>("POST", "/etudiant/depots/brouillon", req),
   },
@@ -134,9 +138,28 @@ export const httpPorts: Ports = {
       request("POST", `/partenaire/depots/${encodeURIComponent(depositRef)}/refus`, { reason, comment }).then(() => {
         reloadProps();
       }),
+    scheduleAppointment: (depositRef, date, time) =>
+      request<{ label: string }>("POST", `/partenaire/depots/${encodeURIComponent(depositRef)}/rendez-vous`, { date, time }).then((r) => {
+        reloadProps();
+        return r;
+      }),
     publishArticle: (articleId) =>
       request("POST", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {
         reloadProps();
+      }),
+    unpublishArticle: (articleId) =>
+      request("DELETE", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {
+        reloadProps();
+      }),
+    validateAcquisition: (acquisitionRef) =>
+      request<{ points: number; complement: number }>("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/validation`).then((r) => {
+        reloadProps();
+        return r;
+      }),
+    refuseAcquisition: (acquisitionRef, reason) =>
+      request<{ refundFcfa: number }>("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/refus`, { reason }).then((r) => {
+        reloadProps();
+        return r;
       }),
     handOver: (acquisitionRef) =>
       request("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/remise`).then(() => {
@@ -161,8 +184,8 @@ export const httpPorts: Ports = {
       request("PUT", "/admin/pilotage/depots", { suspended, reason }).then(() => {
         reloadProps();
       }),
-    saveBonus: (rate, quota, reason) =>
-      request("PUT", "/admin/pilotage/bonus", { rate, quota, reason }).then(() => {
+    saveBonus: (rate, quota, reason, limits) =>
+      request("PUT", "/admin/pilotage/bonus", { rate, quota, reason, ...limits }).then(() => {
         reloadProps();
       }),
     adjustPoints: (req) =>

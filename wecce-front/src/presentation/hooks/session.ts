@@ -18,6 +18,8 @@ export type Session = {
   admin?: Administrator;
   /** Rendez-vous du jour encore à recevoir (pastille de la navigation LBC). */
   appointmentsToReceive?: number;
+  /** Ce qui attend une action de LBC (pastilles de la navigation et tableau de bord). */
+  partnerTodo?: { requests: number; purchases: number; handovers: number; toPublish: number };
 };
 
 export const SessionContext = createContext<Session>({});

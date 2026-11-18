@@ -17,13 +17,18 @@ export function shopMargin(takeBack: number, listPrice: number): { points: numbe
 }
 
 /** Bonus de lancement sur une reprise (taux en %). */
-export function launchBonus(takeBack: number, rate: number): number {
-  return Math.round((takeBack * rate) / 100);
+export function launchBonus(takeBack: number, rate: number, cap?: number): number {
+  const raw = Math.round((takeBack * rate) / 100);
+  return cap && cap > 0 ? Math.min(raw, cap) : raw;
 }
 
+/** Limites fixées avec LBC : taux et quota plafonnés (le plafond par dépôt est réglable). */
+export const BONUS_MAX_RATE = 20;
+export const BONUS_MAX_QUOTA = 500;
+
 /** Points crédités à la signature : reprise + bonus. */
-export function creditAtSignature(takeBack: number, bonusRate: number): number {
-  return takeBack + launchBonus(takeBack, bonusRate);
+export function creditAtSignature(takeBack: number, bonusRate: number, cap?: number): number {
+  return takeBack + launchBonus(takeBack, bonusRate, cap);
 }
 
 /** Écart entre le souhait de l'étudiant et la reprise proposée (positif : en dessous du souhait). */

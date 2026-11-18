@@ -125,6 +125,10 @@ export const demoPorts: Ports = {
       }),
     cancel: (ref) => act(() => engine.cancelDeposit(data(), me("ETUDIANT").id, ref, now())),
     reschedule: (ref, day, slot) => act(() => engine.reschedule(data(), me("ETUDIANT").id, ref, slotFrom(day, slot, ref))),
+    requestAppointment: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
   },
 
   payments: {
@@ -197,12 +201,26 @@ export const demoPorts: Ports = {
           now(),
         );
       }),
+    scheduleAppointment: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
     refuseDeposit: (ref, reason, comment) => act(() => engine.refuse(data(), me("AGENT").id, ref, reason, comment, now())),
     publishArticle: (id) =>
       act(() => {
         me("AGENT");
         engine.publish(data(), id, now());
       }, 300),
+    unpublishArticle: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
+    // Le serveur simulé n'a pas d'étape de validation : l'achat y est réservé directement.
+    validateAcquisition: () => act(() => ({ points: 0, complement: 0 })),
+    refuseAcquisition: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
     handOver: (ref) =>
       act(() => {
         me("AGENT");

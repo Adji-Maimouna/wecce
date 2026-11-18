@@ -24,6 +24,7 @@ use App\Services\Points\AjusterManuellement;
 use App\Services\Points\AppliquerFonte;
 use App\Services\Points\CrediterDepot;
 use App\Services\Points\DebiterAcquisition;
+use App\Services\Points\RegleBonus;
 use App\Support\WecceClock;
 use App\Support\WecceCodes;
 use Illuminate\Support\Facades\DB;
@@ -156,7 +157,12 @@ class WecceEngine
             $photos = array_values(array_filter($req['photos'] ?? []));
             $photoCount = $req['photoCount'] ?? count($photos);
             $wish = isset($req['wish']) && $req['wish'] !== null && $req['wish'] !== '' ? (int) $req['wish'] : null;
-            $statutSql = $slot ? 'RDV_PRIS' : 'BROUILLON';
+            $availability = isset($req['availability']) && is_array($req['availability'])
+                ? self::normalizeAvailability($req['availability'])
+                : null;
+            // Un créneau précis (données historiques) vaut rendez-vous ; sinon l'étudiant envoie une demande
+            // et LBC fixe le jour et l'heure.
+            $statutSql = $slot ? 'RDV_PRIS' : ($availability ? 'RDV_DEMANDE' : 'BROUILLON');
 
             if ($draftRef) {
                 $draft = Depot::query()->where('reference', $draftRef)->first();
@@ -188,6 +194,7 @@ class WecceEngine
                     'prix_souhaite' => $wish,
                     'nb_photos_declarees' => $photoCount,
                     'date_rendez_vous' => $slot,
+                    'disponibilites' => $availability,
                     'statut' => $statutSql,
                 ]);
 
@@ -221,6 +228,7 @@ class WecceEngine
                 'prix_souhaite' => $wish,
                 'nb_photos_declarees' => $photoCount,
                 'date_rendez_vous' => $slot,
+                'disponibilites' => $availability,
                 'statut' => $statutSql,
                 'cree_le' => $at,
             ]);
@@ -235,7 +243,7 @@ class WecceEngine
         if (!$depot || $depot->etudiant_id !== $userId) {
             throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
         }
-        if (!in_array($depot->statut, ['RDV_PRIS', 'BROUILLON'], true)) {
+        if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'BROUILLON'], true)) {
             throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
         }
 
@@ -263,7 +271,106 @@ class WecceEngine
     }
 
     /**
-     * @param array{pieces: bool, condition: string, battery: int|null, serial: string, takeBack: int, listPrice: int} $values
+     * Disponibilités saisies par l'étudiant, nettoyées : jours au format AAAA-MM-JJ (6 au plus),
+     * moment de la journée et un mot libre.
+     *
+     * @param array<string, mixed> $raw
+     * @return array{days: array<int, string>, moment: string, note: string}|null
+     */
+    public static function normalizeAvailability(array $raw): ?array
+    {
+        $days = [];
+        foreach ((array) ($raw['days'] ?? []) as $d) {
+            if (is_string($d) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) === 1) {
+                $days[$d] = true;
+            }
+        }
+        $days = array_slice(array_keys($days), 0, 6);
+        sort($days);
+        $moment = in_array($raw['moment'] ?? '', ['matin', 'apres-midi', 'indifferent'], true) ? $raw['moment'] : 'indifferent';
+        $note = mb_substr(trim((string) ($raw['note'] ?? '')), 0, 200, 'UTF-8');
+
+        if (count($days) === 0) {
+            return null;
+        }
+
+        return ['days' => $days, 'moment' => $moment, 'note' => $note];
+    }
+
+    /**
+     * L'étudiant demande un (autre) rendez-vous : le dépôt repasse en demande, le créneau éventuel est libéré.
+     *
+     * @param array<string, mixed> $availability
+     */
+    public function requestAppointment(string $userId, string $ref, array $availability, string $at): void
+    {
+        DB::transaction(function () use ($userId, $ref, $availability) {
+            $depot = Depot::query()->where('reference', strtoupper($ref))->lockForUpdate()->first();
+            if (!$depot || $depot->etudiant_id !== $userId) {
+                throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
+            }
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS'], true)) {
+                throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
+            }
+            $clean = self::normalizeAvailability($availability);
+            if (!$clean) {
+                throw new RuleViolationException('disponibilites-manquantes', 'Cochez au moins un jour où vous pouvez passer chez LBC.');
+            }
+
+            $depot->update([
+                'statut' => 'RDV_DEMANDE',
+                'date_rendez_vous' => null,
+                'disponibilites' => $clean,
+                'rdv_fixe_le' => null,
+                'rdv_fixe_par' => null,
+            ]);
+        });
+    }
+
+    /**
+     * LBC fixe le jour et l'heure d'un rendez-vous (première fois, ou après un rendez-vous manqué).
+     */
+    public function scheduleAppointment(string $agentId, string $ref, string $date, string $time, string $at): string
+    {
+        return DB::transaction(function () use ($agentId, $ref, $date, $time, $at) {
+            $depot = Depot::query()->where('reference', strtoupper($ref))->lockForUpdate()->first();
+            if (!$depot) {
+                throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
+            }
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS'], true)) {
+                throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été examiné.');
+            }
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) !== 1 || preg_match('/^\d{1,2}:\d{2}$/', $time) !== 1) {
+                throw new RuleViolationException('creneau-invalide', 'Choisissez un jour et une heure.');
+            }
+            [$hh, $mm] = array_map('intval', explode(':', $time));
+            if ($hh < 8 || $hh > 19 || $mm < 0 || $mm > 59) {
+                throw new RuleViolationException('creneau-invalide', 'La boutique reçoit entre 8 h et 19 h.');
+            }
+            if (WecceClock::weekday($date) === 0) {
+                throw new RuleViolationException('creneau-invalide', 'LBC est fermé le dimanche.');
+            }
+            $slot = sprintf('%sT%02d:%02d', $date, $hh, $mm);
+            if ($slot < WecceClock::now()) {
+                throw new RuleViolationException('creneau-passe', 'Ce créneau est déjà passé.');
+            }
+            if ($this->slotTaken($slot, $depot->reference)) {
+                throw new RuleViolationException('creneau-pris', 'Un autre étudiant a déjà rendez-vous à cette heure.');
+            }
+
+            $depot->update([
+                'statut' => 'RDV_PRIS',
+                'date_rendez_vous' => $slot,
+                'rdv_fixe_le' => $at,
+                'rdv_fixe_par' => $agentId,
+            ]);
+
+            return $slot;
+        });
+    }
+
+    /**
+     * @param array{pieces: bool, condition: string, battery: int|null, serial: string, takeBack: int, listPrice: int, mode?: string, counterpartLabel?: string|null, counterpartArticleId?: string|null} $values
      */
     public function recordExpertise(string $agentId, string $ref, array $values, string $at): Expertise
     {
@@ -272,7 +379,7 @@ class WecceEngine
             if (!$depot) {
                 throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
             }
-            if (!in_array($depot->statut, ['RDV_PRIS', 'EXPERTISE'], true)) {
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'], true)) {
                 throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été traité.');
             }
 
@@ -280,6 +387,25 @@ class WecceEngine
             $listPrice = (int) $values['listPrice'];
             if ($takeBack <= 0 || $listPrice <= 0 || $listPrice < $takeBack) {
                 throw new RuleViolationException('prix-incoherents', "Le prix d'affichage doit être supérieur ou égal à la reprise.");
+            }
+
+            $modeSql = WecceCodes::TAKEBACK_MODE_TO_SQL[$values['mode'] ?? 'vente'] ?? 'VENTE_WECCE';
+            $counterpartLabel = trim((string) ($values['counterpartLabel'] ?? ''));
+            $counterpartId = !empty($values['counterpartArticleId']) ? (string) $values['counterpartArticleId'] : null;
+            if ($modeSql === 'ECHANGE_OBJET') {
+                if ($counterpartId) {
+                    $counterpart = Annonce::query()->with('appareil')->find($counterpartId);
+                    if (!$counterpart || $counterpart->origine !== 'STOCK_PARTENAIRE' || !in_array($counterpart->statut, ['EN_LIGNE', 'EN_BOUTIQUE'], true)) {
+                        throw new RuleViolationException('contrepartie-indisponible', "Cet objet de la boutique n'est plus disponible pour un échange.");
+                    }
+                    $counterpartLabel = $counterpartLabel !== '' ? $counterpartLabel : $this->articleDisplayName($counterpart);
+                }
+                if ($counterpartLabel === '') {
+                    throw new RuleViolationException('contrepartie-manquante', "Indiquez l'objet de la boutique donné en échange.");
+                }
+            } else {
+                $counterpartLabel = '';
+                $counterpartId = null;
             }
 
             $pieces = !empty($values['pieces']);
@@ -322,6 +448,9 @@ class WecceEngine
                     'motif_refus' => null,
                     'commentaire' => null,
                     'controles' => $checks,
+                    'mode_reprise' => $modeSql,
+                    'contrepartie_libelle' => $counterpartLabel !== '' ? mb_substr($counterpartLabel, 0, 160, 'UTF-8') : null,
+                    'contrepartie_annonce_id' => $counterpartId,
                 ]
             );
 
@@ -340,7 +469,7 @@ class WecceEngine
             if (!$depot) {
                 throw new RuleViolationException('depot-inconnu', "Aucun dépôt {$ref}.");
             }
-            if (!in_array($depot->statut, ['RDV_PRIS', 'EXPERTISE'], true)) {
+            if (!in_array($depot->statut, ['RDV_DEMANDE', 'RDV_PRIS', 'EXPERTISE'], true)) {
                 throw new RuleViolationException('depot-traite', 'Ce dépôt a déjà été traité.');
             }
 
@@ -403,11 +532,26 @@ class WecceEngine
 
             $compte = ComptePoints::query()->where('etudiant_id', $depot->etudiant_id)->firstOrFail();
             $balanceBefore = (int) $compte->solde;
+            $mode = $expertise->mode_reprise ?: 'VENTE_WECCE';
+            // Échange contre un objet de la boutique : aucun point n'est crédité, donc aucun bonus.
+            $withPoints = $mode !== 'ECHANGE_OBJET';
+            // Seule la reprise « vente Wecce » met l'objet sur le marché ; un échange direct le garde en boutique.
+            $toMarket = $mode === 'VENTE_WECCE';
+
+            $counterpart = null;
+            if ($mode === 'ECHANGE_OBJET' && $expertise->contrepartie_annonce_id) {
+                $counterpart = Annonce::query()->with('appareil')->lockForUpdate()->find($expertise->contrepartie_annonce_id);
+                if (!$counterpart || !in_array($counterpart->statut, ['EN_LIGNE', 'EN_BOUTIQUE'], true)) {
+                    throw new RuleViolationException('contrepartie-indisponible', "L'objet de la boutique prévu en échange n'est plus disponible. Refaites l'expertise.");
+                }
+            }
 
             $config = ConfigurationPlateforme::current();
-            $bonusOn = $config->bonus_actif && $config->bonus_consomme < $config->bonus_quota;
-            $bonusRateDecimal = $bonusOn ? (float) $config->bonus_taux : 0.0;
-            $bonusAccorde = $bonusOn ? (int) round($expertise->valeur_reprise * $bonusRateDecimal) : 0;
+            $regle = $withPoints
+                ? RegleBonus::pour($config, $compte, (int) $expertise->valeur_reprise)
+                : ['bonus' => 0, 'ratePercent' => 0, 'rate' => 0.0, 'capped' => false];
+            $bonusRateDecimal = $regle['rate'];
+            $bonusAccorde = $regle['bonus'];
 
             $hash = hash('sha256', "{$depot->reference}|{$at}|{$expertise->valeur_reprise}");
 
@@ -427,14 +571,24 @@ class WecceEngine
             ]);
 
             $shortName = trim((string) $depot->appareil->designation);
-            $creditResult = $this->crediterDepot->execute(
-                $compte,
-                $renoncement,
-                $depot->reference,
-                $shortName,
-                (int) $expertise->valeur_reprise,
-                $at
-            );
+            $creditResult = $withPoints && (int) $expertise->valeur_reprise > 0
+                ? $this->crediterDepot->execute(
+                    $compte,
+                    $renoncement,
+                    $depot->reference,
+                    $shortName,
+                    (int) $expertise->valeur_reprise,
+                    $at
+                )
+                : ['balanceAfter' => $balanceBefore, 'bonus' => 0, 'bonusRate' => 0];
+
+            if ($counterpart) {
+                $counterpart->update([
+                    'statut' => 'VENDUE',
+                    'note_statut' => "Échangé contre le dépôt {$depot->reference}",
+                ]);
+                $counterpart->appareil->update(['statut' => 'RETIRE']);
+            }
 
             $pieces = $expertise->decision === 'ACCEPTE_EN_PIECES';
             $fullName = $depot->appareil->fullName();
@@ -446,7 +600,7 @@ class WecceEngine
                 'etat_constate' => $expertise->etat_constate,
                 'batterie_pourcent' => $expertise->batterie_pourcent,
                 'precision' => $pieces ? 'Repris en pièces' : $depot->appareil->precision,
-                'statut' => $photo ? 'EN_LIGNE' : 'EN_STOCK',
+                'statut' => ($photo && $toMarket) ? 'EN_LIGNE' : 'EN_STOCK',
             ]);
 
             if ($photo && !empty($photo['src'])) {
@@ -463,6 +617,10 @@ class WecceEngine
 
             $slug = $this->uniqueSlug($articleName);
             $info = $pieces ? 'Repris en pièces' : ('Examiné le ' . WecceClock::dayMonthShort($at));
+            if (!$toMarket) {
+                $info = ($mode === 'ECHANGE_OBJET' ? 'Échange direct contre un objet LBC' : 'Échange direct contre des points') . ' · ' . WecceClock::dayMonthShort($at);
+            }
+            $statutAnnonce = $toMarket ? ($photo ? 'EN_LIGNE' : 'A_PHOTOGRAPHIER') : 'EN_BOUTIQUE';
 
             $annonce = Annonce::query()->create([
                 'slug' => $slug,
@@ -478,8 +636,8 @@ class WecceEngine
                 'prix_initial' => (int) $expertise->prix_affichage,
                 'prix_courant' => (int) $expertise->prix_affichage,
                 'cree_le' => $at,
-                'mise_en_ligne_le' => $photo ? $at : null,
-                'statut' => $photo ? 'EN_LIGNE' : 'A_PHOTOGRAPHIER',
+                'mise_en_ligne_le' => $statutAnnonce === 'EN_LIGNE' ? $at : null,
+                'statut' => $statutAnnonce,
             ]);
 
             $depot->update([
@@ -554,6 +712,10 @@ class WecceEngine
             $slug = $this->uniqueSlug($name, $a['slug'] ?? null);
             $at = $a['at'] ?? WecceClock::now();
             $price = (int) $a['price'];
+            $online = (bool) ($a['online'] ?? true);
+            if (!$online) {
+                $appareil->update(['statut' => 'EN_STOCK']);
+            }
 
             return Annonce::query()->create([
                 'slug' => $slug,
@@ -569,8 +731,8 @@ class WecceEngine
                 'prix_initial' => $price,
                 'prix_courant' => $price,
                 'cree_le' => $at,
-                'mise_en_ligne_le' => $at,
-                'statut' => 'EN_LIGNE',
+                'mise_en_ligne_le' => $online ? $at : null,
+                'statut' => $online ? 'EN_LIGNE' : 'EN_BOUTIQUE',
             ]);
         });
     }
@@ -581,8 +743,8 @@ class WecceEngine
         if (!$annonce) {
             throw new RuleViolationException('article-inconnu', 'Article introuvable.');
         }
-        if ($annonce->statut !== 'A_PHOTOGRAPHIER') {
-            throw new RuleViolationException('article-en-ligne', 'Cet article est déjà en ligne.');
+        if (!in_array($annonce->statut, ['A_PHOTOGRAPHIER', 'EN_BOUTIQUE'], true)) {
+            throw new RuleViolationException('article-en-ligne', $annonce->statut === 'EN_LIGNE' ? 'Cet article est déjà en ligne.' : "Cet article n'est plus en stock.");
         }
 
         $annonce->appareil->update(['statut' => 'EN_LIGNE']);
@@ -592,8 +754,26 @@ class WecceEngine
         ]);
     }
 
+    /** Retirer un article du marché sans le sortir du stock : il reste en boutique, hors ligne. */
+    public function unpublish(string $articleId, string $at): void
+    {
+        DB::transaction(function () use ($articleId) {
+            $annonce = Annonce::query()->with('appareil')->lockForUpdate()->find($articleId);
+            if (!$annonce) {
+                throw new RuleViolationException('article-inconnu', 'Article introuvable.');
+            }
+            if ($annonce->statut !== 'EN_LIGNE') {
+                throw new RuleViolationException('article-hors-ligne', $annonce->statut === 'RESERVEE'
+                    ? 'Un étudiant a réservé cet article : traitez son achat d\'abord.'
+                    : "Cet article n'est pas en ligne.");
+            }
+            $annonce->appareil->update(['statut' => 'EN_STOCK']);
+            $annonce->update(['statut' => 'EN_BOUTIQUE']);
+        });
+    }
+
     /**
-     * @param array{id?: string|null, name: string, category: string, condition: string, battery?: int|null, info?: string|null, price: int, photo?: string|null} $input
+     * @param array{id?: string|null, name: string, category: string, condition: string, battery?: int|null, info?: string|null, price: int, photo?: string|null, online?: bool} $input
      */
     public function saveArticle(array $input, string $at): string
     {
@@ -677,6 +857,7 @@ class WecceEngine
                 'price' => $price,
                 'photo' => $photoArr,
                 'at' => $at,
+                'online' => $input['online'] ?? true,
             ]);
 
             return $annonce->id;
@@ -690,9 +871,10 @@ class WecceEngine
             if (!$annonce) {
                 throw new RuleViolationException('article-inconnu', 'Article introuvable.');
             }
-            if (!in_array($annonce->statut, ['EN_LIGNE', 'A_PHOTOGRAPHIER'], true)) {
-                throw new RuleViolationException('article-ferme', 'Seul un article en vente peut être retiré.');
+            if (!in_array($annonce->statut, ['EN_LIGNE', 'A_PHOTOGRAPHIER', 'EN_BOUTIQUE'], true)) {
+                throw new RuleViolationException('article-ferme', 'Seul un article en stock peut être retiré.');
             }
+            $before = $annonce->statut;
 
             $name = $this->articleDisplayName($annonce);
             $annonce->appareil->update(['statut' => 'RETIRE']);
@@ -706,8 +888,8 @@ class WecceEngine
                 'cible_type' => 'annonce',
                 'cible_id' => $annonce->id,
                 'cible_libelle' => $name,
-                'changement' => 'En ligne → retirée',
-                'avant' => ['statut' => 'EN_LIGNE'],
+                'changement' => ($before === 'EN_BOUTIQUE' ? 'En boutique' : 'En ligne') . ' → retirée',
+                'avant' => ['statut' => $before],
                 'apres' => ['statut' => 'RETIREE'],
                 'motif' => trim($reason),
                 'effectue_le' => $at,
@@ -729,7 +911,24 @@ class WecceEngine
         return $appareil->fullName();
     }
 
+    /** Statuts d'une acquisition qui bloquent les points de l'étudiant sans les avoir encore débités. */
+    public const ACQ_EN_COURS = ['EN_ATTENTE', 'A_VALIDER'];
+
+    /** Points engagés dans des achats pas encore validés par LBC. */
+    public function heldPoints(string $userId, ?string $exceptAcquisitionId = null): int
+    {
+        return (int) Acquisition::query()
+            ->where('etudiant_id', $userId)
+            ->whereIn('statut', self::ACQ_EN_COURS)
+            ->when($exceptAcquisitionId, fn ($q) => $q->where('id', '<>', $exceptAcquisitionId))
+            ->sum('points_debites');
+    }
+
     /**
+     * L'étudiant prend un objet. Rien n'est débité ici : l'achat attend la validation de LBC
+     * (statut A_VALIDER), ou d'abord la confirmation du paiement mobile (EN_ATTENTE).
+     * Les points prévus sont bloqués : ils ne peuvent pas servir à un second achat.
+     *
      * @return array{acquisition: Acquisition, paiement: Paiement|null}
      */
     public function acquire(string $userId, string $articleId, string $methodFront, string $at, ?string $phone = null, ?string $forcedPaymentRef = null): array
@@ -745,9 +944,9 @@ class WecceEngine
 
             $compte = ComptePoints::query()->where('etudiant_id', $userId)->lockForUpdate()->firstOrFail();
             $price = (int) $annonce->prix_courant;
-            $balance = (int) $compte->solde;
-            $covered = min($price, $balance);
-            $complement = max(0, $price - $balance);
+            $available = max(0, (int) $compte->solde - $this->heldPoints($userId));
+            $covered = min($price, $available);
+            $complement = max(0, $price - $available);
 
             $methodSql = WecceCodes::PAYMENT_METHOD_TO_SQL[$methodFront] ?? 'ESPECES';
             $immediate = $methodFront === 'especes' || $complement === 0;
@@ -761,7 +960,7 @@ class WecceEngine
                 'prix_total' => $price,
                 'points_debites' => $covered,
                 'complement_du' => $complement,
-                'statut' => $immediate ? 'RESERVE' : 'EN_ATTENTE',
+                'statut' => $immediate ? 'A_VALIDER' : 'EN_ATTENTE',
                 'cree_le' => $at,
                 'confirme_le' => $immediate ? $at : null,
             ]);
@@ -776,16 +975,6 @@ class WecceEngine
                 $paiement = $this->especesPasserelle->initier($acquisition, $complement, $phone, $at, $forcedPaymentRef);
             }
 
-            if ($immediate && $covered > 0) {
-                $this->debiterAcquisition->execute(
-                    $compte,
-                    $acquisition,
-                    $this->articleDisplayName($annonce),
-                    $covered,
-                    $at
-                );
-            }
-
             return [
                 'acquisition' => $acquisition,
                 'paiement' => $paiement,
@@ -793,6 +982,7 @@ class WecceEngine
         });
     }
 
+    /** Le prestataire confirme le paiement mobile : l'achat passe à la validation de LBC. */
     public function confirmPayment(string $refOrPaymentRef, string $at): Acquisition
     {
         return DB::transaction(function () use ($refOrPaymentRef, $at) {
@@ -809,17 +999,8 @@ class WecceEngine
                 return $acquisition;
             }
 
-            $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);
-            $compte = ComptePoints::query()->where('etudiant_id', $acquisition->etudiant_id)->lockForUpdate()->firstOrFail();
-
-            $points = min((int) $acquisition->points_debites, (int) $compte->solde);
-            $complement = (int) $annonce->prix_courant - $points;
-
             $acquisition->update([
-                'points_debites' => $points,
-                'complement_du' => $complement,
-                'prix_total' => (int) $annonce->prix_courant,
-                'statut' => 'RESERVE',
+                'statut' => 'A_VALIDER',
                 'confirme_le' => $at,
             ]);
 
@@ -829,6 +1010,43 @@ class WecceEngine
                     'statut' => 'CONFIRME',
                     'confirme_le' => $at,
                 ]);
+
+            return $acquisition->fresh();
+        });
+    }
+
+    /**
+     * LBC valide l'achat : les points sont débités (seul moment où ils le sont) et l'objet
+     * est réservé à l'étudiant jusqu'à son retrait.
+     */
+    public function validateAcquisition(string $agentId, string $acquisitionRef, string $at): Acquisition
+    {
+        return DB::transaction(function () use ($agentId, $acquisitionRef, $at) {
+            $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
+            if (!$acquisition) {
+                throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if ($acquisition->statut !== 'A_VALIDER') {
+                throw new RuleViolationException('acquisition-traitee', $acquisition->statut === 'EN_ATTENTE'
+                    ? "Le paiement mobile de l'étudiant n'est pas encore confirmé."
+                    : 'Cet achat a déjà été traité.');
+            }
+
+            $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);
+            $compte = ComptePoints::query()->where('etudiant_id', $acquisition->etudiant_id)->lockForUpdate()->firstOrFail();
+
+            // Les points ont été bloqués à la demande ; une baisse mensuelle a pu entamer le solde depuis.
+            $available = max(0, (int) $compte->solde - $this->heldPoints($acquisition->etudiant_id, $acquisition->id));
+            $points = min((int) $acquisition->points_debites, $available);
+            $complement = (int) $acquisition->prix_total - $points;
+
+            $acquisition->update([
+                'points_debites' => $points,
+                'complement_du' => $complement,
+                'statut' => 'RESERVE',
+                'valide_le' => $at,
+                'valide_par' => $agentId,
+            ]);
 
             if ($points > 0) {
                 $this->debiterAcquisition->execute(
@@ -844,6 +1062,52 @@ class WecceEngine
         });
     }
 
+    /**
+     * LBC refuse l'achat : rien n'a été débité, l'objet revient sur le marché.
+     *
+     * @return array{refundFcfa: int}
+     */
+    public function refuseAcquisition(string $agentId, string $acquisitionRef, string $reason, string $at): array
+    {
+        return DB::transaction(function () use ($agentId, $acquisitionRef, $reason, $at) {
+            $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
+            if (!$acquisition) {
+                throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if (!in_array($acquisition->statut, self::ACQ_EN_COURS, true)) {
+                throw new RuleViolationException('acquisition-traitee', 'Seul un achat en attente de validation peut être refusé.');
+            }
+            if (mb_strlen(trim($reason), 'UTF-8') < 3) {
+                throw new RuleViolationException('motif-manquant', "Indiquez le motif du refus : il est montré à l'étudiant.");
+            }
+
+            $refund = (int) Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'CONFIRME')
+                ->whereIn('moyen', ['WAVE', 'ORANGE_MONEY'])
+                ->sum('montant_fcfa');
+
+            $acquisition->update([
+                'statut' => 'ANNULE',
+                'motif_refus' => trim($reason),
+                'valide_le' => $at,
+                'valide_par' => $agentId,
+            ]);
+            Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'EN_ATTENTE')
+                ->update(['statut' => 'ECHOUE']);
+
+            $annonce = Annonce::query()->find($acquisition->annonce_id);
+            if ($annonce && $annonce->statut === 'RESERVEE') {
+                $annonce->update(['statut' => 'EN_LIGNE']);
+            }
+
+            return ['refundFcfa' => $refund];
+        });
+    }
+
+    /** L'étudiant abandonne avant la validation de LBC (rien n'a été débité). */
     public function cancelPayment(string $refOrPaymentRef): void
     {
         DB::transaction(function () use ($refOrPaymentRef) {
@@ -855,8 +1119,16 @@ class WecceEngine
             if (!$acquisition) {
                 throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
             }
-            if ($acquisition->statut !== 'EN_ATTENTE') {
-                throw new RuleViolationException('paiement-confirme', 'Le paiement est déjà confirmé.');
+            if (!in_array($acquisition->statut, self::ACQ_EN_COURS, true)) {
+                throw new RuleViolationException('paiement-confirme', 'LBC a déjà validé cet achat : adressez-vous au comptoir.');
+            }
+            $paidMobile = Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'CONFIRME')
+                ->whereIn('moyen', ['WAVE', 'ORANGE_MONEY'])
+                ->exists();
+            if ($paidMobile) {
+                throw new RuleViolationException('paiement-confirme', 'Votre complément est déjà payé : demandez l\'annulation au comptoir LBC, qui vous remboursera.');
             }
 
             $acquisition->update(['statut' => 'ANNULE']);
@@ -869,24 +1141,29 @@ class WecceEngine
         });
     }
 
-    public function handOver(string $acquisitionRef, string $at): void
+    /** LBC confirme avoir remis l'objet à l'étudiant : l'achat est soldé, la garantie démarre. */
+    public function handOver(string $acquisitionRef, string $at, ?string $agentId = null): void
     {
-        DB::transaction(function () use ($acquisitionRef, $at) {
+        DB::transaction(function () use ($acquisitionRef, $at, $agentId) {
             $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
             if (!$acquisition) {
                 throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if ($acquisition->statut === 'A_VALIDER') {
+                throw new RuleViolationException('acquisition-a-valider', "Validez d'abord l'achat : les points ne sont pas encore débités.");
             }
             if ($acquisition->statut !== 'RESERVE') {
                 throw new RuleViolationException('acquisition-ouverte', "Cet objet n'est pas prêt à être remis.");
             }
 
             $config = ConfigurationPlateforme::current();
-            $garantieJusquau = WecceClock::addDays(WecceClock::dateOf($at), (int) ($config->duree_garantie_jours ?: 7));
+            $garantieJusquau = WecceClock::addDays(WecceClock::dateOf($at), (int) ($config->duree_garantie_jours ?: 90));
 
             $acquisition->update([
                 'statut' => 'REMIS',
                 'retire_le' => $at,
                 'garantie_jusquau' => $garantieJusquau,
+                'remis_par' => $agentId,
             ]);
 
             $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);
@@ -949,20 +1226,43 @@ class WecceEngine
         });
     }
 
-    public function saveBonus(int $ratePercent, int $quota, string $reason, string $at, User $admin, ?string $ip = null): void
-    {
-        DB::transaction(function () use ($ratePercent, $quota, $reason, $at, $admin, $ip) {
+    public function saveBonus(
+        int $ratePercent,
+        int $quota,
+        string $reason,
+        string $at,
+        User $admin,
+        ?string $ip = null,
+        ?int $ceiling = null,
+        ?bool $onePerStudent = null,
+    ): void {
+        DB::transaction(function () use ($ratePercent, $quota, $reason, $at, $admin, $ip, $ceiling, $onePerStudent) {
             $config = ConfigurationPlateforme::query()->lockForUpdate()->findOrFail(1);
             $oldRatePercent = (int) round($config->bonus_taux * 100);
             $oldQuota = (int) $config->bonus_quota;
+            $oldCeiling = (int) $config->bonus_plafond_points;
+            $oldOne = (bool) $config->bonus_un_par_etudiant;
+            $ceiling ??= $oldCeiling;
+            $onePerStudent ??= $oldOne;
 
-            $change = "{$oldRatePercent} % · {$oldQuota} dépôts → {$ratePercent} % · {$quota} dépôts";
+            RegleBonus::valider($ratePercent, $quota, $ceiling);
+            if ($quota < $config->bonus_consomme) {
+                throw new RuleViolationException('bonus-quota', "{$config->bonus_consomme} dépôts ont déjà reçu le bonus : le quota ne peut pas descendre en dessous.");
+            }
+
+            $fmt = fn (int $n): string => number_format($n, 0, ',', ' ');
+            $change = "{$oldRatePercent} % · {$oldQuota} dépôts · plafond {$fmt($oldCeiling)} pts → {$ratePercent} % · {$quota} dépôts · plafond {$fmt($ceiling)} pts";
+            if ($oldOne !== $onePerStudent) {
+                $change .= $onePerStudent ? ' · un bonus par étudiant' : ' · bonus cumulables';
+            }
             $active = $ratePercent > 0 && $config->bonus_consomme < $quota;
 
             $config->update([
                 'bonus_actif' => $active,
                 'bonus_taux' => $ratePercent / 100,
                 'bonus_quota' => $quota,
+                'bonus_plafond_points' => $ceiling,
+                'bonus_un_par_etudiant' => $onePerStudent,
                 'mis_a_jour_le' => $at,
                 'mis_a_jour_par' => $admin->id,
             ]);
@@ -976,8 +1276,8 @@ class WecceEngine
                 'cible_id' => null,
                 'cible_libelle' => 'Bonus de lancement',
                 'changement' => $change,
-                'avant' => ['taux' => $oldRatePercent, 'quota' => $oldQuota],
-                'apres' => ['taux' => $ratePercent, 'quota' => $quota],
+                'avant' => ['taux' => $oldRatePercent, 'quota' => $oldQuota, 'plafond' => $oldCeiling, 'un_par_etudiant' => $oldOne],
+                'apres' => ['taux' => $ratePercent, 'quota' => $quota, 'plafond' => $ceiling, 'un_par_etudiant' => $onePerStudent],
                 'motif' => trim($reason),
                 'effectue_le' => $at,
                 'adresse_ip' => $ip,

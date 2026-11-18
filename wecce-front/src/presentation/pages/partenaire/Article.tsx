@@ -40,29 +40,31 @@ export default function Article({ article }: ArticleProps) {
   const [condition, setCondition] = useState<Condition>(article?.condition ?? (article?.category === "piece" ? "fonctionnel" : "bon"));
   const [battery, setBattery] = useState(article?.battery !== undefined ? String(article.battery) : "");
   const toPublish = article?.status === "a-photographier";
+  const offline = article?.status === "en-boutique";
+  const [online, setOnline] = useState(true);
   const [info, setInfo] = useState(article?.info ?? "");
   const [price, setPrice] = useState(article ? fmt(article.todayPrice) : "");
   const [photo, setPhoto] = useState<string | null>(article?.photo ?? null);
   const [error, setError] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [busy, setBusy] = useState(false);
-  const { saveArticle, withdrawArticle, publishArticle } = useUseCases();
+  const { saveArticle, withdrawArticle, publishArticle, unpublishArticle } = useUseCases();
   const toast = useToast();
   const go = useGo();
   const states = category === "piece" ? PART_STATES : DEVICE_STATES;
   const title = editing ? article.name : "Ajouter un article de la boutique";
   const priceNum = parseAmount(price);
-  const catalogueHref = `${paths.statistiquesPartenaire}#catalogue`;
+  const catalogueHref = paths.stockTab("catalogue");
 
   return (
-    <BackOfficeLayout space="partenaire" current="statistiques">
+    <BackOfficeLayout space="partenaire" current="stock">
       <PageTitle>{editing ? "Article du stock" : "Ajouter un article"}</PageTitle>
-      <Crumbs items={[{ label: "Statistiques", href: catalogueHref }, { label: editing ? article.name : "Nouvel article" }]} />
+      <Crumbs items={[{ label: "Stock", href: catalogueHref }, { label: editing ? article.name : "Nouvel article" }]} />
       <PageHead
         title={title}
         lead={
           editing
-            ? `${article.origin === "depot" ? `Dépôt ${article.originRef}` : "Stock de la boutique"} · ${toPublish ? "pas encore en ligne : ajoutez une photo prise au comptoir" : `en ligne depuis le ${article.onlineSince}`}`
+            ? `${article.origin === "depot" ? `Dépôt ${article.originRef}` : "Stock de la boutique"} · ${toPublish ? "pas encore en ligne : ajoutez une photo prise au comptoir" : offline ? "en boutique, hors ligne" : `en ligne depuis le ${article.onlineSince}`}`
             : "Un article de votre boutique ne crée aucune dette : il n'a pas de dépôt derrière lui."
         }
         aside={editing ? <StockStatusBadge a={article} status={article.status} /> : undefined}
@@ -91,9 +93,18 @@ export default function Article({ article }: ArticleProps) {
                   info,
                   price: parseAmount(price),
                   photo,
+                  online: editing ? undefined : online,
                 });
                 if (toPublish) await publishArticle(id);
-                toast(toPublish ? `${name.split(" · ")[0]} mis en ligne à ${price} pts.` : editing ? "Article enregistré." : `Article ajouté et mis en ligne à ${price} pts.`);
+                toast(
+                  toPublish
+                    ? `${name.split(" · ")[0]} mis en ligne à ${price} pts.`
+                    : editing
+                      ? "Article enregistré."
+                      : online
+                        ? `Article ajouté et mis en ligne à ${price} pts.`
+                        : "Article ajouté au catalogue de la boutique, hors ligne.",
+                );
                 go(catalogueHref);
               } catch (err) {
                 setBusy(false);
@@ -155,6 +166,16 @@ export default function Article({ article }: ArticleProps) {
               <Field id="art-info" label="Précisions" optional full hint="Visible sur la fiche : accessoires, défauts, détails.">
                 <input className="input" id="art-info" value={info} disabled={readOnly} onChange={(e) => setInfo(e.target.value)} />
               </Field>
+              {!editing && (
+                <label className="check full">
+                  <input type="checkbox" checked={online} onChange={(e) => setOnline(e.target.checked)} />
+                  <span>
+                    <strong>Mettre en ligne sur Wecce tout de suite</strong>
+                    <br />
+                    <span className="xs muted">Décochez pour l'ajouter au catalogue de la boutique sans le proposer aux étudiants.</span>
+                  </span>
+                </label>
+              )}
               <div className="full field">
                 <span className="label">Photo prise au comptoir</span>
                 <PhotoSlots photos={[photo]} count={1} disabled={readOnly} onAdd={(_, url) => setPhoto(url)} />
@@ -170,8 +191,46 @@ export default function Article({ article }: ArticleProps) {
             {!readOnly && (
               <PanelFoot>
                 <Button type="submit" disabled={busy}>
-                  {toPublish ? "Enregistrer et mettre en ligne" : editing ? "Enregistrer l'article" : "Mettre en ligne"}
+                  {toPublish ? "Enregistrer et mettre en ligne" : editing ? "Enregistrer l'article" : online ? "Ajouter et mettre en ligne" : "Ajouter au catalogue"}
                 </Button>
+                {editing && offline && (
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        await publishArticle(article.id);
+                        toast(`${article.name.split(" · ")[0]} mis en ligne.`);
+                        go(catalogueHref);
+                      } catch (err) {
+                        setBusy(false);
+                        setError(err instanceof RuleViolation ? err.message : "La mise en ligne n'a pas abouti.");
+                      }
+                    }}
+                  >
+                    Mettre en ligne
+                  </Button>
+                )}
+                {editing && article.status === "en-ligne" && (
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={async () => {
+                      setBusy(true);
+                      try {
+                        await unpublishArticle(article.id);
+                        toast(`${article.name.split(" · ")[0]} retiré du marché, gardé en boutique.`);
+                        go(catalogueHref);
+                      } catch (err) {
+                        setBusy(false);
+                        setError(err instanceof RuleViolation ? err.message : "L'action n'a pas abouti.");
+                      }
+                    }}
+                  >
+                    Mettre hors ligne
+                  </Button>
+                )}
                 <ButtonLink href={catalogueHref} variant="ghost">
                   Annuler
                 </ButtonLink>
@@ -179,7 +238,7 @@ export default function Article({ article }: ArticleProps) {
                   <>
                     <span className="spacer" />
                     <Button variant="danger" onClick={() => setWithdrawing(true)}>
-                      Retirer du marché
+                      Sortir du stock
                     </Button>
                   </>
                 )}
@@ -189,10 +248,10 @@ export default function Article({ article }: ArticleProps) {
           {withdrawing && article && (
             <div style={{ padding: "0 28px 24px" }}>
               <ConfirmInline
-                question="Retirer cet article du marché ?"
-                consequence="Il n'apparaîtra plus aux étudiants. Le retrait est inscrit au journal."
-                confirmLabel="Retirer l'article"
-                cancelLabel="Garder en ligne"
+                question="Sortir cet article du stock ?"
+                consequence="Il n'apparaîtra plus aux étudiants ni dans le stock actif. Le retrait est inscrit au journal. Pour le cacher sans le sortir du stock, utilisez « Mettre hors ligne »."
+                confirmLabel="Sortir du stock"
+                cancelLabel="Garder l'article"
                 onCancel={() => setWithdrawing(false)}
                 onConfirm={async () => {
                   try {

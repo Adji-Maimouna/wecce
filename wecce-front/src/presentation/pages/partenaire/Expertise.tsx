@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { RuleViolation } from "@/application";
-import type { Appointment, DeclaredDevice, DeviceCondition } from "@/domain/entities";
+import type { Appointment, DeclaredDevice, DeviceCondition, ExchangeableItem, TakeBackMode } from "@/domain/entities";
 import { DeclaredPanel } from "@/presentation/components/expertise/DeclaredPanel";
 import { InspectionPanel, type Inspection } from "@/presentation/components/expertise/InspectionPanel";
 import { PricesPanel } from "@/presentation/components/expertise/PricesPanel";
 import { RefusalPanel } from "@/presentation/components/expertise/RefusalPanel";
+import { TakeBackModePanel } from "@/presentation/components/expertise/TakeBackModePanel";
 import { useToast } from "@/presentation/components/feedback/toastContext";
 import { BackOfficeLayout } from "@/presentation/components/layout/BackOfficeLayout";
 import { Crumbs } from "@/presentation/components/layout/Crumbs";
@@ -16,7 +17,7 @@ import { Icon } from "@/presentation/components/ui/Icon";
 import { Notice } from "@/presentation/components/ui/Notice";
 import { Panel, PanelBody } from "@/presentation/components/ui/Panel";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
-import { parseAmount } from "@/presentation/lib/format";
+import { fmt, parseAmount } from "@/presentation/lib/format";
 import { useGo } from "@/presentation/lib/navigation";
 import { paths } from "@/presentation/lib/paths";
 
@@ -26,7 +27,9 @@ export type ExpertiseProps = {
   /** Le dépôt à examiner (?depot=REF), ou null : on choisit d'abord un rendez-vous. */
   declared: DeclaredDevice | null;
   /** Bonus de lancement encore ouvert (rang du prochain dépôt bonifié), ou null. */
-  bonus: { rate: number; rank: number; quota: number } | null;
+  bonus: { rate: number; rank: number; quota: number; cap?: number } | null;
+  /** Objets du stock propre de LBC, contreparties possibles d'un échange direct. */
+  shopItems?: ExchangeableItem[];
   controls: string[];
   /** Rendez-vous du jour qui attendent l'expertise. */
   queue: Appointment[];
@@ -96,10 +99,13 @@ function ChooseDeposit({ queue, missedQueue = [], missingRef }: { queue: Appoint
   );
 }
 
-function ExpertiseForm({ declared, bonus, controls }: ExpertiseProps & { declared: DeclaredDevice }) {
+function ExpertiseForm({ declared, bonus, controls, shopItems = [] }: ExpertiseProps & { declared: DeclaredDevice }) {
   const isPiece = declared.category === "piece";
   const [mode, setMode] = useState<ExpertiseMode>("defaut");
   const [inspection, setInspection] = useState<Inspection>({ condition: declared.etat, battery: "", serial: "" });
+  const [takeBackMode, setTakeBackMode] = useState<TakeBackMode>("vente");
+  const [counterpartId, setCounterpartId] = useState("");
+  const [counterpartLabel, setCounterpartLabel] = useState("");
   const [takeBack, setTakeBack] = useState("");
   const [listPrice, setListPrice] = useState("");
   const [busy, setBusy] = useState(false);
@@ -117,7 +123,7 @@ function ExpertiseForm({ declared, bonus, controls }: ExpertiseProps & { declare
 
   return (
     <>
-      <Crumbs items={[{ label: "Rendez-vous du jour", href: paths.rendezVous }, { label: declared.depositRef }]} />
+      <Crumbs items={[{ label: "Rendez-vous", href: paths.rendezVous }, { label: declared.depositRef }]} />
       <PageHead
         title={`Expertise · ${declared.modele}`}
         lead={`${declared.student.name} · carte ${declared.student.card} · rendez-vous de ${declared.appointmentTime}`}
@@ -135,8 +141,26 @@ function ExpertiseForm({ declared, bonus, controls }: ExpertiseProps & { declare
           <InspectionPanel pieces={pieces} value={inspection} onChange={setInspection} controls={controls} />
 
           {mode !== "refus" && (
+            <TakeBackModePanel
+              mode={takeBackMode}
+              onMode={setTakeBackMode}
+              shopItems={shopItems}
+              counterpartId={counterpartId}
+              onCounterpartId={(id) => {
+                setCounterpartId(id);
+                const item = shopItems.find((x) => x.id === id);
+                if (item && !takeBack) setTakeBack(fmt(item.price));
+              }}
+              counterpartLabel={counterpartLabel}
+              onCounterpartLabel={setCounterpartLabel}
+            />
+          )}
+
+          {mode !== "refus" && (
             <PricesPanel
               pieces={pieces}
+              mode={takeBackMode}
+              counterpartReady={takeBackMode !== "echange-objet" || !!counterpartId || counterpartLabel.trim().length > 2}
               wholeDevice={!isPiece}
               wish={declared.wish}
               bonus={bonus}
@@ -159,6 +183,9 @@ function ExpertiseForm({ declared, bonus, controls }: ExpertiseProps & { declare
                     serial: inspection.serial,
                     takeBack: parseAmount(takeBack),
                     listPrice: parseAmount(listPrice),
+                    mode: takeBackMode,
+                    counterpartArticleId: takeBackMode === "echange-objet" ? counterpartId || null : null,
+                    counterpartLabel: takeBackMode === "echange-objet" ? counterpartLabel.trim() : "",
                   });
                   go(paths.waiverCounter(declared.depositRef));
                 } catch (err) {

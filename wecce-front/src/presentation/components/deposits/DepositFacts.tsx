@@ -7,6 +7,7 @@ import { REFUSAL_LABELS } from "@/presentation/lib/labels";
 export function DepositFacts({ d }: { d: Deposit }) {
   const facts: ReactNode[] = [];
   if (d.status === "rendez-vous" && d.appointment) facts.push(d.appointment.label);
+  if (d.status === "demande-rdv" && d.request) facts.push(`Demande envoyée le ${d.request.sentAt}`, `Vos disponibilités : ${d.request.summary}`);
   if (d.wish) facts.push(`Prix souhaité : ${pts(d.wish)}`);
   if (d.missing) facts.push(d.missing);
   if (d.status === "a-signer" && d.examinedOn) facts.push(`Examiné le ${d.examinedOn}, signature en attente`);
@@ -18,6 +19,8 @@ export function DepositFacts({ d }: { d: Deposit }) {
         {d.takeBack.bonus > 0 && ` + bonus ${fmt(d.takeBack.bonus)}`}
       </>,
     );
+  if (d.exchange)
+    facts.push(d.exchange.mode === "echange-objet" ? `Échangé contre : ${d.exchange.counterpart ?? "un objet LBC"}` : "Échange direct avec LBC, hors marché");
   if (d.prices) facts.push(`Proposé ${fmt(d.prices.initial)}, aujourd'hui ${fmt(d.prices.today)}`);
   if (d.status === "refuse" && d.examinedOn) facts.push(`Examiné le ${d.examinedOn}`);
   if (d.refusal) facts.push(`Motif : ${REFUSAL_LABELS[d.refusal.reason].toLowerCase()}`);

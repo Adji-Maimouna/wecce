@@ -14,7 +14,25 @@ export const makeSubmitExpertise = (partner: PartnerGateway) => async (input: Ex
 export const makeRefuseDeposit = (partner: PartnerGateway) => (depositRef: string, reason: RefusalReason, comment: string) =>
   partner.refuseDeposit(depositRef, reason, comment.trim());
 
+/** LBC fixe le rendez-vous demandé par un étudiant. */
+export const makeScheduleAppointment = (partner: PartnerGateway) => async (depositRef: string, date: string, time: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || !/^\d{1,2}:\d{2}$/.test(time)) throw new RuleViolation("creneau-invalide", "Choisissez un jour et une heure.");
+  return partner.scheduleAppointment(depositRef, date, time);
+};
+
 export const makePublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.publishArticle(articleId);
+
+/** Mettre un article hors ligne : il reste au stock de la boutique, invisible sur le marché. */
+export const makeUnpublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.unpublishArticle(articleId);
+
+/** Valider un achat demandé par un étudiant : c'est à ce moment que ses points sont débités. */
+export const makeValidateAcquisition = (partner: PartnerGateway) => (acquisitionRef: string) => partner.validateAcquisition(acquisitionRef);
+
+/** Refuser un achat (objet introuvable, abîmé…) : motif obligatoire, montré à l'étudiant. */
+export const makeRefuseAcquisition = (partner: PartnerGateway) => async (acquisitionRef: string, reason: string) => {
+  if (reason.trim().length < 3) throw new RuleViolation("motif-manquant", "Indiquez le motif du refus : il est montré à l'étudiant.");
+  return partner.refuseAcquisition(acquisitionRef, reason.trim());
+};
 
 /** Remettre un objet réservé : l'acquisition est soldée, la garantie démarre. */
 export const makeHandOver = (partner: PartnerGateway) => (acquisitionRef: string) => partner.handOver(acquisitionRef);

@@ -10,6 +10,7 @@ use App\Models\MouvementPoints;
 use App\Models\User;
 use App\Services\WecceEngine;
 use App\Services\WecceQueries;
+use App\Support\WecceClock;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -191,8 +192,7 @@ class WecceBackendTest extends TestCase
         );
         $this->get('/etudiant/deposer')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Deposer')
-            ->has('days')
-            ->has('times')
+            ->has('availabilityDays', 6)
         );
         $this->get('/etudiant/questions')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Questions')
@@ -237,8 +237,7 @@ class WecceBackendTest extends TestCase
         );
         $this->get('/etudiant/deposer')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Deposer')
-            ->has('days')
-            ->has('times')
+            ->has('availabilityDays', 6)
         );
         $this->get('/etudiant/depots')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Depots')
@@ -265,10 +264,30 @@ class WecceBackendTest extends TestCase
         $agent = User::query()->where('email', 'comptoir1@lbc.exemple.sn')->firstOrFail();
         $this->actingAs($agent);
 
+        $this->get('/partenaire/tableau-de-bord')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('partenaire/Tableau')
+            ->where('todo.purchases', 1)
+            ->has('today', 6)
+            ->has('weeks', 8)
+            ->has('month.current.takeBacks')
+            ->has('stock.byCategory', 5)
+            ->has('coverage.ratio')
+            ->has('activity')
+        );
         $this->get('/partenaire/rendez-vous')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/RendezVous')
-            ->has('days')
+            ->where('date', '2026-11-07')
+            ->has('appointments', 6)
+            ->has('week', 6)
+            ->has('requests')
             ->where('auth.appointmentsToReceive', 3)
+            ->where('auth.partnerTodo.purchases', 1)
+        );
+        // Navigation libre dans le calendrier du comptoir
+        $this->get('/partenaire/rendez-vous?date=2026-11-09')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('date', '2026-11-09')
+            ->where('relative', null)
+            ->has('appointments', 2)
         );
         $this->get('/partenaire/expertise?depot=WC-2026-0634')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/Expertise')
@@ -286,7 +305,17 @@ class WecceBackendTest extends TestCase
         $this->assertSame('Yakhya', $agent->prenom);
         $this->assertSame('Wade', $agent->nom);
 
-        $this->get('/partenaire/stock')->assertRedirect('/partenaire/statistiques#catalogue');
+        $this->get('/partenaire/stock?onglet=achats')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('partenaire/Stock')
+            ->where('tab', 'achats')
+            ->has('toValidate', 1)
+            ->where('toValidate.0.status', 'a-valider')
+            ->where('toValidate.0.student.card', '2023-0871')
+            ->has('toHandOver', 1)
+            ->has('toPublish')
+            ->has('catalog.articles')
+            ->has('summary.inShopCount')
+        );
         $this->get('/partenaire/stock/nouveau')->assertOk()->assertInertia(fn (Assert $page) => $page->component('partenaire/Article'));
 
         $annonce = Annonce::query()->where('slug', 'galaxy-a12')->firstOrFail();
@@ -329,8 +358,7 @@ class WecceBackendTest extends TestCase
             ->has('paymentMethods', 4)
             ->has('monthly')
             ->has('byUfr')
-            ->has('catalog.articles')
-            ->has('catalog.counts')
+            ->missing('catalog')
         );
         $this->get('/partenaire/statistiques?periode=mois')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/Statistiques')
@@ -342,6 +370,19 @@ class WecceBackendTest extends TestCase
             ->where('periode', 'personnalisee')
             ->where('fromDate', '2026-11-01')
             ->where('toDate', '2026-11-07')
+        );
+        // Dates à l'envers remises dans l'ordre, série quotidienne et étudiants actifs sur la période
+        $this->get('/partenaire/statistiques?periode=personnalisee&du=2026-11-07&au=2026-11-01')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('fromDate', '2026-11-01')
+            ->where('toDate', '2026-11-07')
+            ->has('daily', 7)
+            ->where('summary.activeStudents', fn ($n) => $n > 0)
+            ->where('lastActivity.date', '2026-11-07')
+        );
+        $this->get('/partenaire/statistiques?periode=2026-08')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('summary.totalDeposits', 0)
+            ->where('summary.activeStudents', 0)
+            ->has('lastActivity.label')
         );
 
         // Rendez-vous non respectés quand la date du jour avance (ex. 2026-11-18)
@@ -356,11 +397,30 @@ class WecceBackendTest extends TestCase
             ->component('etudiant/Solde')
             ->where('auth.missedDeposits.0.ref', 'WC-2026-0643')
         );
-        $this->putJson('/etudiant/depots/WC-2026-0643/rendez-vous', ['day' => 1, 'slot' => 0])->assertOk();
+        // L'étudiant demande un nouveau rendez-vous ; c'est LBC qui fixe le jour et l'heure.
+        $this->putJson('/etudiant/depots/WC-2026-0643/rendez-vous', [
+            'availability' => ['days' => ['2026-11-19', '2026-11-20'], 'moment' => 'apres-midi', 'note' => 'Après 15 h'],
+        ])->assertOk();
         $this->get('/etudiant/solde')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('etudiant/Solde')
             ->has('auth.missedDeposits', 0)
         );
+        $this->get('/etudiant/depots')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('current.0.status', 'demande-rdv')
+        );
+        $this->actingAs($agent);
+        $this->get('/partenaire/rendez-vous')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('requests.0.depositRef', 'WC-2026-0643')
+            ->where('requests.0.status', 'a-planifier')
+        );
+        $this->postJson('/partenaire/depots/WC-2026-0643/rendez-vous', ['date' => '2026-11-22', 'time' => '15:30'])
+            ->assertStatus(422); // dimanche
+        $this->postJson('/partenaire/depots/WC-2026-0643/rendez-vous', ['date' => '2026-11-20', 'time' => '15:30'])->assertOk();
+        $this->get('/partenaire/rendez-vous?date=2026-11-20')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->has('requests', 0)
+            ->where('appointments.0.depositRef', 'WC-2026-0643')
+        );
+        $this->actingAs($fatou);
         config(['wecce.reference_date' => '2026-11-07']);
         $this->actingAs($agent);
         $this->get('/partenaire/profil')->assertOk()->assertInertia(fn (Assert $page) => $page->component('partenaire/Profil'));
@@ -428,12 +488,12 @@ class WecceBackendTest extends TestCase
             'listPrice'  => 68000,
         ])->assertOk();
 
-        // 3. Signature du renoncement : crédite 50 000 + 10 000 (bonus 20 %) = 60 000 pts
+        // 3. Signature du renoncement : crédite 50 000 + bonus 20 % plafonné à 5 000 = 55 000 pts
         $signResp = $this->postJson("/partenaire/depots/{$ref}/renoncement/signature", [
             'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         ])->assertOk();
 
-        $this->assertSame(60000, $signResp->json('balanceAfter'));
+        $this->assertSame(55000, $signResp->json("balanceAfter"));
 
         // 4. Fatou acquiert l'enceinte JBL Go entièrement avec ses points
         $this->actingAs($fatou);
@@ -445,17 +505,98 @@ class WecceBackendTest extends TestCase
             'method'   => 'especes',
         ])->assertOk();
 
-        $this->assertSame('reserve', $acqResp->json('status'));
+        // L'achat attend la validation de LBC : rien n'est encore débité, mais les points sont bloqués.
+        $this->assertSame('a-valider', $acqResp->json('status'));
         $acqRef = $acqResp->json('acquisitionRef');
 
         $compteFatou = ComptePoints::query()->where('etudiant_id', $fatou->id)->firstOrFail();
-        $this->assertSame(60000 - $jblPrice, (int) $compteFatou->solde);
+        $this->assertSame(55000, (int) $compteFatou->solde);
+        $this->assertSame($jblPrice, app(WecceEngine::class)->heldPoints($fatou->id));
 
-        // 5. Remise au comptoir par l'agent LBC
+        // 5. Remettre l'objet avant validation est refusé
         $this->actingAs($agent);
+        $this->postJson("/partenaire/acquisitions/{$acqRef}/remise")->assertStatus(422);
+
+        // 6. LBC valide l'achat : les points sont débités à ce moment
+        $this->postJson("/partenaire/acquisitions/{$acqRef}/validation")->assertOk();
+        $compteFatou->refresh();
+        $this->assertSame(55000 - $jblPrice, (int) $compteFatou->solde);
+        $this->assertSame(0, app(WecceEngine::class)->heldPoints($fatou->id));
+
+        // 7. LBC confirme la remise : la garantie de 90 jours démarre
         $this->postJson("/partenaire/acquisitions/{$acqRef}/remise")->assertOk();
+        $acq = \App\Models\Acquisition::query()->where('reference', $acqRef)->firstOrFail();
+        $this->assertSame('REMIS', $acq->statut);
+        $this->assertSame($agent->id, $acq->remis_par);
+        $this->assertSame(WecceClock::addDays(WecceClock::dateOf($acq->retire_le), 90), WecceClock::dateOf($acq->garantie_jusquau));
+
+        // 8. Un achat refusé par LBC remet l'objet en ligne sans rien débiter
+        $this->actingAs($fatou);
+        $refusedRef = $this->postJson('/etudiant/acquisitions', ['itemSlug' => 'batterie-fujitsu', 'method' => 'especes'])->assertOk()->json('acquisitionRef');
+        $before = (int) $compteFatou->fresh()->solde;
+        $this->actingAs($agent);
+        $this->postJson("/partenaire/acquisitions/{$refusedRef}/refus", ['reason' => 'Objet introuvable en rayon.'])->assertOk();
+        $this->assertSame($before, (int) $compteFatou->fresh()->solde);
+        $refused = \App\Models\Acquisition::query()->where('reference', $refusedRef)->firstOrFail();
+        $this->assertSame('ANNULE', $refused->statut);
+        $this->assertSame('EN_LIGNE', Annonce::query()->findOrFail($refused->annonce_id)->statut);
+
+        // 9. Un second bonus n'est pas accordé au même étudiant
+        $this->assertSame(1, \App\Models\MouvementPoints::query()->where('compte_id', $compteFatou->id)->where('type', 'BONUS')->count());
 
         // Contrôle d'intégrité des soldes
+        $this->assertSame([], app(WecceQueries::class)->balanceMismatches());
+    }
+
+    public function test_direct_exchange_modes_keep_the_device_off_the_market(): void
+    {
+        $engine = app(WecceEngine::class);
+        $agent = User::query()->where('email', 'comptoir1@lbc.exemple.sn')->firstOrFail();
+        $omar = User::query()->where('email', 'omar.ba@exemple.sn')->firstOrFail();
+        $compte = ComptePoints::query()->where('etudiant_id', $omar->id)->firstOrFail();
+        $balance = (int) $compte->solde;
+        $stockBefore = $engine->stockValue();
+
+        $declare = fn (string $modele) => $engine->createDeposit($omar->id, [
+            'category' => 'tel', 'modele' => $modele, 'age' => '1-2', 'etat' => 'bon',
+            'availability' => ['days' => ['2026-11-09'], 'moment' => 'matin', 'note' => ''],
+        ], '2026-11-07T11:00');
+
+        // 1. Échange contre un objet de la boutique : aucun point, l'objet LBC sort du stock.
+        $ref = $declare('Nokia 3310');
+        $this->assertSame('RDV_DEMANDE', \App\Models\Depot::query()->where('reference', $ref)->value('statut'));
+        $jbl = Annonce::query()->where('slug', 'jbl-go')->firstOrFail();
+        $this->actingAs($agent);
+        $this->postJson('/partenaire/expertises', [
+            'depositRef' => $ref, 'pieces' => false, 'condition' => 'bon', 'takeBack' => 8000, 'listPrice' => 11000,
+            'mode' => 'echange-objet', 'counterpartArticleId' => $jbl->id,
+        ])->assertOk();
+        $this->postJson("/partenaire/depots/{$ref}/renoncement/signature", ['signature' => 'data:image/png;base64,AAAA'])
+            ->assertOk()->assertJson(['balanceAfter' => $balance]);
+        $this->assertSame($balance, (int) $compte->fresh()->solde);
+        $this->assertSame('VENDUE', $jbl->fresh()->statut);
+        $kept = Annonce::query()->whereHas('depotOrigine', fn ($q) => $q->where('reference', $ref))->firstOrFail();
+        $this->assertSame('EN_BOUTIQUE', $kept->statut);
+        $this->get('/etudiant/objets/' . $kept->slug)->assertOk()->assertInertia(fn (Assert $page) => $page->component('NotFound'));
+
+        // 2. LBC peut ensuite le mettre en ligne, puis le retirer du marché.
+        $this->postJson("/partenaire/stock/{$kept->id}/publication")->assertOk();
+        $this->assertSame('EN_LIGNE', $kept->fresh()->statut);
+        $this->deleteJson("/partenaire/stock/{$kept->id}/publication")->assertOk();
+        $this->assertSame('EN_BOUTIQUE', $kept->fresh()->statut);
+
+        // 3. Échange contre des points : crédit (sans nouveau bonus pour Omar, déjà bonifié), objet hors marché.
+        $ref2 = $declare('Itel A60');
+        $this->postJson('/partenaire/expertises', [
+            'depositRef' => $ref2, 'pieces' => false, 'condition' => 'bon', 'takeBack' => 12000, 'listPrice' => 16000,
+            'mode' => 'echange-points',
+        ])->assertOk();
+        $after = $this->postJson("/partenaire/depots/{$ref2}/renoncement/signature", ['signature' => 'data:image/png;base64,AAAA'])
+            ->assertOk()->json('balanceAfter');
+        $this->assertSame($balance + 12000, $after);
+        $this->assertSame('EN_BOUTIQUE', Annonce::query()->whereHas('depotOrigine', fn ($q) => $q->where('reference', $ref2))->value('statut'));
+        // Un objet gardé hors marché ne couvre pas la dette ; la JBL échangée sort de la valeur de stock.
+        $this->assertSame($stockBefore - (int) $jbl->prix_courant, $engine->stockValue());
         $this->assertSame([], app(WecceQueries::class)->balanceMismatches());
     }
 

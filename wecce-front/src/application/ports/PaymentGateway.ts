@@ -7,6 +7,8 @@ export type AcquisitionRequest = { itemSlug: string; method: PaymentMethod; phon
 export type AcquisitionResult =
   /** Espèces, ou objet entièrement couvert par les points : l'objet est réservé tout de suite. */
   | { status: "reserve"; acquisitionRef: string }
+  /** L'achat attend la validation de LBC ; les points sont bloqués, pas encore débités. */
+  | { status: "a-valider"; acquisitionRef: string }
   /** Paiement mobile : une demande attend la validation de l'étudiant sur son téléphone. */
   | { status: "en-attente"; acquisitionRef: string; paymentRef: string; sentAt: string };
 

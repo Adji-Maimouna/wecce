@@ -78,6 +78,7 @@ Route::prefix('etudiant')->group(function () {
 */
 Route::middleware('role:AGENT')->prefix('partenaire')->group(function () {
     // Pages (GET)
+    Route::get('/tableau-de-bord', [PartenaireController::class, 'tableau'])->name('partenaire.tableau');
     Route::get('/rendez-vous', [PartenaireController::class, 'rendezVous'])->name('partenaire.rdv');
     Route::get('/expertise', [PartenaireController::class, 'expertise'])->name('partenaire.expertise');
     Route::get('/depots/{ref}', [PartenaireController::class, 'depot'])->name('partenaire.depot');
@@ -92,9 +93,13 @@ Route::middleware('role:AGENT')->prefix('partenaire')->group(function () {
     // Actions (POST / PUT / DELETE)
     Route::post('/expertises', [PartenaireController::class, 'submitExpertise'])->name('partenaire.expertises.store');
     Route::post('/depots/{ref}/refus', [PartenaireController::class, 'refuseDeposit'])->name('partenaire.depots.refus');
+    Route::post('/depots/{ref}/rendez-vous', [PartenaireController::class, 'scheduleAppointment'])->name('partenaire.depots.rdv');
     Route::post('/depots/{ref}/renoncement/signature', [PartenaireController::class, 'signWaiver'])->name('partenaire.renoncement.sign');
     Route::post('/depots/{ref}/renoncement/refus', [PartenaireController::class, 'declineWaiver'])->name('partenaire.renoncement.decline');
     Route::post('/stock/{id}/publication', [PartenaireController::class, 'publishArticle'])->name('partenaire.stock.publish');
+    Route::delete('/stock/{id}/publication', [PartenaireController::class, 'unpublishArticle'])->name('partenaire.stock.unpublish');
+    Route::post('/acquisitions/{ref}/validation', [PartenaireController::class, 'validateAcquisition'])->name('partenaire.acquisitions.validation');
+    Route::post('/acquisitions/{ref}/refus', [PartenaireController::class, 'refuseAcquisition'])->name('partenaire.acquisitions.refus');
     Route::post('/acquisitions/{ref}/remise', [PartenaireController::class, 'handOver'])->name('partenaire.acquisitions.remise');
     Route::post('/stock', [PartenaireController::class, 'saveArticle'])->name('partenaire.stock.store');
     Route::put('/stock/{id}', [PartenaireController::class, 'saveArticle'])->name('partenaire.stock.update');

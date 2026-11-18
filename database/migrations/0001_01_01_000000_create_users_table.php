@@ -121,7 +121,7 @@ CREATE TABLE configuration_plateforme (
     seuil_suspension         NUMERIC(5,3) NOT NULL DEFAULT 1.100,
     seuil_reouverture        NUMERIC(5,3) NOT NULL DEFAULT 1.200,
     delai_retrait_jours      SMALLINT     NOT NULL DEFAULT 3,
-    duree_garantie_jours     SMALLINT     NOT NULL DEFAULT 7,
+    duree_garantie_jours     SMALLINT     NOT NULL DEFAULT 90,
     taux_commission          NUMERIC(4,3) NOT NULL DEFAULT 0.050,
     derniere_fonte_le        TIMESTAMPTZ,
     derniere_fonte_comptes   INTEGER,
@@ -465,7 +465,7 @@ SQL);
             $table->decimal('seuil_suspension', 5, 3)->default(1.100);
             $table->decimal('seuil_reouverture', 5, 3)->default(1.200);
             $table->smallInteger('delai_retrait_jours')->default(3);
-            $table->smallInteger('duree_garantie_jours')->default(7);
+            $table->smallInteger('duree_garantie_jours')->default(90);
             $table->decimal('taux_commission', 4, 3)->default(0.050);
             $table->timestampTz('derniere_fonte_le')->nullable();
             $table->integer('derniere_fonte_comptes')->nullable();

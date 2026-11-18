@@ -5,7 +5,7 @@ export type { PaymentGateway, PaymentMethod, AcquisitionRequest, AcquisitionResu
 export type { WaiverGateway } from "./WaiverGateway";
 export type { ProfileGateway, ContactUpdate } from "./ProfileGateway";
 export type { PartnerGateway } from "./PartnerGateway";
-export type { AdminGateway, AdjustmentRequest } from "./AdminGateway";
+export type { AdminGateway, AdjustmentRequest, BonusLimits } from "./AdminGateway";
 
 import type { AuthGateway } from "./AuthGateway";
 import type { DepositGateway } from "./DepositGateway";

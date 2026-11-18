@@ -38,7 +38,7 @@ export default function Renoncement({ waiver: w, context }: RenoncementProps) {
   const { signWaiver, declineWaiver } = useUseCases();
   const toast = useToast();
   const go = useGo();
-  const credit = creditAtSignature(w.takeBack, w.bonusRate);
+  const credit = w.mode === "echange-objet" ? 0 : w.bonus !== undefined ? w.takeBack + w.bonus : creditAtSignature(w.takeBack, w.bonusRate);
   const initials = w.depositor.name
     .split(" ")
     .map((p) => p.charAt(0))
@@ -50,7 +50,11 @@ export default function Renoncement({ waiver: w, context }: RenoncementProps) {
     <div className="wrap" style={{ maxWidth: 820 }}>
       {context === "etudiant" && <Crumbs items={[{ label: "Mes dépôts", href: paths.depots }, { label: `Renoncement ${w.ref}` }]} />}
       {signed && context === "comptoir" && (
-        <Notice tone="ok" title={`Signé. ${fmt(credit)} points ont été crédités sur votre compte.`} style={{ marginBottom: 20 }}>
+        <Notice
+          tone="ok"
+          title={w.mode === "echange-objet" ? `Signé. Échange conclu contre : ${w.counterpart ?? "un objet LBC"}.` : `Signé. ${fmt(credit)} points ont été crédités sur votre compte.`}
+          style={{ marginBottom: 20 }}
+        >
           <p className="small">
             Votre solde passe à {justSigned ? <CountUp className="pts" value={w.balanceBefore + credit} suffix=" pts" /> : <span className="pts">{fmt(w.balanceBefore + credit)} pts</span>}.
             Une copie de ce document reste dans « Mes dépôts ».
@@ -141,13 +145,14 @@ export default function Renoncement({ waiver: w, context }: RenoncementProps) {
         ) : (
           <SignFooter
             credit={credit}
+            counterpart={w.mode === "echange-objet" ? (w.counterpart ?? "un objet de la boutique LBC") : null}
             onSign={async (signature) => {
               setError(null);
               try {
                 await signWaiver(w.ref, signature);
                 setJustSigned(true);
                 window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
-                toast("Signé. Les points sont crédités.");
+                toast(w.mode === "echange-objet" ? "Signé. Remettez l'objet de la boutique à l'étudiant." : "Signé. Les points sont crédités.");
               } catch (e) {
                 setError(e instanceof RuleViolation ? e.message : "La signature n'a pas été enregistrée.");
               }

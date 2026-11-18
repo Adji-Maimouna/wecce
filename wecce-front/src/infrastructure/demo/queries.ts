@@ -248,6 +248,8 @@ function toDeposit(db: Db, d: DepositRow): Deposit {
       const missing = [d.photoCount === 0 && "les photos", !d.slot && "le rendez-vous"].filter(Boolean).join(" et ");
       return { ...base, stageIndex: 0, missing: missing ? `Il manque ${missing}` : undefined };
     }
+    case "demande-rdv":
+      return { ...base, stageIndex: 1 };
     case "rendez-vous":
       return { ...base, stageIndex: 1, appointment: d.slot ? appointmentLabel(d.slot) : undefined };
     case "a-signer":
@@ -478,6 +480,7 @@ export function homePage() {
 
 const APPOINTMENT_STATUS: Record<DepositRow["status"], AppointmentStatus> = {
   brouillon: "a-venir",
+  "demande-rdv": "a-planifier",
   "rendez-vous": "a-venir",
   "a-signer": "a-signer",
   repris: "repris",
@@ -621,7 +624,7 @@ function toStockArticle(db: Db, a: ArticleRow): StockArticle {
   };
 }
 
-const STOCK_ORDER: Record<ArticleRow["status"], number> = { "a-photographier": 0, reserve: 1, "en-ligne": 2, remis: 3, retire: 4 };
+const STOCK_ORDER: Record<ArticleRow["status"], number> = { "a-photographier": 0, reserve: 1, "en-boutique": 2, "en-ligne": 3, remis: 4, retire: 5 };
 
 export function stockPage(): { summary: StockSummary | null; articles: StockArticle[]; counts: { tout: number; depot: number; boutique: number } } {
   const db = data();

@@ -113,8 +113,7 @@ export const screens: Screen[] = [
           depositsSuspended={suspension.suspended}
           suspensionReason={suspension.reason}
           bonus={server.bonusOffer()}
-          days={s.days}
-          times={s.times}
+          availabilityDays={s.days.map((d, i) => ({ date: `demo-${i}`, label: d.label, month: d.month }))}
           start={{ ...draft, ...server.firstFree(s) }}
         />
       );
@@ -152,7 +151,27 @@ export const screens: Screen[] = [
   {
     path: "/partenaire/rendez-vous",
     access: "AGENT",
-    render: () => <RendezVous days={server.counterDays()} depositsSuspended={server.depositsSuspension().suspended} />,
+    // Serveur simulé : seul le jour courant est servi (la navigation par date vient de Laravel).
+    render: () => {
+      const day = server.counterDays().aujourdhui;
+      return (
+        <RendezVous
+          date=""
+          today=""
+          label={day.label}
+          relative="Aujourd'hui"
+          appointments={day.appointments}
+          week={[]}
+          prevDate=""
+          nextDate=""
+          prevWeek=""
+          nextWeek=""
+          requests={[]}
+          times={[]}
+          depositsSuspended={server.depositsSuspension().suspended}
+        />
+      );
+    },
   },
   {
     path: "/partenaire/expertise",
@@ -193,7 +212,29 @@ export const screens: Screen[] = [
       return waiver ? <Renoncement waiver={waiver} context="comptoir" /> : <NotFound />;
     },
   },
-  { path: "/partenaire/stock", access: "AGENT", render: () => <Stock {...server.stockPage()} /> },
+  { path: "/partenaire/stock", access: "AGENT", render: () => {
+      const st = server.stockPage();
+      return (
+        <Stock
+          toValidate={[]}
+          awaitingPayment={[]}
+          toHandOver={[]}
+          history={[]}
+          toPublish={st.articles.filter((a) => a.origin === "depot" && a.status === "a-photographier")}
+          catalog={{ articles: st.articles, counts: st.counts }}
+          summary={{
+            inShopCount: st.articles.filter((a) => a.status !== "remis" && a.status !== "retire").length,
+            inShopValue: 0,
+            onlineCount: st.summary?.online ?? 0,
+            onlineValue: st.summary?.displayedValue ?? 0,
+            offlineCount: st.articles.filter((a) => a.status === "a-photographier").length,
+            reservedCount: st.summary?.reserved ?? 0,
+            shopOwnCount: st.counts.boutique,
+          }}
+        />
+      );
+    },
+  },
   { path: "/partenaire/stock/nouveau", access: "AGENT", render: () => <Article /> },
   {
     path: "/partenaire/stock/:id",

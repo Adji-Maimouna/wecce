@@ -33,7 +33,12 @@ export function DepositRow({ deposit: d, index }: { deposit: Deposit; index: num
         <DepositFacts d={d} />
         {d.status === "rendez-vous" && d.appointment?.missed && (
           <p className="small" style={{ marginTop: 8, color: "var(--warn)" }}>
-            Ce rendez-vous est dépassé. Choisissez un nouveau créneau chez LBC pour déposer votre appareil.
+            Ce rendez-vous est dépassé. Redonnez vos disponibilités : LBC vous proposera un autre créneau.
+          </p>
+        )}
+        {d.status === "demande-rdv" && (
+          <p className="small muted" style={{ marginTop: 8 }}>
+            LBC choisit le jour et l'heure parmi vos disponibilités. Le rendez-vous s'affichera ici.
           </p>
         )}
         {d.refusal?.comment && (
@@ -45,10 +50,10 @@ export function DepositRow({ deposit: d, index }: { deposit: Deposit; index: num
       </div>
 
       <div className="deposit__actions">
-        {d.status === "rendez-vous" && (
+        {(d.status === "rendez-vous" || d.status === "demande-rdv") && (
           <>
             <ButtonLink href={paths.reschedule(d.ref)} variant={d.appointment?.missed ? undefined : "ghost"} size="sm">
-              {d.appointment?.missed ? "Prendre un nouveau rendez-vous" : "Changer le rendez-vous"}
+              {d.status === "demande-rdv" ? "Modifier mes disponibilités" : d.appointment?.missed ? "Demander un nouveau rendez-vous" : "Demander un autre créneau"}
             </ButtonLink>
             <Button variant="danger" size="sm" onClick={() => setConfirming(true)}>
               Annuler le dépôt
@@ -87,7 +92,13 @@ export function DepositRow({ deposit: d, index }: { deposit: Deposit; index: num
       {confirming && (
         <ConfirmInline
           question={d.status === "brouillon" ? "Supprimer ce brouillon ?" : "Annuler ce dépôt ?"}
-          consequence={d.status === "brouillon" ? "Il passera dans les dépôts annulés." : `Le créneau du ${d.appointment?.long ?? "rendez-vous"} sera libéré.`}
+          consequence={
+            d.status === "brouillon"
+              ? "Il passera dans les dépôts annulés."
+              : d.status === "demande-rdv"
+                ? "Votre demande de rendez-vous sera retirée."
+                : `Le créneau du ${d.appointment?.long ?? "rendez-vous"} sera libéré.`
+          }
           confirmLabel={d.status === "brouillon" ? "Supprimer" : "Annuler le dépôt"}
           cancelLabel={d.status === "brouillon" ? "Garder le brouillon" : "Garder le rendez-vous"}
           onCancel={() => setConfirming(false)}

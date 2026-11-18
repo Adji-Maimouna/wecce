@@ -75,8 +75,7 @@ export const helpSections: FaqSection[] = [
       },
       {
         q: "Y a-t-il une garantie ?",
-        a: "Oui, 7 jours après le retrait. En cas de défaut, LBC répare ou reprend l'appareil.",
-        tbd: { text: "7 jours", note: "Durée de garantie à trancher avec LBC" },
+        a: "Oui, 3 mois après le retrait. En cas de défaut, LBC répare ou reprend l'appareil.",
       },
     ],
   },

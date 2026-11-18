@@ -23,6 +23,8 @@ export const paths = {
   expertise: "/partenaire/expertise",
   expertiseOf: (ref: string) => `/partenaire/expertise?depot=${encodeURIComponent(ref)}`,
   stock: "/partenaire/stock",
+  stockTab: (tab: "achats" | "depots" | "catalogue") => `/partenaire/stock?onglet=${tab}`,
+  tableauPartenaire: "/partenaire/tableau-de-bord",
   articleNew: "/partenaire/stock/nouveau",
   article: (id: string) => `/partenaire/stock/${id}`,
   depotPartenaire: (ref: string) => `/partenaire/depots/${ref}`,
@@ -41,7 +43,7 @@ export const paths = {
 /** Espace ouvert après la connexion, selon le rôle du compte. */
 export const HOME_BY_ROLE: Record<Role, string> = {
   ETUDIANT: paths.solde,
-  AGENT: paths.rendezVous,
+  AGENT: paths.tableauPartenaire,
   ADMIN: paths.pilotage,
 };
 

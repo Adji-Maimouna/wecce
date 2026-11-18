@@ -72,6 +72,7 @@ export const REFUSAL_LABELS: Record<RefusalReason, string> = {
 };
 
 export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
+  "a-planifier": "À planifier",
   "a-venir": "À venir",
   arrive: "Arrivé",
   "a-signer": "À signer",

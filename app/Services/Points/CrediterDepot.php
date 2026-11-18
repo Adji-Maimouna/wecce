@@ -29,9 +29,9 @@ class CrediterDepot
             $compte = ComptePoints::query()->lockForUpdate()->findOrFail($compte->id);
             $config = ConfigurationPlateforme::query()->lockForUpdate()->findOrFail(1);
 
-            $bonusOn = $config->bonus_actif && $config->bonus_consomme < $config->bonus_quota;
-            $bonusRatePercent = $bonusOn ? (int) round($config->bonus_taux * 100) : 0;
-            $bonus = $bonusRatePercent > 0 ? (int) round(($valeurReprise * $bonusRatePercent) / 100) : 0;
+            $regle = RegleBonus::pour($config, $compte, $valeurReprise);
+            $bonusRatePercent = $regle['ratePercent'];
+            $bonus = $regle['bonus'];
 
             // 1. Mouvement principal : CREDIT_DEPOT
             $newBalance = $compte->solde + $valeurReprise;
@@ -52,9 +52,11 @@ class CrediterDepot
                     'compte_id' => $compte->id,
                     'type' => 'BONUS',
                     'montant' => $bonus,
-                    'taux_applique' => $config->bonus_taux,
+                    'taux_applique' => $regle['rate'],
                     'solde_apres' => $newBalance,
-                    'libelle' => "+ {$bonusRatePercent} % sur la reprise du dépôt {$depotReference}",
+                    'libelle' => $regle['capped']
+                        ? "Bonus de lancement plafonné sur la reprise du dépôt {$depotReference}"
+                        : "+ {$bonusRatePercent} % sur la reprise du dépôt {$depotReference}",
                     'effectue_le' => $at,
                 ]);
 

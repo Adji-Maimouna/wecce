@@ -70,12 +70,18 @@ class EtudiantController extends Controller
         }
 
         $student = $this->queries->studentEntity($uid);
+        // Une acquisition en cours sur CET objet ne doit pas se bloquer elle-même.
+        $held = $acquisition && in_array($acquisition['status'], ['en-attente', 'a-valider'], true)
+            ? max(0, $student['heldPoints'] - $acquisition['points'])
+            : $student['heldPoints'];
 
         return Inertia::render('etudiant/Prendre', [
             'item' => $page['details']['item'],
             'title' => $page['details']['title'],
-            'balance' => $student['balance'],
+            'balance' => max(0, $student['balance'] - $held),
+            'heldPoints' => $held,
             'acquisition' => $acquisition,
+            'refusal' => $acquisition ? null : $this->queries->lastRefusedAcquisition($uid, $slug),
             'unavailable' => $page['reservedByOther'],
         ]);
     }
@@ -84,7 +90,6 @@ class EtudiantController extends Controller
     {
         $uid = $this->studentId($request);
         $suspension = $this->queries->depositsSuspension();
-        $s = $this->queries->schedule();
         $draftRef = $request->query('brouillon');
         $draft = ($uid !== null && is_string($draftRef) && $draftRef !== '') ? $this->queries->draftOf($uid, $draftRef) : null;
 
@@ -98,10 +103,9 @@ class EtudiantController extends Controller
         return Inertia::render('etudiant/Deposer', [
             'depositsSuspended' => $suspension['suspended'],
             'suspensionReason' => $suspension['reason'],
-            'bonus' => $this->queries->bonusOffer(),
-            'days' => $s['days'],
-            'times' => $s['times'],
-            'start' => array_merge($draft ?? [], $this->queries->firstFree($s)),
+            'bonus' => $this->queries->bonusOffer($request->user()?->role === 'ETUDIANT' ? $request->user()->id : null),
+            'availabilityDays' => $this->queries->availabilityDays(),
+            'start' => array_merge($draft ?? [], ['day' => 0, 'slot' => null]),
             'hasPending' => $hasPending,
         ]);
     }
@@ -125,6 +129,7 @@ class EtudiantController extends Controller
             'souhait' => $request->input('souhait'),
             'day' => $day,
             'slot' => $slot,
+            'availability' => is_array($request->input('availability')) ? WecceEngine::normalizeAvailability($request->input('availability')) : null,
             'draftRef' => is_string($draftRef) ? $draftRef : null,
         ];
 
@@ -214,9 +219,16 @@ class EtudiantController extends Controller
         $slotInput = $request->input('slot');
         $draftRef = $request->input('draftRef');
 
-        $slotIso = ($slotInput === null || $slotInput === '')
+        $availability = $request->input('availability');
+        $availability = is_array($availability) ? WecceEngine::normalizeAvailability($availability) : null;
+
+        // Les rendez-vous sont fixés par LBC : un créneau précis n'est accepté que sans disponibilités (anciens clients).
+        $slotIso = ($availability || $slotInput === null || $slotInput === '')
             ? null
             : $this->queries->slotFrom($day, (int) $slotInput, is_string($draftRef) ? $draftRef : null);
+        if (!$availability && !$slotIso) {
+            throw new RuleViolationException('disponibilites-manquantes', 'Cochez au moins un jour où vous pouvez passer chez LBC.');
+        }
 
         $photos = [];
         $rawPhotos = $request->input('photos', []);
@@ -254,6 +266,7 @@ class EtudiantController extends Controller
                 'photos' => $photos,
                 'wish' => $souhait,
                 'slot' => $slotIso,
+                'availability' => $availability,
                 'draftRef' => is_string($draftRef) ? $draftRef : null,
             ],
             WecceClock::now()
@@ -272,6 +285,12 @@ class EtudiantController extends Controller
 
     public function rescheduleDeposit(Request $request, string $ref): JsonResponse
     {
+        $availability = $request->input('availability');
+        if (is_array($availability)) {
+            $this->engine->requestAppointment($request->user()->id, $ref, $availability, WecceClock::now());
+            return response()->json(['ok' => true]);
+        }
+
         $day = (int) $request->input('day', 0);
         $slot = (int) $request->input('slot', 0);
         $slotIso = $this->queries->slotFrom($day, $slot, $ref);
@@ -312,7 +331,7 @@ class EtudiantController extends Controller
         }
 
         return response()->json([
-            'status' => 'reserve',
+            'status' => 'a-valider',
             'acquisitionRef' => $q->reference,
         ]);
     }

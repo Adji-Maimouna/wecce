@@ -20,6 +20,13 @@ export function DepositStatusBadge({ status, missed }: { status: DepositStatus; 
           Rendez-vous pris
         </Badge>
       );
+    case "demande-rdv":
+      return (
+        <Badge tone="warn">
+          <Icon name="clock" size="sm" />
+          En attente du rendez-vous LBC
+        </Badge>
+      );
     case "brouillon":
       return <Badge>Brouillon</Badge>;
     case "a-signer":

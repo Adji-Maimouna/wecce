@@ -1,7 +1,6 @@
 import { Icon } from "@/presentation/components/ui/Icon";
 import type { IconName } from "@/presentation/components/ui/icons";
 import { Reveal } from "@/presentation/components/ui/Reveal";
-import { Tbd } from "@/presentation/components/ui/Tbd";
 import type { ReactNode } from "react";
 import { HomeSection } from "./HomeSection";
 
@@ -12,7 +11,7 @@ const FACTS: { id?: string; icon: IconName; title: ReactNode; text: string }[] =
     icon: "verified",
     title: (
       <>
-        Garantie boutique de <Tbd note="Durée à trancher avec LBC">7 jours</Tbd>
+        Garantie boutique de 3 mois
       </>
     ),
     text: "En cas de défaut, LBC répare ou reprend l'appareil.",

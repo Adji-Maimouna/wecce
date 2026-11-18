@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { DepositRequest } from "@/domain/entities";
+import type { AppointmentAvailability, DepositRequest } from "@/domain/entities";
 import { fmt, parseAmount } from "@/presentation/lib/format";
 
 /** Brouillon du formulaire : comme la demande de dépôt, mais le prix souhaité reste le texte saisi (« 90 000 »). */
-export type DepositDraft = Omit<DepositRequest, "souhait"> & { souhait: string };
+export type DepositDraft = Omit<DepositRequest, "souhait" | "availability"> & { souhait: string; availability: AppointmentAvailability };
 
 /** Valeurs de départ fournies par le serveur : un brouillon à reprendre, et le premier créneau libre. */
 export type DraftStart = Partial<Omit<DepositRequest, "photos">> & { day: number; slot: number | null };
@@ -21,6 +21,7 @@ export function useDepositDraft(start: DraftStart) {
     souhait: start.souhait ? fmt(start.souhait) : "",
     day: start.day,
     slot: start.slot,
+    availability: start.availability ?? { days: [], moment: "indifferent", note: "" },
     draftRef: start.draftRef,
   }));
   const update = (patch: Partial<DepositDraft>) => setDraft((d) => ({ ...d, ...patch }));

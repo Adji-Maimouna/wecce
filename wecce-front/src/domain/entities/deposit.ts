@@ -5,7 +5,16 @@ import type { RefusalReason } from "./partner";
  * Statut d'un dépôt (table depot, statut_depot).
  * « a-signer » : LBC a fixé les deux prix, l'étudiant n'a pas encore signé (EXPERTISE dans le schéma).
  */
-export type DepositStatus = "brouillon" | "rendez-vous" | "a-signer" | "repris" | "refuse" | "annule";
+export type DepositStatus = "brouillon" | "demande-rdv" | "rendez-vous" | "a-signer" | "repris" | "refuse" | "annule";
+
+/** Moment de la journée où l'étudiant peut passer chez LBC. */
+export type AvailabilityMoment = "matin" | "apres-midi" | "indifferent";
+
+/** Disponibilités envoyées avec la demande de rendez-vous ; LBC fixe ensuite le jour et l'heure. */
+export type AppointmentAvailability = { days: string[]; moment: AvailabilityMoment; note: string };
+
+/** Jour d'ouverture proposé pour indiquer ses disponibilités. */
+export type AvailabilityDay = { date: string; label: string; month: string };
 
 /** Étapes de la vie d'un dépôt, dans l'ordre. */
 export const DEPOSIT_STAGES = ["decrit", "rendez-vous", "examen", "signature", "en-vente"] as const;
@@ -21,6 +30,8 @@ export type Deposit = {
   /** Étape en cours (rang dans DEPOSIT_STAGES) ; 5 quand tout est fait. */
   stageIndex?: number;
   appointment?: { label: string; long: string; missed?: boolean };
+  /** Demande de rendez-vous en attente de LBC. */
+  request?: { sentAt: string; summary: string };
   wish?: number;
   missing?: string;
   signedOn?: string;
@@ -30,6 +41,8 @@ export type Deposit = {
   /** Refus : le motif (code) et le commentaire de l'agent. */
   refusal?: { reason: RefusalReason; comment: string };
   cancelledOn?: string;
+  /** Échange direct avec LBC (sans mise en vente sur Wecce). */
+  exchange?: { mode: "echange-points" | "echange-objet"; counterpart?: string | null };
   /** Annonce liée sur le marché (dépôt repris, objet en ligne). */
   itemSlug?: string;
 };
@@ -51,6 +64,8 @@ export type DepositRequest = {
   souhait: number | null;
   day: number;
   slot: number | null;
+  /** Disponibilités de l'étudiant : LBC choisit le jour et l'heure. */
+  availability?: AppointmentAvailability;
   /** Brouillon repris : la demande complète ce dépôt au lieu d'en créer un. */
   draftRef?: string;
 };
