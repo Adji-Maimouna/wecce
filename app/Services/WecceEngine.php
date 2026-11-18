@@ -24,6 +24,7 @@ use App\Services\Points\AjusterManuellement;
 use App\Services\Points\AppliquerFonte;
 use App\Services\Points\CrediterDepot;
 use App\Services\Points\DebiterAcquisition;
+use App\Services\Points\RegleBonus;
 use App\Support\WecceClock;
 use App\Support\WecceCodes;
 use Illuminate\Support\Facades\DB;
@@ -405,9 +406,9 @@ class WecceEngine
             $balanceBefore = (int) $compte->solde;
 
             $config = ConfigurationPlateforme::current();
-            $bonusOn = $config->bonus_actif && $config->bonus_consomme < $config->bonus_quota;
-            $bonusRateDecimal = $bonusOn ? (float) $config->bonus_taux : 0.0;
-            $bonusAccorde = $bonusOn ? (int) round($expertise->valeur_reprise * $bonusRateDecimal) : 0;
+            $regle = RegleBonus::pour($config, $compte, (int) $expertise->valeur_reprise);
+            $bonusRateDecimal = $regle['rate'];
+            $bonusAccorde = $regle['bonus'];
 
             $hash = hash('sha256', "{$depot->reference}|{$at}|{$expertise->valeur_reprise}");
 
@@ -881,7 +882,7 @@ class WecceEngine
             }
 
             $config = ConfigurationPlateforme::current();
-            $garantieJusquau = WecceClock::addDays(WecceClock::dateOf($at), (int) ($config->duree_garantie_jours ?: 7));
+            $garantieJusquau = WecceClock::addDays(WecceClock::dateOf($at), (int) ($config->duree_garantie_jours ?: 90));
 
             $acquisition->update([
                 'statut' => 'REMIS',
@@ -949,20 +950,43 @@ class WecceEngine
         });
     }
 
-    public function saveBonus(int $ratePercent, int $quota, string $reason, string $at, User $admin, ?string $ip = null): void
-    {
-        DB::transaction(function () use ($ratePercent, $quota, $reason, $at, $admin, $ip) {
+    public function saveBonus(
+        int $ratePercent,
+        int $quota,
+        string $reason,
+        string $at,
+        User $admin,
+        ?string $ip = null,
+        ?int $ceiling = null,
+        ?bool $onePerStudent = null,
+    ): void {
+        DB::transaction(function () use ($ratePercent, $quota, $reason, $at, $admin, $ip, $ceiling, $onePerStudent) {
             $config = ConfigurationPlateforme::query()->lockForUpdate()->findOrFail(1);
             $oldRatePercent = (int) round($config->bonus_taux * 100);
             $oldQuota = (int) $config->bonus_quota;
+            $oldCeiling = (int) $config->bonus_plafond_points;
+            $oldOne = (bool) $config->bonus_un_par_etudiant;
+            $ceiling ??= $oldCeiling;
+            $onePerStudent ??= $oldOne;
 
-            $change = "{$oldRatePercent} % · {$oldQuota} dépôts → {$ratePercent} % · {$quota} dépôts";
+            RegleBonus::valider($ratePercent, $quota, $ceiling);
+            if ($quota < $config->bonus_consomme) {
+                throw new RuleViolationException('bonus-quota', "{$config->bonus_consomme} dépôts ont déjà reçu le bonus : le quota ne peut pas descendre en dessous.");
+            }
+
+            $fmt = fn (int $n): string => number_format($n, 0, ',', ' ');
+            $change = "{$oldRatePercent} % · {$oldQuota} dépôts · plafond {$fmt($oldCeiling)} pts → {$ratePercent} % · {$quota} dépôts · plafond {$fmt($ceiling)} pts";
+            if ($oldOne !== $onePerStudent) {
+                $change .= $onePerStudent ? ' · un bonus par étudiant' : ' · bonus cumulables';
+            }
             $active = $ratePercent > 0 && $config->bonus_consomme < $quota;
 
             $config->update([
                 'bonus_actif' => $active,
                 'bonus_taux' => $ratePercent / 100,
                 'bonus_quota' => $quota,
+                'bonus_plafond_points' => $ceiling,
+                'bonus_un_par_etudiant' => $onePerStudent,
                 'mis_a_jour_le' => $at,
                 'mis_a_jour_par' => $admin->id,
             ]);
@@ -976,8 +1000,8 @@ class WecceEngine
                 'cible_id' => null,
                 'cible_libelle' => 'Bonus de lancement',
                 'changement' => $change,
-                'avant' => ['taux' => $oldRatePercent, 'quota' => $oldQuota],
-                'apres' => ['taux' => $ratePercent, 'quota' => $quota],
+                'avant' => ['taux' => $oldRatePercent, 'quota' => $oldQuota, 'plafond' => $oldCeiling, 'un_par_etudiant' => $oldOne],
+                'apres' => ['taux' => $ratePercent, 'quota' => $quota, 'plafond' => $ceiling, 'un_par_etudiant' => $onePerStudent],
                 'motif' => trim($reason),
                 'effectue_le' => $at,
                 'adresse_ip' => $ip,

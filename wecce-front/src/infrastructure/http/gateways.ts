@@ -161,8 +161,8 @@ export const httpPorts: Ports = {
       request("PUT", "/admin/pilotage/depots", { suspended, reason }).then(() => {
         reloadProps();
       }),
-    saveBonus: (rate, quota, reason) =>
-      request("PUT", "/admin/pilotage/bonus", { rate, quota, reason }).then(() => {
+    saveBonus: (rate, quota, reason, limits) =>
+      request("PUT", "/admin/pilotage/bonus", { rate, quota, reason, ...limits }).then(() => {
         reloadProps();
       }),
     adjustPoints: (req) =>

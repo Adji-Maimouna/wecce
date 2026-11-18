@@ -13,6 +13,8 @@ export type Waiver = {
   /** Prix de mise en vente (ou de l'ensemble des pièces). */
   listPrice: number;
   bonusRate: number;
+  /** Bonus réellement accordé (plafonné, un seul par étudiant) ; calculé par le serveur. */
+  bonus?: number;
   /** Reprise en pièces : l'appareil ne peut pas repartir entier. */
   pieces: boolean;
   balanceBefore: number;

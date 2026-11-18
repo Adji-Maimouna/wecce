@@ -2,7 +2,7 @@ import { Icon } from "@/presentation/components/ui/Icon";
 import { Panel, PanelBody } from "@/presentation/components/ui/Panel";
 import { Tbd } from "@/presentation/components/ui/Tbd";
 
-/** Retrait chez LBC et garantie boutique (durées encore à trancher avec le partenaire). */
+/** Retrait chez LBC et garantie boutique de 3 mois. */
 export function PickupInfo() {
   return (
     <Panel sunken>
@@ -18,7 +18,7 @@ export function PickupInfo() {
           <Icon name="verified" />
           <p className="small">
             <strong>
-              Garantie boutique de <Tbd note="Durée de garantie à trancher avec le partenaire">7 jours</Tbd>.
+              Garantie boutique de 3 mois.
             </strong>{" "}
             En cas de défaut, LBC répare ou reprend l'appareil.
           </p>

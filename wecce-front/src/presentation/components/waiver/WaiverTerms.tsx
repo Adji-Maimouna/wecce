@@ -1,11 +1,11 @@
 import type { Waiver } from "@/domain/entities";
-import { creditAtSignature, launchBonus } from "@/domain/rules/expertise";
+import { launchBonus } from "@/domain/rules/expertise";
 import { fmt, pts } from "@/presentation/lib/format";
 
 /** Les deux prix, leur détail et les clauses acceptées en signant. */
 export function WaiverTerms({ w }: { w: Waiver }) {
-  const bonus = launchBonus(w.takeBack, w.bonusRate);
-  const credit = creditAtSignature(w.takeBack, w.bonusRate);
+  const bonus = w.bonus ?? launchBonus(w.takeBack, w.bonusRate);
+  const credit = w.takeBack + bonus;
   return (
     <>
       {w.pieces ? (

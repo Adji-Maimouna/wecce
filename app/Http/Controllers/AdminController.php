@@ -79,7 +79,9 @@ class AdminController extends Controller
             (string) $request->input('reason', ''),
             WecceClock::now(),
             $request->user(),
-            $request->ip()
+            $request->ip(),
+            $request->has('ceiling') ? (int) $request->input('ceiling') : null,
+            $request->has('onePerStudent') ? (bool) $request->boolean('onePerStudent') : null,
         );
 
         return response()->json(['ok' => true]);

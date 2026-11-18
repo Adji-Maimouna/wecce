@@ -1,5 +1,14 @@
 /** Bonus de lancement (table configuration). Toujours versé en points, jamais en argent. */
-export type LaunchBonus = { active: boolean; rate: number; quota: number; used: number };
+export type LaunchBonus = {
+  active: boolean;
+  rate: number;
+  quota: number;
+  used: number;
+  /** Plafond en points par dépôt (0 : aucun). */
+  ceiling?: number;
+  onePerStudent?: boolean;
+  limits?: { maxRate: number; maxQuota: number; maxCeiling: number };
+};
 
 export type DepositsState = {
   suspended: boolean;

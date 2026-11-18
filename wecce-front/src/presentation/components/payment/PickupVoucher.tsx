@@ -41,7 +41,7 @@ export const PickupVoucher = forwardRef<HTMLDivElement, PickupVoucherProps>(func
             <dd>LBC, campus de l'UGB, entre les villages E et F</dd>
             <dt>Garantie</dt>
             <dd>
-              <Tbd note="Durée de garantie à trancher">7 jours après le retrait</Tbd>
+              3 mois après le retrait
             </dd>
           </dl>
           <hr className="divider" />

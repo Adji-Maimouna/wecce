@@ -26,7 +26,7 @@ export type ExpertiseProps = {
   /** Le dépôt à examiner (?depot=REF), ou null : on choisit d'abord un rendez-vous. */
   declared: DeclaredDevice | null;
   /** Bonus de lancement encore ouvert (rang du prochain dépôt bonifié), ou null. */
-  bonus: { rate: number; rank: number; quota: number } | null;
+  bonus: { rate: number; rank: number; quota: number; cap?: number } | null;
   controls: string[];
   /** Rendez-vous du jour qui attendent l'expertise. */
   queue: Appointment[];

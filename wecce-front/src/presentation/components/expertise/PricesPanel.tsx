@@ -12,7 +12,7 @@ type PricesPanelProps = {
   /** Appareil entier déclaré : on peut basculer vers une reprise en pièces. */
   wholeDevice: boolean;
   wish: number | null;
-  bonus: { rate: number; rank: number; quota: number } | null;
+  bonus: { rate: number; rank: number; quota: number; cap?: number } | null;
   takeBack: string;
   listPrice: string;
   onTakeBack: (v: string) => void;
@@ -31,7 +31,7 @@ export function PricesPanel(p: PricesPanelProps) {
   const ready = canSubmitPrices(r, a);
   const margin = shopMargin(r, a);
   const rate = p.bonus?.rate ?? 0;
-  const studentReceives = creditAtSignature(r, rate);
+  const studentReceives = creditAtSignature(r, rate, p.bonus?.cap);
   const gap = p.wish === null ? 0 : gapToWish(p.wish, r);
   const drop1 = a > 0 ? afterFonte(a, 1) : 0;
   const drop2 = a > 0 ? afterFonte(a, 2) : 0;
@@ -65,7 +65,7 @@ export function PricesPanel(p: PricesPanelProps) {
             <span className="price-kpi__label">L&apos;étudiant reçoit</span>
             <span className="price-kpi__val">{r > 0 ? pts(studentReceives) : "–"}</span>
             <span className="price-kpi__sub">
-              {p.bonus && r > 0 ? `dont +${fmt(launchBonus(r, rate))} pts bonus (${p.bonus.rank}e/${p.bonus.quota})` : "à la signature"}
+              {p.bonus && r > 0 ? `dont +${fmt(launchBonus(r, rate, p.bonus.cap))} pts bonus (${p.bonus.rank}e/${p.bonus.quota})` : "à la signature"}
             </span>
           </div>
           <div className="price-kpi">

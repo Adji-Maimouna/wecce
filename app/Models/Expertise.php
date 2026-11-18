@@ -28,6 +28,9 @@ class Expertise extends Model
         'motif_refus',
         'commentaire',
         'controles',
+        'mode_reprise',
+        'contrepartie_libelle',
+        'contrepartie_annonce_id',
     ];
 
     protected function casts(): array

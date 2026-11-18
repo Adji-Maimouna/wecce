@@ -397,6 +397,6 @@ Mot de passe de tous les comptes : **`wecce2026`** (démonstration seulement : l
 | 10 | Le schéma n'a pas de tranche d'âge « 3 à 4 ans » : `PLUS_4ANS` suit `2_3ANS`. | Ajouter `3_4ANS` ou renommer l'option dans l'interface. |
 | 11 | Photos : le front lit des data URL ; la base attend `photo.url`. | Envoi multipart, stockage Laravel (`storage/`), le front reçoit des URL. |
 | 12 | Les listes de niveaux et d'UFR sont écrites en dur dans le front (`domain/referentials/ugb.ts`). | À confirmer avec l'UGB ; éventuellement servies par le back. |
-| 13 | Seuils de couverture (120 % / 110 %), garantie (7 jours), délai de retrait (3 jours) : valeurs provisoires. | **À trancher avec LBC** ; le front les marque d'un soulignement pointillé (composant `Tbd`). |
+| 13 | Seuils de couverture (120 % / 110 %), garantie (3 mois, tranchée par LBC), délai de retrait (3 jours) : valeurs provisoires. | **À trancher avec LBC** ; le front les marque d'un soulignement pointillé (composant `Tbd`). |
 | 14 | Jours et heures d'ouverture de LBC : le front suppose lundi à samedi, 9 h 30 à 16 h 30 (créneaux de la maquette). | **À confirmer avec LBC** ; idéalement une table des créneaux. |
 | 15 | La maquette écrit « Vendredi 7 novembre » ; le 7 novembre 2026 est un **samedi**. Le front affiche les vrais jours. | Rien à faire côté back ; la maquette garde ses textes d'exemple. |

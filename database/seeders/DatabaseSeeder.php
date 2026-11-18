@@ -59,6 +59,10 @@ class DatabaseSeeder extends Seeder
                 'bonus_taux' => 0.0,
                 'bonus_quota' => 100,
                 'bonus_consomme' => 0,
+                // Historique de démonstration : bonus sans limite jusqu'à la décision du 7 novembre (voir fin du scénario).
+                'bonus_plafond_points' => 0,
+                'bonus_un_par_etudiant' => false,
+                'duree_garantie_jours' => 90,
                 'mis_a_jour_le' => '2026-09-01T07:00',
             ]
         );
@@ -443,6 +447,10 @@ class DatabaseSeeder extends Seeder
             $declare(['ref' => 'WC-2026-0652', 'user' => 'u-mariama', 'created' => '2026-11-06T08:00', 'slot' => '2026-11-09T09:30', 'category' => 'tab', 'modele' => 'iPad Air 2', 'stockage' => '64 Go', 'age' => 'plus-4', 'etat' => 'use', 'wish' => 60000, 'photoUrls' => [$photos['ipad']['src']]]),
             $declare(['ref' => 'WC-2026-0653', 'user' => 'u-cheikh', 'created' => '2026-11-06T09:15', 'slot' => '2026-11-09T10:30', 'category' => 'piece', 'modele' => 'Barrette DDR4', 'stockage' => '8 Go', 'wish' => 9000, 'photoUrls' => [$photos['ram']['src']]]),
             $declare(['ref' => 'WC-2026-0654', 'user' => 'u-babacar', 'created' => '2026-11-06T22:00', 'slot' => '2026-11-11T09:30', 'category' => 'tab', 'modele' => 'Galaxy Tab A7', 'stockage' => '32 Go', 'wish' => 50000, 'photoUrls' => [$photos['tab']['src']]]),
+            [
+                'at' => '2026-11-07T18:00',
+                'run' => fn () => $engine->saveBonus(20, 100, 'Limites demandées par LBC : un bonus par étudiant, 5 000 points au plus par dépôt.', '2026-11-07T18:00', $adminUser, null, 5000, true),
+            ],
             $declare(['ref' => 'WC-2026-0655', 'user' => 'u-moussa', 'created' => '2026-11-06T21:40', 'slot' => null, 'category' => 'piece', 'modele' => 'Disque dur externe', 'stockage' => '1 To', 'age' => '1-2', 'photos' => 0]),
         ];
 

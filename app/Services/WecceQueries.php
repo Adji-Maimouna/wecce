@@ -16,6 +16,7 @@ use App\Models\Photo;
 use App\Models\SnapshotCouverture;
 use App\Models\User;
 use App\Services\Points\AppliquerFonte;
+use App\Services\Points\RegleBonus;
 use App\Support\WecceClock;
 use App\Support\WecceCodes;
 use Carbon\Carbon;
@@ -626,17 +627,20 @@ class WecceQueries
         ];
     }
 
-    public function bonusOffer(): ?array
+    public function bonusOffer(?string $viewerId = null): ?array
     {
         $c = ConfigurationPlateforme::current();
-        if (!$c->bonus_actif || $c->bonus_consomme >= $c->bonus_quota) {
+        $compte = $viewerId ? ComptePoints::query()->where('etudiant_id', $viewerId)->first() : null;
+        if (!RegleBonus::eligible($c, $compte)) {
             return null;
         }
 
         return [
-            'rate' => (int) round($c->bonus_taux * 100),
+            'rate' => min(RegleBonus::TAUX_MAX_POURCENT, (int) round($c->bonus_taux * 100)),
             'quota' => (int) $c->bonus_quota,
             'left' => (int) ($c->bonus_quota - $c->bonus_consomme),
+            'cap' => (int) $c->bonus_plafond_points,
+            'onePerStudent' => (bool) $c->bonus_un_par_etudiant,
         ];
     }
 
@@ -789,9 +793,7 @@ class WecceQueries
         $agentUser = $agentModel->utilisateur;
 
         $config = ConfigurationPlateforme::current();
-        $activeRate = ($config->bonus_actif && $config->bonus_consomme < $config->bonus_quota)
-            ? (int) round($config->bonus_taux * 100)
-            : 0;
+        $pending = RegleBonus::pour($config, $d->etudiant->comptePoints, (int) $e->valeur_reprise);
 
         $serialRaw = $signed?->numero_serie_constate ?: ($e->numero_serie_saisi ?: $d->appareil->numero_serie);
 
@@ -813,7 +815,8 @@ class WecceQueries
             'wish' => $d->prix_souhaite !== null ? (int) $d->prix_souhaite : null,
             'takeBack' => (int) $e->valeur_reprise,
             'listPrice' => (int) $e->prix_affichage,
-            'bonusRate' => $signed ? (int) round($signed->bonus_taux * 100) : $activeRate,
+            'bonusRate' => $signed ? (int) round($signed->bonus_taux * 100) : $pending['ratePercent'],
+            'bonus' => $signed ? (int) $signed->bonus_accorde : $pending['bonus'],
             'pieces' => $e->decision === 'ACCEPTE_EN_PIECES',
             'balanceBefore' => $signed ? (int) $signed->solde_avant : (int) ($d->etudiant->comptePoints?->solde ?? 0),
             'signedAt' => $signed ? WecceClock::stampYear($signed->signe_le) : '',
@@ -1095,17 +1098,23 @@ class WecceQueries
         return WecceEngine::controlsFor($category);
     }
 
-    public function expertiseBonus(): ?array
+    public function expertiseBonus(?string $depositRef = null): ?array
     {
         $c = ConfigurationPlateforme::current();
-        if (!$c->bonus_actif || $c->bonus_consomme >= $c->bonus_quota) {
+        $compte = null;
+        if ($depositRef) {
+            $etudiantId = Depot::query()->where('reference', strtoupper($depositRef))->value('etudiant_id');
+            $compte = $etudiantId ? ComptePoints::query()->where('etudiant_id', $etudiantId)->first() : null;
+        }
+        if (!RegleBonus::eligible($c, $compte)) {
             return null;
         }
 
         return [
-            'rate' => (int) round($c->bonus_taux * 100),
+            'rate' => min(RegleBonus::TAUX_MAX_POURCENT, (int) round($c->bonus_taux * 100)),
             'rank' => (int) $c->bonus_consomme + 1,
             'quota' => (int) $c->bonus_quota,
+            'cap' => (int) $c->bonus_plafond_points,
         ];
     }
 
@@ -1448,10 +1457,17 @@ class WecceQueries
         $c = ConfigurationPlateforme::current();
 
         return [
-            'active' => (bool) ($c->bonus_actif && $c->bonus_consomme < $c->bonus_quota),
+            'active' => RegleBonus::campagneOuverte($c),
             'rate' => (int) round($c->bonus_taux * 100),
             'quota' => (int) $c->bonus_quota,
             'used' => (int) $c->bonus_consomme,
+            'ceiling' => (int) $c->bonus_plafond_points,
+            'onePerStudent' => (bool) $c->bonus_un_par_etudiant,
+            'limits' => [
+                'maxRate' => RegleBonus::TAUX_MAX_POURCENT,
+                'maxQuota' => RegleBonus::QUOTA_MAX,
+                'maxCeiling' => RegleBonus::PLAFOND_MAX,
+            ],
         ];
     }
 
@@ -1931,7 +1947,7 @@ class WecceQueries
                 'studentsWithBalance' => $fundedCount,
                 'totalPointsInCirculation' => $debt,
                 'avgBalance' => $fundedCount > 0 ? (int) round($debt / $fundedCount) : 0,
-                'bonusActive' => (bool) ($config->bonus_actif && $config->bonus_consomme < $config->bonus_quota),
+                'bonusActive' => RegleBonus::campagneOuverte($config),
                 'bonusRate' => (int) round($config->bonus_taux * 100),
                 'bonusConsumed' => (int) $config->bonus_consomme,
                 'bonusQuota' => (int) $config->bonus_quota,

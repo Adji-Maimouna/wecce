@@ -428,12 +428,12 @@ class WecceBackendTest extends TestCase
             'listPrice'  => 68000,
         ])->assertOk();
 
-        // 3. Signature du renoncement : crédite 50 000 + 10 000 (bonus 20 %) = 60 000 pts
+        // 3. Signature du renoncement : crédite 50 000 + bonus 20 % plafonné à 5 000 = 55 000 pts
         $signResp = $this->postJson("/partenaire/depots/{$ref}/renoncement/signature", [
             'signature' => 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
         ])->assertOk();
 
-        $this->assertSame(60000, $signResp->json('balanceAfter'));
+        $this->assertSame(55000, $signResp->json("balanceAfter"));
 
         // 4. Fatou acquiert l'enceinte JBL Go entièrement avec ses points
         $this->actingAs($fatou);
@@ -449,7 +449,7 @@ class WecceBackendTest extends TestCase
         $acqRef = $acqResp->json('acquisitionRef');
 
         $compteFatou = ComptePoints::query()->where('etudiant_id', $fatou->id)->firstOrFail();
-        $this->assertSame(60000 - $jblPrice, (int) $compteFatou->solde);
+        $this->assertSame(55000 - $jblPrice, (int) $compteFatou->solde);
 
         // 5. Remise au comptoir par l'agent LBC
         $this->actingAs($agent);

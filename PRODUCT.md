@@ -107,7 +107,7 @@ Décisions encore ouvertes (§11 du document de besoins) :
 - les critères de refus précis ;
 - le stock d'amorçage (nombre, gammes, prix) ;
 - le seuil de couverture qui suspend les dépôts ;
-- la durée de la garantie boutique (7 jours dans la première maquette, non confirmé) ;
+- ~~la durée de la garantie boutique~~ : tranchée, 3 mois (retour LBC de novembre 2026) ;
 - le calendrier, le budget et le cadre contractuel.
 
 ## Brand Commitments

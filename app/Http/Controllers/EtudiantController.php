@@ -98,7 +98,7 @@ class EtudiantController extends Controller
         return Inertia::render('etudiant/Deposer', [
             'depositsSuspended' => $suspension['suspended'],
             'suspensionReason' => $suspension['reason'],
-            'bonus' => $this->queries->bonusOffer(),
+            'bonus' => $this->queries->bonusOffer($request->user()?->role === 'ETUDIANT' ? $request->user()->id : null),
             'days' => $s['days'],
             'times' => $s['times'],
             'start' => array_merge($draft ?? [], $this->queries->firstFree($s)),

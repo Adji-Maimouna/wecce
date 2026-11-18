@@ -38,7 +38,7 @@ export default function Renoncement({ waiver: w, context }: RenoncementProps) {
   const { signWaiver, declineWaiver } = useUseCases();
   const toast = useToast();
   const go = useGo();
-  const credit = creditAtSignature(w.takeBack, w.bonusRate);
+  const credit = w.bonus !== undefined ? w.takeBack + w.bonus : creditAtSignature(w.takeBack, w.bonusRate);
   const initials = w.depositor.name
     .split(" ")
     .map((p) => p.charAt(0))

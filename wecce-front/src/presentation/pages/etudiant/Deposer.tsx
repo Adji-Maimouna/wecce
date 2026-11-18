@@ -16,6 +16,7 @@ import { Steps } from "@/presentation/components/ui/Steps";
 import { useSession } from "@/presentation/hooks/session";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { useGo } from "@/presentation/lib/navigation";
+import { fmt } from "@/presentation/lib/format";
 import { paths } from "@/presentation/lib/paths";
 
 export type DeposerProps = {
@@ -23,7 +24,7 @@ export type DeposerProps = {
   /** Motif affiché pendant une suspension. */
   suspensionReason?: string;
   /** Bonus de lancement en cours, ou null. */
-  bonus: { rate: number; quota: number; left: number } | null;
+  bonus: { rate: number; quota: number; left: number; cap?: number; onePerStudent?: boolean } | null;
   days: AppointmentDay[];
   times: string[];
   /** Point de départ du formulaire : brouillon repris (?brouillon=REF) et premier créneau libre. */
@@ -72,7 +73,7 @@ export default function Deposer({ depositsSuspended, suspensionReason, bonus, da
             />
             {bonus && (
               <Notice tone="ok" icon="gift" title={`Bonus de lancement : + ${bonus.rate} % de points sur les ${bonus.quota} premiers dépôts.`} style={{ marginBottom: 22 }}>
-                {`Il en reste ${bonus.left}. Le bonus est crédité à la signature.`}
+                {`Il en reste ${bonus.left}. Le bonus est crédité à la signature${bonus.cap ? `, dans la limite de ${fmt(bonus.cap)} points` : ""}${bonus.onePerStudent ? ", une seule fois par étudiant" : ""}.`}
               </Notice>
             )}
             <Steps labels={STEP_LABELS} current={step} onSelect={goTo} />

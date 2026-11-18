@@ -28,6 +28,10 @@ class Acquisition extends Model
         'confirme_le',
         'retire_le',
         'garantie_jusquau',
+        'valide_le',
+        'valide_par',
+        'remis_par',
+        'motif_refus',
     ];
 
     protected function casts(): array

@@ -45,7 +45,7 @@ class PartenaireController extends Controller
 
         $props = [
             'declared' => $declared,
-            'bonus' => $this->queries->expertiseBonus(),
+            'bonus' => $declared ? $this->queries->expertiseBonus($ref) : null,
             'controls' => $declared ? $this->queries->expertiseControls($declared['category']) : [],
             'queue' => $this->queries->expertiseQueue(),
             'missedQueue' => $this->queries->missedAppointments(),

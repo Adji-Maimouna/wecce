@@ -1,6 +1,7 @@
 import { checkAdjustment } from "@/domain/rules/adjustment";
 import { RuleViolation } from "@/application/errors";
-import type { AdjustmentRequest, AdminGateway } from "@/application/ports";
+import type { AdjustmentRequest, AdminGateway, BonusLimits } from "@/application/ports";
+import { BONUS_MAX_QUOTA, BONUS_MAX_RATE } from "@/domain/rules/expertise";
 
 const MIN_REASON = 5;
 
@@ -11,10 +12,12 @@ export const makeSetDepositsSuspended = (admin: AdminGateway) => async (suspende
 };
 
 /** Changer le bonus de lancement (toujours en points). Le motif est obligatoire. */
-export const makeSaveBonus = (admin: AdminGateway) => async (rate: number, quota: number, reason: string) => {
+export const makeSaveBonus = (admin: AdminGateway) => async (rate: number, quota: number, reason: string, limits?: BonusLimits) => {
   if (reason.trim().length < MIN_REASON) throw new RuleViolation("motif-manquant", "Saisissez un motif pour enregistrer.");
-  if (!(rate >= 0 && rate <= 100) || !(quota > 0)) throw new RuleViolation("bonus-invalide", "Taux entre 0 et 100 %, quota positif.");
-  await admin.saveBonus(rate, quota, reason.trim());
+  if (!(rate >= 0 && rate <= BONUS_MAX_RATE)) throw new RuleViolation("bonus-taux", `Le taux du bonus doit rester entre 0 et ${BONUS_MAX_RATE} %.`);
+  if (!(quota > 0 && quota <= BONUS_MAX_QUOTA)) throw new RuleViolation("bonus-quota", `Le nombre de dépôts bonifiés est limité à ${BONUS_MAX_QUOTA}.`);
+  if (limits && !(limits.ceiling >= 0)) throw new RuleViolation("bonus-plafond", "Indiquez un plafond en points (0 = sans plafond).");
+  await admin.saveBonus(rate, quota, reason.trim(), limits);
 };
 
 /** Ajuster un solde : on ajoute un mouvement motivé, on n'efface jamais. */

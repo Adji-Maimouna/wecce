@@ -25,6 +25,9 @@ class Depot extends Model
         'statut',
         'cree_le',
         'cloture_le',
+        'disponibilites',
+        'rdv_fixe_le',
+        'rdv_fixe_par',
     ];
 
     protected function casts(): array
@@ -32,6 +35,7 @@ class Depot extends Model
         return [
             'prix_souhaite' => 'integer',
             'nb_photos_declarees' => 'integer',
+            'disponibilites' => 'array',
         ];
     }
 

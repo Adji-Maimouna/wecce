@@ -33,6 +33,8 @@ class ConfigurationPlateforme extends Model
         'derniere_fonte_annonces',
         'mis_a_jour_le',
         'mis_a_jour_par',
+        'bonus_plafond_points',
+        'bonus_un_par_etudiant',
     ];
 
     protected function casts(): array
@@ -44,6 +46,8 @@ class ConfigurationPlateforme extends Model
             'bonus_taux' => 'float',
             'bonus_quota' => 'integer',
             'bonus_consomme' => 'integer',
+            'bonus_plafond_points' => 'integer',
+            'bonus_un_par_etudiant' => 'boolean',
             'taux_fonte' => 'float',
             'seuil_surveillance' => 'float',
             'seuil_suspension' => 'float',
