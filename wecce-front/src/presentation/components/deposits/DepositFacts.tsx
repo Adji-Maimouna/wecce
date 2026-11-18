@@ -19,6 +19,8 @@ export function DepositFacts({ d }: { d: Deposit }) {
         {d.takeBack.bonus > 0 && ` + bonus ${fmt(d.takeBack.bonus)}`}
       </>,
     );
+  if (d.exchange)
+    facts.push(d.exchange.mode === "echange-objet" ? `Échangé contre : ${d.exchange.counterpart ?? "un objet LBC"}` : "Échange direct avec LBC, hors marché");
   if (d.prices) facts.push(`Proposé ${fmt(d.prices.initial)}, aujourd'hui ${fmt(d.prices.today)}`);
   if (d.status === "refuse" && d.examinedOn) facts.push(`Examiné le ${d.examinedOn}`);
   if (d.refusal) facts.push(`Motif : ${REFUSAL_LABELS[d.refusal.reason].toLowerCase()}`);

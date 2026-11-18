@@ -96,6 +96,7 @@ Route::middleware('role:AGENT')->prefix('partenaire')->group(function () {
     Route::post('/depots/{ref}/renoncement/signature', [PartenaireController::class, 'signWaiver'])->name('partenaire.renoncement.sign');
     Route::post('/depots/{ref}/renoncement/refus', [PartenaireController::class, 'declineWaiver'])->name('partenaire.renoncement.decline');
     Route::post('/stock/{id}/publication', [PartenaireController::class, 'publishArticle'])->name('partenaire.stock.publish');
+    Route::delete('/stock/{id}/publication', [PartenaireController::class, 'unpublishArticle'])->name('partenaire.stock.unpublish');
     Route::post('/acquisitions/{ref}/validation', [PartenaireController::class, 'validateAcquisition'])->name('partenaire.acquisitions.validation');
     Route::post('/acquisitions/{ref}/refus', [PartenaireController::class, 'refuseAcquisition'])->name('partenaire.acquisitions.refus');
     Route::post('/acquisitions/{ref}/remise', [PartenaireController::class, 'handOver'])->name('partenaire.acquisitions.remise');

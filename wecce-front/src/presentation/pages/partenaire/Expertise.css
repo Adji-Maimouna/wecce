@@ -242,3 +242,22 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Mode de reprise : trois cartes à choix unique (retour LBC : échange direct). */
+.mode-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mode-card {
+  position: relative; display: flex; flex-direction: column; gap: 6px; padding: 14px 14px 16px; cursor: pointer;
+  border: 1px solid var(--line-strong); border-radius: var(--r-lg); background: var(--surface);
+  transition: border-color var(--m-in) var(--m-ease), background-color var(--m-in) var(--m-ease), box-shadow var(--m-in) var(--m-ease);
+}
+.mode-card:hover { border-color: var(--ink-2); }
+.mode-card input { position: absolute; opacity: 0; pointer-events: none; }
+.mode-card__icon { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); color: var(--ink); }
+.mode-card__title { font-weight: 700; font-size: var(--t-sm); }
+.mode-card__text { font-size: var(--t-xs); color: var(--muted); line-height: 1.45; }
+.mode-card:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.mode-card:has(input:checked) { border-color: var(--accent); background: var(--accent-tint-2); box-shadow: 0 0 0 1px var(--accent) inset; }
+.mode-card:has(input:checked) .mode-card__icon { background: var(--accent); color: #fff; }
+.mode-card[data-mode="echange-points"]:has(input:checked) .mode-card__icon { background: var(--brand); color: var(--brand-ink); }
+.mode-card[data-mode="echange-objet"]:has(input:checked) .mode-card__icon { background: var(--ok); color: #fff; }
+@media (max-width: 720px) { .mode-cards { grid-template-columns: minmax(0, 1fr); } }

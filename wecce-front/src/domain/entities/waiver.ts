@@ -17,6 +17,9 @@ export type Waiver = {
   bonus?: number;
   /** Reprise en pièces : l'appareil ne peut pas repartir entier. */
   pieces: boolean;
+  /** Mode de reprise (échange direct : objet gardé en boutique, ou objet LBC en contrepartie). */
+  mode?: "vente" | "echange-points" | "echange-objet";
+  counterpart?: string | null;
   balanceBefore: number;
   signedAt: string;
   agent: string;

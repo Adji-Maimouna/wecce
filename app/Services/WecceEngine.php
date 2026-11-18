@@ -370,7 +370,7 @@ class WecceEngine
     }
 
     /**
-     * @param array{pieces: bool, condition: string, battery: int|null, serial: string, takeBack: int, listPrice: int} $values
+     * @param array{pieces: bool, condition: string, battery: int|null, serial: string, takeBack: int, listPrice: int, mode?: string, counterpartLabel?: string|null, counterpartArticleId?: string|null} $values
      */
     public function recordExpertise(string $agentId, string $ref, array $values, string $at): Expertise
     {
@@ -387,6 +387,25 @@ class WecceEngine
             $listPrice = (int) $values['listPrice'];
             if ($takeBack <= 0 || $listPrice <= 0 || $listPrice < $takeBack) {
                 throw new RuleViolationException('prix-incoherents', "Le prix d'affichage doit être supérieur ou égal à la reprise.");
+            }
+
+            $modeSql = WecceCodes::TAKEBACK_MODE_TO_SQL[$values['mode'] ?? 'vente'] ?? 'VENTE_WECCE';
+            $counterpartLabel = trim((string) ($values['counterpartLabel'] ?? ''));
+            $counterpartId = !empty($values['counterpartArticleId']) ? (string) $values['counterpartArticleId'] : null;
+            if ($modeSql === 'ECHANGE_OBJET') {
+                if ($counterpartId) {
+                    $counterpart = Annonce::query()->with('appareil')->find($counterpartId);
+                    if (!$counterpart || $counterpart->origine !== 'STOCK_PARTENAIRE' || !in_array($counterpart->statut, ['EN_LIGNE', 'EN_BOUTIQUE'], true)) {
+                        throw new RuleViolationException('contrepartie-indisponible', "Cet objet de la boutique n'est plus disponible pour un échange.");
+                    }
+                    $counterpartLabel = $counterpartLabel !== '' ? $counterpartLabel : $this->articleDisplayName($counterpart);
+                }
+                if ($counterpartLabel === '') {
+                    throw new RuleViolationException('contrepartie-manquante', "Indiquez l'objet de la boutique donné en échange.");
+                }
+            } else {
+                $counterpartLabel = '';
+                $counterpartId = null;
             }
 
             $pieces = !empty($values['pieces']);
@@ -429,6 +448,9 @@ class WecceEngine
                     'motif_refus' => null,
                     'commentaire' => null,
                     'controles' => $checks,
+                    'mode_reprise' => $modeSql,
+                    'contrepartie_libelle' => $counterpartLabel !== '' ? mb_substr($counterpartLabel, 0, 160, 'UTF-8') : null,
+                    'contrepartie_annonce_id' => $counterpartId,
                 ]
             );
 
@@ -510,9 +532,24 @@ class WecceEngine
 
             $compte = ComptePoints::query()->where('etudiant_id', $depot->etudiant_id)->firstOrFail();
             $balanceBefore = (int) $compte->solde;
+            $mode = $expertise->mode_reprise ?: 'VENTE_WECCE';
+            // Échange contre un objet de la boutique : aucun point n'est crédité, donc aucun bonus.
+            $withPoints = $mode !== 'ECHANGE_OBJET';
+            // Seule la reprise « vente Wecce » met l'objet sur le marché ; un échange direct le garde en boutique.
+            $toMarket = $mode === 'VENTE_WECCE';
+
+            $counterpart = null;
+            if ($mode === 'ECHANGE_OBJET' && $expertise->contrepartie_annonce_id) {
+                $counterpart = Annonce::query()->with('appareil')->lockForUpdate()->find($expertise->contrepartie_annonce_id);
+                if (!$counterpart || !in_array($counterpart->statut, ['EN_LIGNE', 'EN_BOUTIQUE'], true)) {
+                    throw new RuleViolationException('contrepartie-indisponible', "L'objet de la boutique prévu en échange n'est plus disponible. Refaites l'expertise.");
+                }
+            }
 
             $config = ConfigurationPlateforme::current();
-            $regle = RegleBonus::pour($config, $compte, (int) $expertise->valeur_reprise);
+            $regle = $withPoints
+                ? RegleBonus::pour($config, $compte, (int) $expertise->valeur_reprise)
+                : ['bonus' => 0, 'ratePercent' => 0, 'rate' => 0.0, 'capped' => false];
             $bonusRateDecimal = $regle['rate'];
             $bonusAccorde = $regle['bonus'];
 
@@ -534,14 +571,24 @@ class WecceEngine
             ]);
 
             $shortName = trim((string) $depot->appareil->designation);
-            $creditResult = $this->crediterDepot->execute(
-                $compte,
-                $renoncement,
-                $depot->reference,
-                $shortName,
-                (int) $expertise->valeur_reprise,
-                $at
-            );
+            $creditResult = $withPoints && (int) $expertise->valeur_reprise > 0
+                ? $this->crediterDepot->execute(
+                    $compte,
+                    $renoncement,
+                    $depot->reference,
+                    $shortName,
+                    (int) $expertise->valeur_reprise,
+                    $at
+                )
+                : ['balanceAfter' => $balanceBefore, 'bonus' => 0, 'bonusRate' => 0];
+
+            if ($counterpart) {
+                $counterpart->update([
+                    'statut' => 'VENDUE',
+                    'note_statut' => "Échangé contre le dépôt {$depot->reference}",
+                ]);
+                $counterpart->appareil->update(['statut' => 'RETIRE']);
+            }
 
             $pieces = $expertise->decision === 'ACCEPTE_EN_PIECES';
             $fullName = $depot->appareil->fullName();
@@ -553,7 +600,7 @@ class WecceEngine
                 'etat_constate' => $expertise->etat_constate,
                 'batterie_pourcent' => $expertise->batterie_pourcent,
                 'precision' => $pieces ? 'Repris en pièces' : $depot->appareil->precision,
-                'statut' => $photo ? 'EN_LIGNE' : 'EN_STOCK',
+                'statut' => ($photo && $toMarket) ? 'EN_LIGNE' : 'EN_STOCK',
             ]);
 
             if ($photo && !empty($photo['src'])) {
@@ -570,6 +617,10 @@ class WecceEngine
 
             $slug = $this->uniqueSlug($articleName);
             $info = $pieces ? 'Repris en pièces' : ('Examiné le ' . WecceClock::dayMonthShort($at));
+            if (!$toMarket) {
+                $info = ($mode === 'ECHANGE_OBJET' ? 'Échange direct contre un objet LBC' : 'Échange direct contre des points') . ' · ' . WecceClock::dayMonthShort($at);
+            }
+            $statutAnnonce = $toMarket ? ($photo ? 'EN_LIGNE' : 'A_PHOTOGRAPHIER') : 'EN_BOUTIQUE';
 
             $annonce = Annonce::query()->create([
                 'slug' => $slug,
@@ -585,8 +636,8 @@ class WecceEngine
                 'prix_initial' => (int) $expertise->prix_affichage,
                 'prix_courant' => (int) $expertise->prix_affichage,
                 'cree_le' => $at,
-                'mise_en_ligne_le' => $photo ? $at : null,
-                'statut' => $photo ? 'EN_LIGNE' : 'A_PHOTOGRAPHIER',
+                'mise_en_ligne_le' => $statutAnnonce === 'EN_LIGNE' ? $at : null,
+                'statut' => $statutAnnonce,
             ]);
 
             $depot->update([
@@ -661,6 +712,10 @@ class WecceEngine
             $slug = $this->uniqueSlug($name, $a['slug'] ?? null);
             $at = $a['at'] ?? WecceClock::now();
             $price = (int) $a['price'];
+            $online = (bool) ($a['online'] ?? true);
+            if (!$online) {
+                $appareil->update(['statut' => 'EN_STOCK']);
+            }
 
             return Annonce::query()->create([
                 'slug' => $slug,
@@ -676,8 +731,8 @@ class WecceEngine
                 'prix_initial' => $price,
                 'prix_courant' => $price,
                 'cree_le' => $at,
-                'mise_en_ligne_le' => $at,
-                'statut' => 'EN_LIGNE',
+                'mise_en_ligne_le' => $online ? $at : null,
+                'statut' => $online ? 'EN_LIGNE' : 'EN_BOUTIQUE',
             ]);
         });
     }
@@ -688,8 +743,8 @@ class WecceEngine
         if (!$annonce) {
             throw new RuleViolationException('article-inconnu', 'Article introuvable.');
         }
-        if ($annonce->statut !== 'A_PHOTOGRAPHIER') {
-            throw new RuleViolationException('article-en-ligne', 'Cet article est déjà en ligne.');
+        if (!in_array($annonce->statut, ['A_PHOTOGRAPHIER', 'EN_BOUTIQUE'], true)) {
+            throw new RuleViolationException('article-en-ligne', $annonce->statut === 'EN_LIGNE' ? 'Cet article est déjà en ligne.' : "Cet article n'est plus en stock.");
         }
 
         $annonce->appareil->update(['statut' => 'EN_LIGNE']);
@@ -699,8 +754,26 @@ class WecceEngine
         ]);
     }
 
+    /** Retirer un article du marché sans le sortir du stock : il reste en boutique, hors ligne. */
+    public function unpublish(string $articleId, string $at): void
+    {
+        DB::transaction(function () use ($articleId) {
+            $annonce = Annonce::query()->with('appareil')->lockForUpdate()->find($articleId);
+            if (!$annonce) {
+                throw new RuleViolationException('article-inconnu', 'Article introuvable.');
+            }
+            if ($annonce->statut !== 'EN_LIGNE') {
+                throw new RuleViolationException('article-hors-ligne', $annonce->statut === 'RESERVEE'
+                    ? 'Un étudiant a réservé cet article : traitez son achat d\'abord.'
+                    : "Cet article n'est pas en ligne.");
+            }
+            $annonce->appareil->update(['statut' => 'EN_STOCK']);
+            $annonce->update(['statut' => 'EN_BOUTIQUE']);
+        });
+    }
+
     /**
-     * @param array{id?: string|null, name: string, category: string, condition: string, battery?: int|null, info?: string|null, price: int, photo?: string|null} $input
+     * @param array{id?: string|null, name: string, category: string, condition: string, battery?: int|null, info?: string|null, price: int, photo?: string|null, online?: bool} $input
      */
     public function saveArticle(array $input, string $at): string
     {
@@ -784,6 +857,7 @@ class WecceEngine
                 'price' => $price,
                 'photo' => $photoArr,
                 'at' => $at,
+                'online' => $input['online'] ?? true,
             ]);
 
             return $annonce->id;
@@ -797,9 +871,10 @@ class WecceEngine
             if (!$annonce) {
                 throw new RuleViolationException('article-inconnu', 'Article introuvable.');
             }
-            if (!in_array($annonce->statut, ['EN_LIGNE', 'A_PHOTOGRAPHIER'], true)) {
-                throw new RuleViolationException('article-ferme', 'Seul un article en vente peut être retiré.');
+            if (!in_array($annonce->statut, ['EN_LIGNE', 'A_PHOTOGRAPHIER', 'EN_BOUTIQUE'], true)) {
+                throw new RuleViolationException('article-ferme', 'Seul un article en stock peut être retiré.');
             }
+            $before = $annonce->statut;
 
             $name = $this->articleDisplayName($annonce);
             $annonce->appareil->update(['statut' => 'RETIRE']);
@@ -813,8 +888,8 @@ class WecceEngine
                 'cible_type' => 'annonce',
                 'cible_id' => $annonce->id,
                 'cible_libelle' => $name,
-                'changement' => 'En ligne → retirée',
-                'avant' => ['statut' => 'EN_LIGNE'],
+                'changement' => ($before === 'EN_BOUTIQUE' ? 'En boutique' : 'En ligne') . ' → retirée',
+                'avant' => ['statut' => $before],
                 'apres' => ['statut' => 'RETIREE'],
                 'motif' => trim($reason),
                 'effectue_le' => $at,

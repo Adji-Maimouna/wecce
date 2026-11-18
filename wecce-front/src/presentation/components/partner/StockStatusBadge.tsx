@@ -8,6 +8,8 @@ export function StockStatusBadge({ a, status }: { a: StockArticle; status: Stock
       return <Badge tone="info">À photographier</Badge>;
     case "en-ligne":
       return <Badge tone="ok">En ligne</Badge>;
+    case "en-boutique":
+      return <Badge tone="warn">En boutique · hors ligne</Badge>;
     case "reserve":
       return <Badge tone="warn">Réservé{a.acquisitionRef ? ` · ${a.acquisitionRef}` : a.statusNote ? ` · ${a.statusNote}` : ""}</Badge>;
     case "remis":

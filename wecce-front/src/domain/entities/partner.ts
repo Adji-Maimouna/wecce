@@ -41,6 +41,17 @@ export type DeclaredDevice = {
   wish: number | null;
 };
 
+/**
+ * Mode de reprise choisi par LBC à l'expertise :
+ * vente : points crédités et objet mis en vente sur Wecce ;
+ * echange-points : points crédités, l'objet reste en boutique, hors marché ;
+ * echange-objet : l'étudiant repart avec un objet de la boutique LBC, sans point.
+ */
+export type TakeBackMode = "vente" | "echange-points" | "echange-objet";
+
+/** Objet du stock propre de LBC pouvant servir de contrepartie à un échange direct. */
+export type ExchangeableItem = { id: string; name: string; price: number; online: boolean };
+
 /** Ce que l'agent saisit à l'expertise : l'état constaté et les deux prix. */
 export type ExpertiseInput = {
   depositRef: string;
@@ -52,6 +63,10 @@ export type ExpertiseInput = {
   takeBack: number;
   /** Prix d'affichage : ce que paiera l'étudiant suivant. */
   listPrice: number;
+  mode?: TakeBackMode;
+  /** Échange contre un objet : un article du catalogue LBC, ou un libellé libre. */
+  counterpartArticleId?: string | null;
+  counterpartLabel?: string;
 };
 
 export type RefusalReason = "ecran" | "compte" | "batterie" | "modele";
@@ -66,14 +81,25 @@ export type ProcessedDeposit = {
   agent: string;
   wish: number | null;
   outcome:
-    | { status: "repris"; takeBack: number; listPrice: number; bonus: number; pieces: boolean; signedAt: string; articleId?: string }
+    | {
+        status: "repris";
+        takeBack: number;
+        listPrice: number;
+        bonus: number;
+        pieces: boolean;
+        signedAt: string;
+        articleId?: string;
+        mode?: TakeBackMode;
+        counterpart?: string | null;
+      }
     | { status: "refuse"; reason: RefusalReason; comment: string };
 };
 
 /** Origine d'un article du stock : un dépôt étudiant, ou le stock propre de la boutique. */
 export type StockOrigin = "depot" | "boutique";
 
-export type StockStatus = "a-photographier" | "en-ligne" | "reserve" | "remis" | "retire";
+/** « en-boutique » : en stock chez LBC mais hors marché (échange direct, ou retiré du marché par LBC). */
+export type StockStatus = "a-photographier" | "en-ligne" | "en-boutique" | "reserve" | "remis" | "retire";
 
 /** Article en stock chez LBC (table annonce). */
 export type StockArticle = {
@@ -104,6 +130,8 @@ export type ArticleInput = {
   info?: string;
   price: number;
   photo?: string | null;
+  /** Nouvel article : le mettre tout de suite en ligne, ou le garder au catalogue de la boutique. */
+  online?: boolean;
 };
 
 export type StockSummary = {

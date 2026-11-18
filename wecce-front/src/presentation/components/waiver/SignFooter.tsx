@@ -8,6 +8,8 @@ import { SignaturePad, type SignaturePadHandle } from "./SignaturePad";
 
 type SignFooterProps = {
   credit: number;
+  /** Échange contre un objet LBC : l'objet remis, à la place des points. */
+  counterpart?: string | null;
   /** Reçoit la signature (image PNG en data URL) ; renvoie quand c'est enregistré. */
   onSign: (signature: string) => Promise<void>;
   /** L'étudiant refuse les prix et repart avec son appareil. */
@@ -15,7 +17,8 @@ type SignFooterProps = {
 };
 
 /** Signature : dessiner, cocher, signer ; ou refuser et reprendre l'appareil. */
-export function SignFooter({ credit, onSign, onDecline }: SignFooterProps) {
+export function SignFooter({ credit, counterpart, onSign, onDecline }: SignFooterProps) {
+  const reward = counterpart ? <strong>{counterpart}</strong> : <strong>{fmt(credit)} points</strong>;
   const pad = useRef<SignaturePadHandle>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const [drawn, setDrawn] = useState(false);
@@ -35,7 +38,7 @@ export function SignFooter({ credit, onSign, onDecline }: SignFooterProps) {
         <SignaturePad ref={pad} onDrawnChange={setDrawn} />
       </div>
       <Checkbox id="lu" checked={read} onChange={setRead}>
-        J'ai lu les deux prix et j'accepte de céder l'appareil contre <strong>{fmt(credit)} points</strong>.
+        J'ai lu les conditions et j'accepte de céder l'appareil contre {reward}.
       </Checkbox>
       <div className="row">
         <Button
@@ -49,7 +52,7 @@ export function SignFooter({ credit, onSign, onDecline }: SignFooterProps) {
             setBusy(false);
           }}
         >
-          Signer et recevoir {fmt(credit)} points
+          {counterpart ? "Signer l'échange" : `Signer et recevoir ${fmt(credit)} points`}
         </Button>
         <Button size="lg" variant="ghost" disabled={busy} onClick={() => setDeclining(true)}>
           Refuser et reprendre mon appareil

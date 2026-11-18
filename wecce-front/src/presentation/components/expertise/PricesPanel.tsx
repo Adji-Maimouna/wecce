@@ -1,3 +1,4 @@
+import type { TakeBackMode } from "@/domain/entities";
 import { canSubmitPrices, creditAtSignature, gapToWish, isListPriceValid, launchBonus, shopMargin } from "@/domain/rules/expertise";
 import { afterFonte } from "@/domain/rules/points";
 import { AmountInput } from "@/presentation/components/ui/AmountInput";
@@ -9,6 +10,10 @@ import { fmt, parseAmount, pts } from "@/presentation/lib/format";
 
 type PricesPanelProps = {
   pieces: boolean;
+  /** Mode de reprise : en échange contre un objet, la reprise n'est qu'une valeur de référence. */
+  mode?: TakeBackMode;
+  /** Échange contre un objet : la contrepartie est renseignée. */
+  counterpartReady?: boolean;
   /** Appareil entier déclaré : on peut basculer vers une reprise en pièces. */
   wholeDevice: boolean;
   wish: number | null;
@@ -27,10 +32,12 @@ type PricesPanelProps = {
 export function PricesPanel(p: PricesPanelProps) {
   const r = parseAmount(p.takeBack);
   const a = parseAmount(p.listPrice);
+  const mode = p.mode ?? "vente";
+  const noPoints = mode === "echange-objet";
   const invalid = !isListPriceValid(r, a);
-  const ready = canSubmitPrices(r, a);
+  const ready = canSubmitPrices(r, a) && (!noPoints || p.counterpartReady !== false);
   const margin = shopMargin(r, a);
-  const rate = p.bonus?.rate ?? 0;
+  const rate = noPoints ? 0 : (p.bonus?.rate ?? 0);
   const studentReceives = creditAtSignature(r, rate, p.bonus?.cap);
   const gap = p.wish === null ? 0 : gapToWish(p.wish, r);
   const drop1 = a > 0 ? afterFonte(a, 1) : 0;
@@ -40,7 +47,7 @@ export function PricesPanel(p: PricesPanelProps) {
     <Panel>
       <div className="panel__head">
         <div className="row" style={{ gap: 10 }}>
-          <span className="step-badge">2</span>
+          <span className="step-badge">3</span>
           <h2>Proposer les prix</h2>
         </div>
         <span className="xs muted">Baisse automatique de −5 % / mois</span>
@@ -48,14 +55,22 @@ export function PricesPanel(p: PricesPanelProps) {
       <PanelBody className="stack" style={{ gap: 18 }}>
         <div className="form-grid">
           <div className="field">
-            <label htmlFor="reprise">Reprise (versée à l&apos;étudiant)</label>
+            <label htmlFor="reprise">{noPoints ? "Valeur de reprise (pour mémoire)" : "Reprise (versée à l'étudiant)"}</label>
             <AmountInput id="reprise" value={p.takeBack} onChange={p.onTakeBack} />
-            <span className="hint">Points crédités dès la signature.</span>
+            <span className="hint">{noPoints ? "Aucun point crédité : l'étudiant reçoit l'objet LBC." : "Points crédités dès la signature."}</span>
           </div>
           <div className="field">
-            <label htmlFor="affichage">Prix affiché en boutique</label>
+            <label htmlFor="affichage">{mode === "vente" ? "Prix affiché en boutique" : "Prix de revente si mis en ligne"}</label>
             <AmountInput id="affichage" value={p.listPrice} onChange={p.onListPrice} invalid={invalid} />
-            <span className="hint">Prix de revente (−5 % chaque 1<sup>er</sup> du mois).</span>
+            <span className="hint">
+              {mode === "vente" ? (
+                <>
+                  Prix de revente (−5 % chaque 1<sup>er</sup> du mois).
+                </>
+              ) : (
+                "L'objet reste hors marché ; ce prix servira s'il est mis en ligne."
+              )}
+            </span>
             {invalid && <FieldError>Le prix affiché doit être supérieur ou égal à la reprise.</FieldError>}
           </div>
         </div>
@@ -63,7 +78,7 @@ export function PricesPanel(p: PricesPanelProps) {
         <div className="price-kpis">
           <div className="price-kpi">
             <span className="price-kpi__label">L&apos;étudiant reçoit</span>
-            <span className="price-kpi__val">{r > 0 ? pts(studentReceives) : "–"}</span>
+            <span className="price-kpi__val">{noPoints ? "un objet LBC" : r > 0 ? pts(studentReceives) : "–"}</span>
             <span className="price-kpi__sub">
               {p.bonus && r > 0 ? `dont +${fmt(launchBonus(r, rate, p.bonus.cap))} pts bonus (${p.bonus.rank}e/${p.bonus.quota})` : "à la signature"}
             </span>
@@ -95,7 +110,16 @@ export function PricesPanel(p: PricesPanelProps) {
           <div>
             <span className="label">Résumé affiché sur la tablette de signature</span>
             <p className="doc__quote" style={{ marginTop: 8, fontSize: "var(--t-sm)" }}>
-              {p.pieces ? (
+              {mode === "echange-objet" ? (
+                <>
+                  « Nous reprenons votre appareil en échange direct contre un objet de la boutique LBC. Aucun point n&apos;est crédité. »
+                </>
+              ) : mode === "echange-points" ? (
+                <>
+                  « Nous reprenons votre appareil à <strong>{pts(r)}</strong>, crédités sur votre compte. Il reste à la boutique et n&apos;est pas mis en
+                  vente sur Wecce. »
+                </>
+              ) : p.pieces ? (
                 <>
                   « L&apos;appareil ne peut pas repartir entier, mais ses pièces sont reprises à <strong>{pts(r)}</strong>. Elles seront proposées à{" "}
                   <strong>{pts(a)}</strong> (avec −5&nbsp;% le 1<sup>er</sup> de chaque mois, comme vos points). »

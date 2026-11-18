@@ -41,6 +41,8 @@ export type Deposit = {
   /** Refus : le motif (code) et le commentaire de l'agent. */
   refusal?: { reason: RefusalReason; comment: string };
   cancelledOn?: string;
+  /** Échange direct avec LBC (sans mise en vente sur Wecce). */
+  exchange?: { mode: "echange-points" | "echange-objet"; counterpart?: string | null };
   /** Annonce liée sur le marché (dépôt repris, objet en ligne). */
   itemSlug?: string;
 };

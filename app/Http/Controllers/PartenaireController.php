@@ -64,6 +64,7 @@ class PartenaireController extends Controller
             'controls' => $declared ? $this->queries->expertiseControls($declared['category']) : [],
             'queue' => $this->queries->expertiseQueue(),
             'missedQueue' => $this->queries->missedAppointments(),
+            'shopItems' => $declared ? $this->queries->exchangeableShopItems() : [],
         ];
         if ($ref !== '' && !$declared) {
             $props['missingRef'] = $ref;
@@ -159,6 +160,9 @@ class PartenaireController extends Controller
                 'serial' => (string) $request->input('serial', ''),
                 'takeBack' => (int) $request->input('takeBack', 0),
                 'listPrice' => (int) $request->input('listPrice', 0),
+                'mode' => (string) $request->input('mode', 'vente'),
+                'counterpartLabel' => $request->input('counterpartLabel'),
+                'counterpartArticleId' => $request->input('counterpartArticleId'),
             ],
             WecceClock::now()
         );
@@ -201,6 +205,12 @@ class PartenaireController extends Controller
         return response()->json(['ok' => true]);
     }
 
+    public function unpublishArticle(string $id): JsonResponse
+    {
+        $this->engine->unpublish($id, WecceClock::now());
+        return response()->json(['ok' => true]);
+    }
+
     public function validateAcquisition(Request $request, string $ref): JsonResponse
     {
         $q = $this->engine->validateAcquisition($request->user()->id, $ref, WecceClock::now());
@@ -236,6 +246,7 @@ class PartenaireController extends Controller
             'battery' => $request->input('battery') !== null && $request->input('battery') !== '' ? (int) $request->input('battery') : null,
             'info' => $request->input('info'),
             'price' => (int) $request->input('price', 0),
+            'online' => $request->has('online') ? $request->boolean('online') : true,
         ];
 
         if ($request->exists('photo')) {

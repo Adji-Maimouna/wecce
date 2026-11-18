@@ -431,11 +431,18 @@ class WecceQueries
                 if ($w) {
                     $base['signedOn'] = WecceClock::dayMonth($w->signe_le);
                 }
-                if ($e && $e->decision !== 'REFUSE') {
+                $modeFront = WecceCodes::TAKEBACK_MODE_FROM_SQL[$e?->mode_reprise ?? 'VENTE_WECCE'] ?? 'vente';
+                if ($e && $e->decision !== 'REFUSE' && $modeFront !== 'echange-objet') {
                     $base['takeBack'] = [
                         'points' => (int) $e->valeur_reprise,
                         'bonus' => (int) ($w?->bonus_accorde ?? 0),
                     ];
+                }
+                if ($modeFront !== 'vente') {
+                    $base['exchange'] = ['mode' => $modeFront, 'counterpart' => $e?->contrepartie_libelle];
+                    $base['stageIndex'] = 5;
+                    unset($base['prices']);
+                    return $base;
                 }
                 if ($a) {
                     $base['prices'] = [
@@ -842,7 +849,9 @@ class WecceQueries
         $agentUser = $agentModel->utilisateur;
 
         $config = ConfigurationPlateforme::current();
-        $pending = RegleBonus::pour($config, $d->etudiant->comptePoints, (int) $e->valeur_reprise);
+        $pending = ($e->mode_reprise ?? 'VENTE_WECCE') === 'ECHANGE_OBJET'
+            ? ['bonus' => 0, 'ratePercent' => 0]
+            : RegleBonus::pour($config, $d->etudiant->comptePoints, (int) $e->valeur_reprise);
 
         $serialRaw = $signed?->numero_serie_constate ?: ($e->numero_serie_saisi ?: $d->appareil->numero_serie);
 
@@ -867,6 +876,8 @@ class WecceQueries
             'bonusRate' => $signed ? (int) round($signed->bonus_taux * 100) : $pending['ratePercent'],
             'bonus' => $signed ? (int) $signed->bonus_accorde : $pending['bonus'],
             'pieces' => $e->decision === 'ACCEPTE_EN_PIECES',
+            'mode' => WecceCodes::TAKEBACK_MODE_FROM_SQL[$e->mode_reprise ?? 'VENTE_WECCE'] ?? 'vente',
+            'counterpart' => $e->contrepartie_libelle,
             'balanceBefore' => $signed ? (int) $signed->solde_avant : (int) ($d->etudiant->comptePoints?->solde ?? 0),
             'signedAt' => $signed ? WecceClock::stampYear($signed->signe_le) : '',
             'agent' => ($agentModel->poste ?: 'Comptoir') . ' · ' . $agentUser->shortName(),
@@ -1280,6 +1291,25 @@ class WecceQueries
         ];
     }
 
+    /** Objets du stock propre de LBC pouvant être donnés en échange direct d'un dépôt. */
+    public function exchangeableShopItems(): array
+    {
+        return Annonce::query()
+            ->with('appareil')
+            ->where('origine', 'STOCK_PARTENAIRE')
+            ->whereIn('statut', ['EN_LIGNE', 'EN_BOUTIQUE'])
+            ->orderBy('prix_courant')
+            ->get()
+            ->map(fn (Annonce $a) => [
+                'id' => $a->id,
+                'name' => $this->engine->articleDisplayName($a),
+                'price' => (int) $a->prix_courant,
+                'online' => $a->statut === 'EN_LIGNE',
+            ])
+            ->values()
+            ->all();
+    }
+
     public function expertiseControls(string $category): array
     {
         return WecceEngine::controlsFor($category);
@@ -1337,6 +1367,8 @@ class WecceQueries
                 'pieces' => $e->decision === 'ACCEPTE_EN_PIECES',
                 'signedAt' => $e->renoncement ? WecceClock::stampYear($e->renoncement->signe_le) : '',
                 'articleId' => $d->annonce?->id,
+                'mode' => WecceCodes::TAKEBACK_MODE_FROM_SQL[$e->mode_reprise ?? 'VENTE_WECCE'] ?? 'vente',
+                'counterpart' => $e->contrepartie_libelle,
             ];
 
         return [
@@ -1404,9 +1436,10 @@ class WecceQueries
         $stockOrder = [
             'A_PHOTOGRAPHIER' => 0,
             'RESERVEE' => 1,
-            'EN_LIGNE' => 2,
-            'VENDUE' => 3,
-            'RETIREE' => 4,
+            'EN_BOUTIQUE' => 2,
+            'EN_LIGNE' => 3,
+            'VENDUE' => 4,
+            'RETIREE' => 5,
         ];
 
         $sorted = $all->sort(function (Annonce $x, Annonce $y) use ($stockOrder) {

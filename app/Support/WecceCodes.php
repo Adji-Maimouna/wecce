@@ -98,9 +98,23 @@ final class WecceCodes
         'STOCK_PARTENAIRE' => 'boutique',
     ];
 
+    /** Mode de reprise choisi à l'expertise (retour LBC : échange direct sans mise en vente). */
+    public const TAKEBACK_MODE_TO_SQL = [
+        'vente' => 'VENTE_WECCE',
+        'echange-points' => 'ECHANGE_POINTS',
+        'echange-objet' => 'ECHANGE_OBJET',
+    ];
+
+    public const TAKEBACK_MODE_FROM_SQL = [
+        'VENTE_WECCE' => 'vente',
+        'ECHANGE_POINTS' => 'echange-points',
+        'ECHANGE_OBJET' => 'echange-objet',
+    ];
+
     public const STOCK_STATUS_TO_SQL = [
         'a-photographier' => 'A_PHOTOGRAPHIER',
         'en-ligne' => 'EN_LIGNE',
+        'en-boutique' => 'EN_BOUTIQUE',
         'reserve' => 'RESERVEE',
         'remis' => 'VENDUE',
         'retire' => 'RETIREE',
@@ -109,6 +123,7 @@ final class WecceCodes
     public const STOCK_STATUS_FROM_SQL = [
         'A_PHOTOGRAPHIER' => 'a-photographier',
         'EN_LIGNE' => 'en-ligne',
+        'EN_BOUTIQUE' => 'en-boutique',
         'RESERVEE' => 'reserve',
         'VENDUE' => 'remis',
         'RETIREE' => 'retire',

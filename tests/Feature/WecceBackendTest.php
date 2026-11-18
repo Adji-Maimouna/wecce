@@ -516,6 +516,58 @@ class WecceBackendTest extends TestCase
         $this->assertSame([], app(WecceQueries::class)->balanceMismatches());
     }
 
+    public function test_direct_exchange_modes_keep_the_device_off_the_market(): void
+    {
+        $engine = app(WecceEngine::class);
+        $agent = User::query()->where('email', 'comptoir1@lbc.exemple.sn')->firstOrFail();
+        $omar = User::query()->where('email', 'omar.ba@exemple.sn')->firstOrFail();
+        $compte = ComptePoints::query()->where('etudiant_id', $omar->id)->firstOrFail();
+        $balance = (int) $compte->solde;
+        $stockBefore = $engine->stockValue();
+
+        $declare = fn (string $modele) => $engine->createDeposit($omar->id, [
+            'category' => 'tel', 'modele' => $modele, 'age' => '1-2', 'etat' => 'bon',
+            'availability' => ['days' => ['2026-11-09'], 'moment' => 'matin', 'note' => ''],
+        ], '2026-11-07T11:00');
+
+        // 1. Échange contre un objet de la boutique : aucun point, l'objet LBC sort du stock.
+        $ref = $declare('Nokia 3310');
+        $this->assertSame('RDV_DEMANDE', \App\Models\Depot::query()->where('reference', $ref)->value('statut'));
+        $jbl = Annonce::query()->where('slug', 'jbl-go')->firstOrFail();
+        $this->actingAs($agent);
+        $this->postJson('/partenaire/expertises', [
+            'depositRef' => $ref, 'pieces' => false, 'condition' => 'bon', 'takeBack' => 8000, 'listPrice' => 11000,
+            'mode' => 'echange-objet', 'counterpartArticleId' => $jbl->id,
+        ])->assertOk();
+        $this->postJson("/partenaire/depots/{$ref}/renoncement/signature", ['signature' => 'data:image/png;base64,AAAA'])
+            ->assertOk()->assertJson(['balanceAfter' => $balance]);
+        $this->assertSame($balance, (int) $compte->fresh()->solde);
+        $this->assertSame('VENDUE', $jbl->fresh()->statut);
+        $kept = Annonce::query()->whereHas('depotOrigine', fn ($q) => $q->where('reference', $ref))->firstOrFail();
+        $this->assertSame('EN_BOUTIQUE', $kept->statut);
+        $this->get('/etudiant/objets/' . $kept->slug)->assertOk()->assertInertia(fn (Assert $page) => $page->component('NotFound'));
+
+        // 2. LBC peut ensuite le mettre en ligne, puis le retirer du marché.
+        $this->postJson("/partenaire/stock/{$kept->id}/publication")->assertOk();
+        $this->assertSame('EN_LIGNE', $kept->fresh()->statut);
+        $this->deleteJson("/partenaire/stock/{$kept->id}/publication")->assertOk();
+        $this->assertSame('EN_BOUTIQUE', $kept->fresh()->statut);
+
+        // 3. Échange contre des points : crédit (sans nouveau bonus pour Omar, déjà bonifié), objet hors marché.
+        $ref2 = $declare('Itel A60');
+        $this->postJson('/partenaire/expertises', [
+            'depositRef' => $ref2, 'pieces' => false, 'condition' => 'bon', 'takeBack' => 12000, 'listPrice' => 16000,
+            'mode' => 'echange-points',
+        ])->assertOk();
+        $after = $this->postJson("/partenaire/depots/{$ref2}/renoncement/signature", ['signature' => 'data:image/png;base64,AAAA'])
+            ->assertOk()->json('balanceAfter');
+        $this->assertSame($balance + 12000, $after);
+        $this->assertSame('EN_BOUTIQUE', Annonce::query()->whereHas('depotOrigine', fn ($q) => $q->where('reference', $ref2))->value('statut'));
+        // Un objet gardé hors marché ne couvre pas la dette ; la JBL échangée sort de la valeur de stock.
+        $this->assertSame($stockBefore - (int) $jbl->prix_courant, $engine->stockValue());
+        $this->assertSame([], app(WecceQueries::class)->balanceMismatches());
+    }
+
     public function test_monthly_fonte_idempotence_and_admin_adjustment(): void
     {
         $engine = app(WecceEngine::class);
