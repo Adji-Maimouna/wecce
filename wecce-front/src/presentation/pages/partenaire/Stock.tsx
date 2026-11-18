@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PartnerPurchase, StockArticle, StockOrigin, StockStatus, StockTabSummary } from "@/domain/entities";
+import type { Category, PartnerPurchase, StockArticle, StockOrigin, StockStatus, StockTabSummary } from "@/domain/entities";
 import { BackOfficeLayout } from "@/presentation/components/layout/BackOfficeLayout";
 import { PageHead } from "@/presentation/components/layout/PageHead";
 import { PageTitle } from "@/presentation/components/layout/PageTitle";
@@ -13,11 +13,15 @@ import type { IconName } from "@/presentation/components/ui/icons";
 import { Panel, PanelHead } from "@/presentation/components/ui/Panel";
 import { cn } from "@/presentation/lib/cn";
 import { fmt } from "@/presentation/lib/format";
+import { CATEGORY_LABELS } from "@/presentation/lib/labels";
 import { paths } from "@/presentation/lib/paths";
 
 type Tab = "achats" | "depots" | "catalogue";
 type OriginFilter = "tout" | StockOrigin;
 type StatusFilter = "tout" | StockStatus;
+type CategoryFilter = "tout" | Category;
+
+const CATEGORIES: Category[] = ["tel", "ordi", "tab", "audio", "piece"];
 
 export type StockProps = {
   tab?: Tab | null;
@@ -43,6 +47,7 @@ export default function Stock(p: StockProps) {
   const [tab, setTab] = useState<Tab>(p.tab ?? (pending > 0 ? "achats" : p.toPublish.length > 0 ? "depots" : "catalogue"));
   const [origin, setOrigin] = useState<OriginFilter>("tout");
   const [status, setStatus] = useState<StatusFilter>("tout");
+  const [category, setCategory] = useState<CategoryFilter>("tout");
   const [q, setQ] = useState("");
 
   const select = (t: Tab) => {
@@ -57,6 +62,7 @@ export default function Stock(p: StockProps) {
   const articles = p.catalog.articles.filter((a) => {
     if (origin !== "tout" && a.origin !== origin) return false;
     if (status !== "tout" && a.status !== status) return false;
+    if (category !== "tout" && a.category !== category) return false;
     const needle = q.trim().toLowerCase();
     return !needle || `${a.name} ${a.originRef ?? ""} ${a.info}`.toLowerCase().includes(needle);
   });
@@ -204,6 +210,7 @@ export default function Stock(p: StockProps) {
                     <tr>
                       <th>Achat</th>
                       <th>Objet</th>
+                      <th>Catégorie</th>
                       <th>Étudiant</th>
                       <th className="r">Prix</th>
                       <th>Issue</th>
@@ -214,6 +221,7 @@ export default function Stock(p: StockProps) {
                       <tr key={x.ref}>
                         <td className="num">{x.ref}</td>
                         <td>{x.item.name}</td>
+                        <td>{CATEGORY_LABELS[x.item.category].label}</td>
                         <td>
                           {x.student.name} <span className="xs muted">· {x.student.card}</span>
                         </td>
@@ -259,6 +267,14 @@ export default function Stock(p: StockProps) {
                 { value: "boutique", label: "Stock de la boutique", count: p.catalog.counts.boutique },
               ]}
             />
+            <select className="select" aria-label="Filtrer par catégorie" style={{ width: "auto" }} value={category} onChange={(e) => setCategory(e.target.value as CategoryFilter)}>
+              <option value="tout">Toutes les catégories</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABELS[c].plural} ({p.catalog.articles.filter((a) => a.category === c).length})
+                </option>
+              ))}
+            </select>
             <select className="select" aria-label="Filtrer par statut" style={{ width: "auto" }} value={status} onChange={(e) => setStatus(e.target.value as StatusFilter)}>
               <option value="tout">Tous les statuts</option>
               <option value="en-ligne">En ligne</option>
@@ -268,8 +284,7 @@ export default function Stock(p: StockProps) {
               <option value="remis">Remis</option>
               <option value="retire">Retirés</option>
             </select>
-            <span className="spacer" />
-            <label className="search" style={{ background: "var(--surface)", maxWidth: 280 }}>
+            <label className="search" style={{ background: "var(--surface)", flex: "1 1 200px", maxWidth: 280, minWidth: 180 }}>
               <Icon name="search" />
               <input type="search" placeholder="Modèle ou référence" aria-label="Chercher dans le catalogue" value={q} onChange={(e) => setQ(e.target.value)} />
             </label>
@@ -301,9 +316,8 @@ function StockTable({ articles, total }: { articles: StockArticle[]; total?: num
           <thead>
             <tr>
               <th>Objet</th>
-              <th>Origine</th>
+              <th>Catégorie</th>
               <th>En ligne depuis</th>
-              <th className="r">Prix initial</th>
               <th className="r">Prix du jour</th>
               <th>Statut</th>
               <th />
@@ -315,7 +329,7 @@ function StockTable({ articles, total }: { articles: StockArticle[]; total?: num
             ))}
             {articles.length === 0 && (
               <tr>
-                <td colSpan={7} className="muted" style={{ padding: "28px 14px", textAlign: "center" }}>
+                <td colSpan={6} className="muted" style={{ padding: "28px 14px", textAlign: "center" }}>
                   Aucun article ne correspond.
                 </td>
               </tr>

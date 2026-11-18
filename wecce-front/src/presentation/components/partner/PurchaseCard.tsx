@@ -10,6 +10,7 @@ import { Icon } from "@/presentation/components/ui/Icon";
 import type { IconName } from "@/presentation/components/ui/icons";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { fmt, francs, pts } from "@/presentation/lib/format";
+import { CATEGORY_LABELS } from "@/presentation/lib/labels";
 import { paths } from "@/presentation/lib/paths";
 
 const CATEGORY_ICON: Record<Category, IconName> = { tel: "phone", ordi: "laptop", tab: "tablet", audio: "audio", piece: "piece" };
@@ -61,7 +62,9 @@ export function PurchaseCard({ p }: { p: PartnerPurchase }) {
           <AppLink className="who__name" href={paths.article(p.item.id)}>
             {p.item.name}
           </AppLink>
-          <div className="who__sub">{p.item.origin === "depot" ? "Dépôt d'un étudiant" : "Stock de la boutique"}</div>
+          <div className="who__sub">
+            {CATEGORY_LABELS[p.item.category].label} · {p.item.origin === "depot" ? "dépôt d'un étudiant" : "stock de la boutique"}
+          </div>
         </div>
       </div>
 

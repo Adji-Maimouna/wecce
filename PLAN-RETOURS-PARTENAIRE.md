@@ -59,4 +59,4 @@ Toutes les étapes sont faites (novembre 2026) ; 9 tests de bout en bout couvren
 - Valeurs par défaut : garantie 90 jours, bonus plafonné à 5 000 points et un par étudiant (réglables dans le pilotage admin).
 - Remboursement d'un complément Wave / Orange Money quand LBC refuse un achat déjà payé : l'application l'annonce à l'agent mais ne déclenche pas le remboursement (à faire par l'opérateur).
 - Délai de réponse attendu de LBC sur une demande de rendez-vous (aucune relance automatique n'est envoyée à l'étudiant pour l'instant).
-- Données de démonstration : elles s'arrêtent au 11 novembre 2026. Sans `WECCE_REFERENCE_DATE`, les périodes récentes (« 7 derniers jours ») sont vides ; les écrans l'expliquent et proposent d'aller à la dernière activité.
+- Données de démonstration : le seeder les cale sur la date du jour (décalage en jours d'ouverture, baisses toujours le 1er du mois). Une période sans activité affiche la date de la dernière activité.
