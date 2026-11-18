@@ -211,6 +211,10 @@ export const demoPorts: Ports = {
         me("AGENT");
         engine.publish(data(), id, now());
       }, 300),
+    unpublishArticle: () =>
+      act(() => {
+        throw new RuleViolation("demo", "Disponible avec le serveur Laravel uniquement.");
+      }),
     // Le serveur simulé n'a pas d'étape de validation : l'achat y est réservé directement.
     validateAcquisition: () => act(() => ({ points: 0, complement: 0 })),
     refuseAcquisition: () =>

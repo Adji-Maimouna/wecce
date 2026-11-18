@@ -10,7 +10,7 @@ class EnsureWecceRole
 {
     public const HOME_BY_ROLE = [
         'ETUDIANT' => '/etudiant/solde',
-        'AGENT' => '/partenaire/rendez-vous',
+        'AGENT' => '/partenaire/tableau-de-bord',
         'ADMIN' => '/admin/pilotage',
     ];
 

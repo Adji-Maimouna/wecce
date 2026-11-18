@@ -1,31 +1,46 @@
 /* BackOfficeLayout
-   Porté de maquette/assets/wecce.css, à l'identique. */
+   Coque des espaces LBC et administration. Barre latérale sombre (encre de la maquette, accent moutarde),
+   zone de travail sur fond chaud pour faire ressortir les panneaux blancs, comme l'espace étudiant. */
 
 .app {
-  display: grid; grid-template-columns: 256px minmax(0, 1fr); min-height: 100vh;
-  background: linear-gradient(90deg, var(--surface-2) 0 255px, var(--line) 255px 256px, transparent 256px);
+  display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh;
+  background: linear-gradient(90deg, var(--inv-bg) 0 264px, #f7f5f0 264px);
 }
-.side { background: var(--surface-2); color: var(--shell-ink); padding: 20px 14px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; height: 100vh; }
-.side .brand { padding: 0 10px; }
-.side__ctx { padding: 0 10px; font-size: var(--t-xs); color: var(--shell-muted); line-height: 1.4; }
-.side__ctx strong { display: block; color: var(--shell-ink); font-size: var(--t-sm); font-weight: 600; }
+.side {
+  background: var(--inv-bg); color: var(--inv-ink); padding: 22px 14px 18px; display: flex; flex-direction: column; gap: 20px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  background-image: radial-gradient(120% 40% at 0% 0%, rgb(225 172 16 / 0.14), transparent 60%);
+}
+.side .brand { padding: 0 12px; color: var(--inv-ink); }
+.side__ctx { margin: 0 4px; padding: 12px 12px; border-radius: 14px; background: var(--inv-surface); font-size: var(--t-xs); color: var(--inv-muted); line-height: 1.45; }
+.side__ctx strong { display: block; color: var(--inv-ink); font-size: var(--t-sm); font-weight: 600; }
 .side nav { display: flex; flex-direction: column; gap: 2px; }
+.side__group { display: block; padding: 14px 12px 6px; font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #8a8780; }
+.side__item:first-child .side__group { padding-top: 0; }
 .side nav a {
-  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 999px;
-  color: var(--shell-muted); font-size: var(--t-sm); font-weight: 600;
+  display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 12px;
+  color: #d9d6cf; font-size: var(--t-sm); font-weight: 600;
   transition: background-color var(--m-in) var(--m-ease), color var(--m-in) var(--m-ease);
 }
-.side nav a:hover { background: var(--sunken); color: var(--shell-ink); }
-.side nav a[aria-current="page"] { background: var(--surface); color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
-.side nav a[aria-current="page"] .i { color: var(--accent); }
-.side nav a .badge { margin-left: auto; height: 20px; padding: 0 7px; background: var(--brand); color: var(--brand-ink); }
-.side__foot { margin-top: auto; padding: 0 10px; font-size: var(--t-xs); color: var(--shell-muted); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
-.side__out { appearance: none; background: none; border: 0; padding: 0; font: inherit; color: var(--shell-ink); font-weight: 600; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line-2, var(--line)); text-underline-offset: 3px; }
-.side__out:hover { text-decoration-color: currentColor; }
-.main { padding: 44px 52px 48px; min-width: 0; }
-.main__in { max-width: 1200px; }
-.main .page-head { margin-bottom: 32px; }
-.app .sticky { top: 44px; }
+.side nav a .i { color: #a8a59e; }
+.side nav a:hover { background: rgb(255 255 255 / 0.06); color: #fff; }
+.side nav a[aria-current="page"] { background: var(--brand); color: var(--brand-ink); box-shadow: 0 8px 20px rgb(225 172 16 / 0.25); }
+.side nav a[aria-current="page"] .i { color: var(--brand-ink); }
+.side nav a .badge { margin-left: auto; height: 20px; min-width: 20px; justify-content: center; padding: 0 7px; background: var(--danger); color: #fff; font-weight: 700; }
+.side nav a[aria-current="page"] .badge { background: var(--inv-bg); color: #fff; }
+.side__foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid rgb(255 255 255 / 0.08); display: flex; flex-direction: column; gap: 12px; font-size: var(--t-xs); color: var(--inv-muted); }
+.side__who { display: flex; align-items: center; gap: 10px; }
+.side__who strong { display: block; color: var(--inv-ink); font-size: var(--t-sm); }
+.side__avatar { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 700; font-size: var(--t-xs); }
+.side__out { appearance: none; display: inline-flex; align-items: center; gap: 8px; background: none; border: 0; padding: 6px 4px; font: inherit; color: #d9d6cf; font-weight: 600; cursor: pointer; border-radius: 8px; }
+.side__out:hover { color: #fff; background: rgb(255 255 255 / 0.06); }
+.side :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+.main { padding: 40px 48px 56px; min-width: 0; }
+.main__in { max-width: 1240px; }
+.main .page-head { margin-bottom: 28px; }
+.main .panel { border-color: #e7e3da; box-shadow: 0 1px 2px rgb(28 26 20 / 0.04); }
+.app .sticky { top: 40px; }
 .profile-grid { display: grid; grid-template-columns: minmax(320px, 410px) minmax(0, 1fr); gap: 24px; align-items: start; max-width: 1080px; }
 .side { view-transition-name: coque-laterale; }
 @media (max-width: 1120px) {
@@ -33,12 +48,10 @@
   .app .sticky { position: static; }
 }
 @media (max-width: 900px) {
-  .app { grid-template-columns: minmax(0, 1fr); background: none; }
-  .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
-  .side nav { flex-direction: row; flex-wrap: wrap; }
-  .side__foot, .side__ctx { display: none; }
+  .app { grid-template-columns: minmax(0, 1fr); background: #f7f5f0; }
+  .side { position: static; height: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; }
+  .side nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .side__group, .side__foot, .side__ctx { display: none; }
+  .side nav a { padding: 8px 10px; }
   .main { padding: 22px var(--gutter-r) 56px var(--gutter); }
-}
-@media (max-width: 720px) {
-  .main { padding: 28px var(--gutter-r) 64px var(--gutter); }
 }

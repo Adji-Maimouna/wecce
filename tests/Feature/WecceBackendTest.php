@@ -264,6 +264,16 @@ class WecceBackendTest extends TestCase
         $agent = User::query()->where('email', 'comptoir1@lbc.exemple.sn')->firstOrFail();
         $this->actingAs($agent);
 
+        $this->get('/partenaire/tableau-de-bord')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('partenaire/Tableau')
+            ->where('todo.purchases', 1)
+            ->has('today', 6)
+            ->has('weeks', 8)
+            ->has('month.current.takeBacks')
+            ->has('stock.byCategory', 5)
+            ->has('coverage.ratio')
+            ->has('activity')
+        );
         $this->get('/partenaire/rendez-vous')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/RendezVous')
             ->where('date', '2026-11-07')
@@ -295,7 +305,17 @@ class WecceBackendTest extends TestCase
         $this->assertSame('Yakhya', $agent->prenom);
         $this->assertSame('Wade', $agent->nom);
 
-        $this->get('/partenaire/stock')->assertRedirect('/partenaire/statistiques#catalogue');
+        $this->get('/partenaire/stock?onglet=achats')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->component('partenaire/Stock')
+            ->where('tab', 'achats')
+            ->has('toValidate', 1)
+            ->where('toValidate.0.status', 'a-valider')
+            ->where('toValidate.0.student.card', '2023-0871')
+            ->has('toHandOver', 1)
+            ->has('toPublish')
+            ->has('catalog.articles')
+            ->has('summary.inShopCount')
+        );
         $this->get('/partenaire/stock/nouveau')->assertOk()->assertInertia(fn (Assert $page) => $page->component('partenaire/Article'));
 
         $annonce = Annonce::query()->where('slug', 'galaxy-a12')->firstOrFail();
@@ -338,8 +358,7 @@ class WecceBackendTest extends TestCase
             ->has('paymentMethods', 4)
             ->has('monthly')
             ->has('byUfr')
-            ->has('catalog.articles')
-            ->has('catalog.counts')
+            ->missing('catalog')
         );
         $this->get('/partenaire/statistiques?periode=mois')->assertOk()->assertInertia(fn (Assert $page) => $page
             ->component('partenaire/Statistiques')

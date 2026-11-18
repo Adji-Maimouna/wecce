@@ -4,6 +4,7 @@ import { makeAdjustPoints, makeSaveBonus, makeSetDepositsSuspended } from "./use
 import {
   makeHandOver,
   makePublishArticle,
+  makeUnpublishArticle,
   makeRefuseAcquisition,
   makeRefuseDeposit,
   makeSaveArticle,
@@ -52,6 +53,7 @@ export function makeUseCases(ports: Ports) {
     refuseDeposit: makeRefuseDeposit(ports.partner),
     scheduleAppointment: makeScheduleAppointment(ports.partner),
     publishArticle: makePublishArticle(ports.partner),
+    unpublishArticle: makeUnpublishArticle(ports.partner),
     validateAcquisition: makeValidateAcquisition(ports.partner),
     refuseAcquisition: makeRefuseAcquisition(ports.partner),
     handOver: makeHandOver(ports.partner),

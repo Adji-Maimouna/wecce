@@ -22,6 +22,9 @@ export const makeScheduleAppointment = (partner: PartnerGateway) => async (depos
 
 export const makePublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.publishArticle(articleId);
 
+/** Mettre un article hors ligne : il reste au stock de la boutique, invisible sur le marché. */
+export const makeUnpublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.unpublishArticle(articleId);
+
 /** Valider un achat demandé par un étudiant : c'est à ce moment que ses points sont débités. */
 export const makeValidateAcquisition = (partner: PartnerGateway) => (acquisitionRef: string) => partner.validateAcquisition(acquisitionRef);
 

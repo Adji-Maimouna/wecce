@@ -78,6 +78,7 @@ Route::prefix('etudiant')->group(function () {
 */
 Route::middleware('role:AGENT')->prefix('partenaire')->group(function () {
     // Pages (GET)
+    Route::get('/tableau-de-bord', [PartenaireController::class, 'tableau'])->name('partenaire.tableau');
     Route::get('/rendez-vous', [PartenaireController::class, 'rendezVous'])->name('partenaire.rdv');
     Route::get('/expertise', [PartenaireController::class, 'expertise'])->name('partenaire.expertise');
     Route::get('/depots/{ref}', [PartenaireController::class, 'depot'])->name('partenaire.depot');

@@ -212,7 +212,29 @@ export const screens: Screen[] = [
       return waiver ? <Renoncement waiver={waiver} context="comptoir" /> : <NotFound />;
     },
   },
-  { path: "/partenaire/stock", access: "AGENT", render: () => <Stock {...server.stockPage()} /> },
+  { path: "/partenaire/stock", access: "AGENT", render: () => {
+      const st = server.stockPage();
+      return (
+        <Stock
+          toValidate={[]}
+          awaitingPayment={[]}
+          toHandOver={[]}
+          history={[]}
+          toPublish={st.articles.filter((a) => a.origin === "depot" && a.status === "a-photographier")}
+          catalog={{ articles: st.articles, counts: st.counts }}
+          summary={{
+            inShopCount: st.articles.filter((a) => a.status !== "remis" && a.status !== "retire").length,
+            inShopValue: 0,
+            onlineCount: st.summary?.online ?? 0,
+            onlineValue: st.summary?.displayedValue ?? 0,
+            offlineCount: st.articles.filter((a) => a.status === "a-photographier").length,
+            reservedCount: st.summary?.reserved ?? 0,
+            shopOwnCount: st.counts.boutique,
+          }}
+        />
+      );
+    },
+  },
   { path: "/partenaire/stock/nouveau", access: "AGENT", render: () => <Article /> },
   {
     path: "/partenaire/stock/:id",

@@ -134,6 +134,36 @@ export type ArticleInput = {
   online?: boolean;
 };
 
+/** Achat d'un étudiant vu par LBC : à valider, à remettre, ou dans l'historique. */
+export type PartnerPurchase = {
+  ref: string;
+  status: "en-attente" | "a-valider" | "reserve" | "remis" | "annule";
+  student: { name: string; initials: string; card: string; phone?: string; balance: number };
+  item: { id: string; name: string; category: Category; photo?: string | null; origin: StockOrigin };
+  price: number;
+  points: number;
+  complement: number;
+  method: "wave" | "om" | "especes";
+  /** Complément déjà payé par Wave ou Orange Money (à rembourser en cas de refus). */
+  paidMobile: boolean;
+  createdAt: string;
+  pickupBefore: string;
+  validatedAt?: string;
+  handedAt?: string;
+  warrantyUntil?: string;
+  refusal?: string;
+};
+
+export type StockTabSummary = {
+  inShopCount: number;
+  inShopValue: number;
+  onlineCount: number;
+  onlineValue: number;
+  offlineCount: number;
+  reservedCount: number;
+  shopOwnCount: number;
+};
+
 export type StockSummary = {
   online: number;
   onlineFromShop: number;

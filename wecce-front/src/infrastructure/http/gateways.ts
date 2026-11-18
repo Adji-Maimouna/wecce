@@ -147,6 +147,10 @@ export const httpPorts: Ports = {
       request("POST", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {
         reloadProps();
       }),
+    unpublishArticle: (articleId) =>
+      request("DELETE", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {
+        reloadProps();
+      }),
     validateAcquisition: (acquisitionRef) =>
       request<{ points: number; complement: number }>("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/validation`).then((r) => {
         reloadProps();

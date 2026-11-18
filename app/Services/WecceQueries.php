@@ -1417,11 +1417,13 @@ class WecceQueries
         if ($a->depotOrigine) {
             $art['originRef'] = $a->depotOrigine->reference;
         }
-        if ($activeAcq && $activeAcq->statut === 'RESERVE') {
+        if ($activeAcq && in_array($activeAcq->statut, ['RESERVE', 'A_VALIDER'], true)) {
             $art['acquisitionRef'] = $activeAcq->reference;
         }
         if ($activeAcq && $activeAcq->statut === 'EN_ATTENTE') {
             $art['statusNote'] = 'paiement en attente';
+        } elseif ($activeAcq && $activeAcq->statut === 'A_VALIDER') {
+            $art['statusNote'] = 'achat à valider';
         } elseif ($a->note_statut) {
             $art['statusNote'] = $a->note_statut;
         }
@@ -1487,6 +1489,226 @@ class WecceQueries
                 'tout' => $all->count(),
                 'depot' => $all->where('origine', 'DEPOT_ETUDIANT')->count(),
                 'boutique' => $all->where('origine', 'STOCK_PARTENAIRE')->count(),
+            ],
+        ];
+    }
+
+    /**
+     * Tableau de bord de LBC : ce qui attend une action, le jour au comptoir, l'activité des
+     * huit dernières semaines, le mois en cours face au précédent, le stock et la couverture.
+     */
+    public function partnerDashboard(): array
+    {
+        $today = WecceClock::today();
+        $config = ConfigurationPlateforme::current();
+        $weekday = WecceClock::weekday($today);
+        $monday = WecceClock::addDays($today, $weekday === 0 ? -6 : 1 - $weekday);
+
+        $expertises = Expertise::query()->whereIn('decision', ['ACCEPTE', 'ACCEPTE_EN_PIECES'])->whereHas('renoncement')->get();
+        $sales = Acquisition::query()->whereIn('statut', ['RESERVE', 'REMIS'])->get();
+        $refused = Expertise::query()->where('decision', 'REFUSE')->get();
+
+        $weeks = [];
+        for ($i = 7; $i >= 0; $i--) {
+            $start = WecceClock::addDays($monday, -7 * $i);
+            $end = WecceClock::addDays($start, 6);
+            $in = fn ($dt) => $dt && WecceClock::dateOf($dt) >= $start && WecceClock::dateOf($dt) <= $end;
+            $p = WecceClock::parts($start);
+            $weeks[] = [
+                'key' => $start,
+                'label' => WecceClock::dayNumber($p['d']) . ' ' . WecceClock::MONTHS_SHORT[$p['m']],
+                'takeBacks' => $expertises->filter(fn (Expertise $e) => $in($e->realisee_le))->count(),
+                'sales' => $sales->filter(fn (Acquisition $q) => $in($q->valide_le ?: $q->cree_le))->count(),
+                'current' => $i === 0,
+            ];
+        }
+
+        $monthKey = WecceClock::monthKey($today);
+        $prevKey = WecceClock::monthKey(Carbon::parse($today)->subMonthNoOverflow()->format('Y-m-d'));
+        $month = function (string $key) use ($expertises, $sales, $refused): array {
+            $exp = $expertises->filter(fn (Expertise $e) => WecceClock::monthKey($e->realisee_le) === $key);
+            $sal = $sales->filter(fn (Acquisition $q) => WecceClock::monthKey($q->valide_le ?: $q->cree_le) === $key);
+
+            return [
+                'takeBacks' => $exp->count(),
+                'refused' => $refused->filter(fn (Expertise $e) => WecceClock::monthKey($e->realisee_le) === $key)->count(),
+                'pointsCredited' => (int) $exp->where('mode_reprise', '<>', 'ECHANGE_OBJET')->sum('valeur_reprise'),
+                'sales' => $sal->count(),
+                'salesPoints' => (int) $sal->sum('prix_total'),
+                'complements' => (int) $sal->sum('complement_du'),
+                'margin' => (int) $exp->sum(fn (Expertise $e) => max(0, (int) $e->prix_affichage - (int) $e->valeur_reprise)),
+            ];
+        };
+
+        $annonces = Annonce::query()->with('appareil')->whereIn('statut', ['EN_LIGNE', 'EN_BOUTIQUE', 'A_PHOTOGRAPHIER', 'RESERVEE'])->get();
+        $categories = Categorie::query()->where('actif', true)->orderBy('ordre')->get();
+        $byCategory = $categories->map(function (Categorie $c) use ($annonces) {
+            $set = $annonces->filter(fn (Annonce $a) => $a->appareil?->categorie_code === $c->code && $a->statut === 'EN_LIGNE');
+            return ['code' => $c->code, 'label' => $c->libelle, 'count' => $set->count(), 'value' => (int) $set->sum('prix_courant')];
+        })->values()->all();
+
+        $activity = collect();
+        foreach ($expertises->sortByDesc(fn ($e) => WecceClock::toIso($e->realisee_le))->take(6) as $e) {
+            $e->loadMissing('depot.appareil');
+            $activity->push([
+                'at' => WecceClock::toIso($e->realisee_le),
+                'kind' => 'reprise',
+                'text' => trim((string) $e->depot?->appareil?->designation) . ' repris à ' . number_format((int) $e->valeur_reprise, 0, ',', ' ') . ' pts',
+                'ref' => $e->depot?->reference,
+            ]);
+        }
+        foreach ($sales->sortByDesc(fn ($q) => WecceClock::toIso($q->retire_le ?: ($q->valide_le ?: $q->cree_le)))->take(6) as $q) {
+            $q->loadMissing('annonce.appareil');
+            $when = $q->retire_le ?: ($q->valide_le ?: $q->cree_le);
+            $activity->push([
+                'at' => WecceClock::toIso($when),
+                'kind' => $q->statut === 'REMIS' ? 'remise' : 'vente',
+                'text' => trim((string) $q->annonce?->appareil?->designation) . ($q->statut === 'REMIS' ? ' remis à l\'étudiant' : ' vendu, à remettre'),
+                'ref' => $q->reference,
+            ]);
+        }
+        $activity = $activity->sortByDesc('at')->take(7)->values()->map(fn (array $x) => $x + [
+            'when' => WecceClock::capitalize(WecceClock::dayMonthShort($x['at'])) . ', ' . WecceClock::time($x['at']),
+        ])->all();
+
+        $debt = $this->engine->debt();
+        $stockValue = $this->engine->stockValue();
+
+        return [
+            'todayLabel' => WecceClock::longDate($today),
+            'todo' => $this->partnerTodo(),
+            'today' => $this->appointmentsOn($today),
+            'requests' => array_slice($this->appointmentRequests(), 0, 4),
+            'weeks' => $weeks,
+            'month' => [
+                'label' => ucfirst(WecceClock::monthTitle("{$monthKey}-01")),
+                'prevLabel' => WecceClock::monthTitle("{$prevKey}-01"),
+                'current' => $month($monthKey),
+                'previous' => $month($prevKey),
+            ],
+            'stock' => [
+                'online' => $annonces->where('statut', 'EN_LIGNE')->count(),
+                'onlineValue' => (int) $annonces->where('statut', 'EN_LIGNE')->sum('prix_courant'),
+                'offline' => $annonces->whereIn('statut', ['EN_BOUTIQUE', 'A_PHOTOGRAPHIER'])->count(),
+                'reserved' => $annonces->where('statut', 'RESERVEE')->count(),
+                'byCategory' => $byCategory,
+            ],
+            'coverage' => [
+                'ratio' => $debt > 0 ? round($stockValue / $debt, 3) : null,
+                'debt' => $debt,
+                'stockValue' => $stockValue,
+                'watch' => (float) $config->seuil_surveillance,
+                'suspend' => (float) $config->seuil_suspension,
+            ],
+            'activity' => $activity,
+        ];
+    }
+
+    /** Un achat vu par LBC dans l'onglet Stock (validation, remise, historique). */
+    public function toPartnerPurchase(Acquisition $q): array
+    {
+        $q->loadMissing(['annonce.appareil.photos', 'etudiant.utilisateur', 'paiements']);
+        $u = $q->etudiant->utilisateur;
+        $a = $q->annonce;
+        $config = ConfigurationPlateforme::current();
+        $from = $q->valide_le ?: ($q->confirme_le ?: $q->cree_le);
+        $statusMap = ['EN_ATTENTE' => 'en-attente', 'A_VALIDER' => 'a-valider', 'RESERVE' => 'reserve', 'REMIS' => 'remis', 'ANNULE' => 'annule'];
+        $paidMobile = $q->paiements->contains(fn ($p) => $p->statut === 'CONFIRME' && in_array($p->moyen, ['WAVE', 'ORANGE_MONEY'], true));
+        $compte = ComptePoints::query()->where('etudiant_id', $q->etudiant_id)->first();
+
+        $res = [
+            'ref' => $q->reference,
+            'status' => $statusMap[$q->statut] ?? 'reserve',
+            'student' => [
+                'name' => $u->shortName(),
+                'initials' => $u->initials(),
+                'card' => $q->etudiant->numero_carte,
+                'phone' => $u->telephone,
+                'balance' => (int) ($compte?->solde ?? 0),
+            ],
+            'item' => [
+                'id' => $a->id,
+                'name' => $this->engine->articleDisplayName($a),
+                'category' => $a->appareil->categorie_code,
+                'photo' => $a->appareil->photos->first()?->url,
+                'origin' => WecceCodes::ORIGIN_FROM_SQL[$a->origine] ?? 'boutique',
+            ],
+            'price' => (int) $q->prix_total,
+            'points' => (int) $q->points_debites,
+            'complement' => (int) $q->complement_du,
+            'method' => WecceCodes::PAYMENT_METHOD_FROM_SQL[$q->moyen_paiement] ?? 'especes',
+            'paidMobile' => $paidMobile,
+            'createdAt' => WecceClock::capitalize(WecceClock::dayMonthShort($q->cree_le)) . ', ' . WecceClock::time($q->cree_le),
+            'pickupBefore' => WecceClock::weekdayDayMonth(WecceClock::addDays(WecceClock::dateOf($from), (int) ($config->delai_retrait_jours ?: 3))),
+        ];
+        if ($q->valide_le) {
+            $res['validatedAt'] = WecceClock::capitalize(WecceClock::dayMonthShort($q->valide_le)) . ', ' . WecceClock::time($q->valide_le);
+        }
+        if ($q->retire_le) {
+            $res['handedAt'] = WecceClock::capitalize(WecceClock::dayMonthShort($q->retire_le)) . ', ' . WecceClock::time($q->retire_le);
+        }
+        if ($q->garantie_jusquau) {
+            $res['warrantyUntil'] = WecceClock::dayMonthYear($q->garantie_jusquau);
+        }
+        if ($q->motif_refus) {
+            $res['refusal'] = $q->motif_refus;
+        }
+
+        return $res;
+    }
+
+    /**
+     * Onglet Stock de LBC : les achats à valider et les objets à remettre, les dépôts à mettre
+     * (ou non) en ligne, et le catalogue complet de la boutique.
+     */
+    public function stockTab(): array
+    {
+        $purchases = Acquisition::query()
+            ->with(['annonce.appareil.photos', 'etudiant.utilisateur', 'paiements'])
+            ->get();
+
+        $byStatus = fn (array $statuses) => $purchases
+            ->filter(fn (Acquisition $q) => in_array($q->statut, $statuses, true))
+            ->sortBy(fn (Acquisition $q) => WecceClock::toIso($q->cree_le))
+            ->values()
+            ->map(fn (Acquisition $q) => $this->toPartnerPurchase($q))
+            ->all();
+
+        $history = $purchases
+            ->filter(fn (Acquisition $q) => $q->statut === 'REMIS' || ($q->statut === 'ANNULE' && $q->motif_refus))
+            ->sortByDesc(fn (Acquisition $q) => WecceClock::toIso($q->retire_le ?: ($q->valide_le ?: $q->cree_le)))
+            ->take(12)
+            ->values()
+            ->map(fn (Acquisition $q) => $this->toPartnerPurchase($q))
+            ->all();
+
+        $stock = $this->stockPage();
+        $toPublish = array_values(array_filter(
+            $stock['articles'],
+            fn (array $a) => $a['origin'] === 'depot' && in_array($a['status'], ['a-photographier', 'en-boutique'], true)
+        ));
+
+        $all = Annonce::query()->get(['statut', 'origine', 'prix_courant']);
+        $inShop = $all->whereIn('statut', ['A_PHOTOGRAPHIER', 'EN_LIGNE', 'EN_BOUTIQUE', 'RESERVEE']);
+
+        return [
+            'toValidate' => $byStatus(['A_VALIDER']),
+            'awaitingPayment' => $byStatus(['EN_ATTENTE']),
+            'toHandOver' => $byStatus(['RESERVE']),
+            'history' => $history,
+            'toPublish' => $toPublish,
+            'catalog' => [
+                'articles' => $stock['articles'],
+                'counts' => $stock['counts'],
+            ],
+            'summary' => [
+                'inShopCount' => $inShop->count(),
+                'inShopValue' => (int) $inShop->sum('prix_courant'),
+                'onlineCount' => $all->where('statut', 'EN_LIGNE')->count(),
+                'onlineValue' => (int) $all->where('statut', 'EN_LIGNE')->sum('prix_courant'),
+                'offlineCount' => $all->whereIn('statut', ['EN_BOUTIQUE', 'A_PHOTOGRAPHIER'])->count(),
+                'reservedCount' => $all->where('statut', 'RESERVEE')->count(),
+                'shopOwnCount' => $inShop->where('origine', 'STOCK_PARTENAIRE')->count(),
             ],
         ];
     }

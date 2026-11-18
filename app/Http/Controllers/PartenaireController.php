@@ -18,6 +18,11 @@ class PartenaireController extends Controller
         private readonly WecceQueries $queries,
     ) {}
 
+    public function tableau(): Response
+    {
+        return Inertia::render('partenaire/Tableau', $this->queries->partnerDashboard());
+    }
+
     public function rendezVous(Request $request): Response
     {
         $suspension = $this->queries->depositsSuspension();
@@ -103,9 +108,14 @@ class PartenaireController extends Controller
         ]);
     }
 
-    public function stock(): RedirectResponse
+    public function stock(Request $request): Response
     {
-        return redirect('/partenaire/statistiques#catalogue');
+        $tab = (string) $request->query('onglet', '');
+
+        return Inertia::render('partenaire/Stock', array_merge(
+            $this->queries->stockTab(),
+            ['tab' => in_array($tab, ['achats', 'depots', 'catalogue'], true) ? $tab : null],
+        ));
     }
 
     public function nouvelArticle(): Response
@@ -134,7 +144,7 @@ class PartenaireController extends Controller
     {
         return Inertia::render('partenaire/Statistiques', $this->queries->statisticsPage(
             $request->query('periode', 'tout'),
-            includeCatalog: true,
+            includeCatalog: false,
             fromDate: $request->query('du'),
             toDate: $request->query('au'),
         ));
