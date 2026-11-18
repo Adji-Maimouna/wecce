@@ -5,6 +5,7 @@ import { PageHead } from "@/presentation/components/layout/PageHead";
 import { PageTitle } from "@/presentation/components/layout/PageTitle";
 import { AppointmentsTable } from "@/presentation/components/partner/AppointmentsTable";
 import { WalkInSearch } from "@/presentation/components/partner/WalkInSearch";
+import { Badge } from "@/presentation/components/ui/Badge";
 import { Icon } from "@/presentation/components/ui/Icon";
 import { Notice } from "@/presentation/components/ui/Notice";
 import { Panel } from "@/presentation/components/ui/Panel";
@@ -18,11 +19,12 @@ export type RendezVousProps = {
    * `short` : le texte du bouton (« Hier », « Demain », ou le jour, « Lundi »).
    */
   days: Record<Day, { label: string; short: string; appointments: Appointment[] }>;
+  missed?: Appointment[];
   depositsSuspended?: boolean;
 };
 
 /** Rendez-vous du jour au comptoir LBC : qui vient, avec quoi, et ce qu'il espère. */
-export default function RendezVous({ days, depositsSuspended }: RendezVousProps) {
+export default function RendezVous({ days, missed = [], depositsSuspended }: RendezVousProps) {
   const [day, setDay] = useState<Day>("aujourdhui");
   const list = days[day].appointments;
   const toReceive = list.filter((a) => a.status === "a-venir" || a.status === "arrive" || a.status === "a-signer").length;
@@ -63,6 +65,19 @@ export default function RendezVous({ days, depositsSuspended }: RendezVousProps)
         </Panel>
       ) : (
         <AppointmentsTable appointments={list} today={day === "aujourdhui"} />
+      )}
+
+      {missed.length > 0 && (
+        <section className="stack" style={{ gap: 12, marginTop: 28 }}>
+          <div className="row" style={{ gap: 10, justifyContent: "space-between", flexWrap: "wrap" }}>
+            <div className="row" style={{ gap: 10 }}>
+              <h2 style={{ margin: 0 }}>Rendez-vous non respectés</h2>
+              <Badge tone="warn">{missed.length}</Badge>
+            </div>
+            <span className="small muted">Un nouveau rendez-vous est proposé automatiquement à ces étudiants.</span>
+          </div>
+          <AppointmentsTable appointments={missed} today={false} showDate />
+        </section>
       )}
     </BackOfficeLayout>
   );

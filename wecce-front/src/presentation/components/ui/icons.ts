@@ -60,6 +60,7 @@ export const ICON_PATHS = {
   "log-in": '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5M15 12H3"/>',
   "user-plus": '<circle cx="9" cy="8" r="4.5"/><path d="M16 21a7 7 0 0 0-14 0M19 8v6M22 11h-6"/>',
   compass: '<circle cx="12" cy="12" r="9"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/>',
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

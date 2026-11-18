@@ -1,4 +1,5 @@
 import type { MarketItem, RecentTakeBack } from "@/domain/entities";
+import type { FaqItem } from "@/presentation/content/faq";
 import { Faq } from "@/presentation/components/home/Faq";
 import { Hero } from "@/presentation/components/home/Hero";
 import { HowItWorks } from "@/presentation/components/home/HowItWorks";
@@ -19,10 +20,11 @@ export type AccueilProps = {
   previewItems: MarketItem[];
   previewBalance: number;
   marketTotal: number;
+  faq?: FaqItem[];
 };
 
 /** Accueil public « Videz votre tiroir ». */
-export default function Accueil({ recentTakeBacks, takenBackCount, previewItems, previewBalance, marketTotal }: AccueilProps) {
+export default function Accueil({ recentTakeBacks, takenBackCount, previewItems, previewBalance, marketTotal, faq }: AccueilProps) {
   const role = useSessionRole();
   return (
     <>
@@ -35,7 +37,7 @@ export default function Accueil({ recentTakeBacks, takenBackCount, previewItems,
         <TwoPrices />
         <MonthlyDrop />
         <ShopSection />
-        <Faq />
+        <Faq items={faq} />
       </main>
       <SiteFooter space="public" />
       <TabBar

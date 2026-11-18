@@ -5,8 +5,15 @@ import type { Administrator, Agent, Role, Student } from "@/domain/entities";
  * Le compte connecté (un seul à la fois), et quelques compteurs partagés par toutes les pages.
  * Fourni par la couche app. Avec Inertia : les props partagées `auth.user` (HandleInertiaRequests::share).
  */
+export type MissedDepositReminder = {
+  ref: string;
+  deviceName: string;
+  scheduledAt: string;
+};
+
 export type Session = {
   student?: Student;
+  missedDeposits?: MissedDepositReminder[];
   agent?: Agent;
   admin?: Administrator;
   /** Rendez-vous du jour encore à recevoir (pastille de la navigation LBC). */

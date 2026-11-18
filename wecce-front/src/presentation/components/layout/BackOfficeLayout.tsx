@@ -17,11 +17,11 @@ const SPACES: Record<Space, { home: string; label: string; ctxTitle: string; ctx
     home: paths.rendezVous,
     label: "Wecce, espace partenaire",
     ctxTitle: "LBC · Leye Business Company",
-    ctxSub: "Campus UGB, entre les villages E et F",
+    ctxSub: "Campus UGB · Villages E et F",
     nav: [
       { key: "rendez-vous", href: paths.rendezVous, label: "Rendez-vous du jour", icon: "calendar" },
       { key: "expertise", href: paths.expertise, label: "Expertise", icon: "clipboard" },
-      { key: "stock", href: paths.stock, label: "Stock en boutique", icon: "package" },
+      { key: "statistiques", href: paths.statistiquesPartenaire, label: "Statistiques", icon: "chart" },
       { key: "couverture", href: paths.couverture, label: "Dette et couverture", icon: "scale" },
       { key: "profil", href: paths.profilPartenaire, label: "Mon profil", icon: "user" },
     ],
@@ -35,6 +35,7 @@ const SPACES: Record<Space, { home: string; label: string; ctxTitle: string; ctx
       { key: "pilotage", href: paths.pilotage, label: "Pilotage", icon: "sliders" },
       { key: "ajustement", href: paths.ajustement, label: "Ajustement de points", icon: "points" },
       { key: "journal", href: paths.journal, label: "Journal", icon: "history" },
+      { key: "statistiques", href: paths.statistiquesAdmin, label: "Statistiques", icon: "chart" },
       { key: "profil", href: paths.profilAdmin, label: "Mon profil", icon: "user" },
     ],
   },
@@ -79,7 +80,9 @@ export function BackOfficeLayout({ space, current, children }: BackOfficeLayoutP
           </button>
         </div>
       </aside>
-      <main className="main">{children}</main>
+      <main className="main">
+        <div className="main__in">{children}</div>
+      </main>
     </div>
   );
 }

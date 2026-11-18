@@ -1,6 +1,13 @@
 # Dépendances et builds
 node_modules/
+vendor/
 dist/
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/bootstrap/cache/*.php
+/database/*.sqlite
 *.tsbuildinfo
 
 # Outils de conception utilisés en local
@@ -14,6 +21,8 @@ explicitation-besoins-troc-ugb.pdf
 # Environnement et système
 .env
 .env.*
+!.env.example
+.phpunit.result.cache
 *.log
 desktop.ini
 Thumbs.db

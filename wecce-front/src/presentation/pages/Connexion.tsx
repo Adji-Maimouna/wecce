@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/presentation/hooks/useSearchParams";
 import { RuleViolation } from "@/application";
 import { LoginForm } from "@/presentation/components/auth/LoginForm";
 import { ResetForm } from "@/presentation/components/auth/ResetForm";
@@ -9,7 +9,6 @@ import { GateLayout } from "@/presentation/components/gate/GateLayout";
 import type { PilePhoto } from "@/presentation/components/gate/PhotoPile";
 import { Brand } from "@/presentation/components/layout/Brand";
 import { PageTitle } from "@/presentation/components/layout/PageTitle";
-import { AppLink } from "@/presentation/components/ui/AppLink";
 import { Button, ButtonLink } from "@/presentation/components/ui/Button";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { useGo } from "@/presentation/lib/navigation";
@@ -33,11 +32,14 @@ const viewFromHash = (): ConnexionView => (window.location.hash === "#inscriptio
 export default function Connexion() {
   const [view, setView] = useState<ConnexionView>(viewFromHash);
   const [signupError, setSignupError] = useState<string | null>(null);
+  const [signupFieldErrors, setSignupFieldErrors] = useState<Partial<Record<string, string>>>({});
   const [params] = useSearchParams();
   const { login, requestPasswordReset, registerStudent } = useUseCases();
   const go = useGo();
   const back = params.get("retour");
   const show = (v: ConnexionView) => {
+    setSignupError(null);
+    setSignupFieldErrors({});
     setView(v);
     window.scrollTo({ top: 0 });
   };
@@ -46,10 +48,7 @@ export default function Connexion() {
     <GateLayout variant="auth" photos={PHOTOS}>
       <PageTitle>{view === "inscription" || view === "cree" ? "Créer un compte" : "Connexion"}</PageTitle>
       <div className="auth__head">
-        <Brand href={paths.entree} label="Wecce, page d'entrée" />
-        <AppLink className="link small" href={paths.accueil}>
-          Continuer sans compte
-        </AppLink>
+        <Brand href={paths.accueil} label="Wecce, accueil" />
       </div>
 
       {(view === "connexion" || view === "erreur") && (
@@ -93,13 +92,29 @@ export default function Connexion() {
       {view === "inscription" && (
         <SignupForm
           serverError={signupError}
+          serverFieldErrors={signupFieldErrors}
+          onClearServerError={(field) =>
+            setSignupFieldErrors((prev) => {
+              if (!prev[field]) return prev;
+              const next = { ...prev };
+              delete next[field];
+              return next;
+            })
+          }
           onCreated={async (data) => {
             setSignupError(null);
+            setSignupFieldErrors({});
             try {
               await registerStudent(data);
-              show("cree");
+              const destination = back && back.startsWith(SPACE_BY_ROLE.ETUDIANT) ? back : HOME_BY_ROLE.ETUDIANT;
+              go(destination);
             } catch (e) {
-              setSignupError(e instanceof RuleViolation ? e.message : "Le compte n'a pas pu être créé. Réessayez.");
+              if (e instanceof RuleViolation) {
+                setSignupError(e.message);
+                setSignupFieldErrors(e.fields ?? {});
+              } else {
+                setSignupError("Le compte n'a pas pu être créé. Réessayez.");
+              }
               window.scrollTo({ top: 0 });
             }
           }}
@@ -114,8 +129,8 @@ export default function Connexion() {
           celebrate
           actions={
             <>
-              <ButtonLink href={paths.deposer} size="lg">
-                Déposer un objet
+              <ButtonLink href={back && back.startsWith("/etudiant/") ? back : paths.deposer} size="lg">
+                {back && back.startsWith("/etudiant/") ? "Continuer" : "Déposer un objet"}
               </ButtonLink>
               <ButtonLink href={paths.marche} variant="ghost" size="lg">
                 Voir le marché

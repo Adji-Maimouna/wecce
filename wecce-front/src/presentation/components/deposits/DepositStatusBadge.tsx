@@ -3,9 +3,17 @@ import { Icon } from "@/presentation/components/ui/Icon";
 import type { DepositStatus } from "@/domain/entities";
 
 /** Statut d'un dépôt, avec sa couleur d'état. */
-export function DepositStatusBadge({ status }: { status: DepositStatus }) {
+export function DepositStatusBadge({ status, missed }: { status: DepositStatus; missed?: boolean }) {
   switch (status) {
     case "rendez-vous":
+      if (missed) {
+        return (
+          <Badge tone="warn">
+            <Icon name="alert" size="sm" />
+            Rendez-vous manqué
+          </Badge>
+        );
+      }
       return (
         <Badge tone="info">
           <Icon name="calendar" size="sm" />

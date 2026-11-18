@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { RuleViolation } from "@/application";
 import type { Category, Condition, StockArticle } from "@/domain/entities";
+import { afterFonte } from "@/domain/rules/points";
 import { PhotoSlots } from "@/presentation/components/deposit/PhotoSlots";
 import { useToast } from "@/presentation/components/feedback/toastContext";
 import { BackOfficeLayout } from "@/presentation/components/layout/BackOfficeLayout";
@@ -50,11 +51,13 @@ export default function Article({ article }: ArticleProps) {
   const go = useGo();
   const states = category === "piece" ? PART_STATES : DEVICE_STATES;
   const title = editing ? article.name : "Ajouter un article de la boutique";
+  const priceNum = parseAmount(price);
+  const catalogueHref = `${paths.statistiquesPartenaire}#catalogue`;
 
   return (
-    <BackOfficeLayout space="partenaire" current="stock">
+    <BackOfficeLayout space="partenaire" current="statistiques">
       <PageTitle>{editing ? "Article du stock" : "Ajouter un article"}</PageTitle>
-      <Crumbs items={[{ label: "Stock en boutique", href: paths.stock }, { label: editing ? article.name : "Nouvel article" }]} />
+      <Crumbs items={[{ label: "Statistiques", href: catalogueHref }, { label: editing ? article.name : "Nouvel article" }]} />
       <PageHead
         title={title}
         lead={
@@ -72,6 +75,11 @@ export default function Article({ article }: ArticleProps) {
             onSubmit={async (e) => {
               e.preventDefault();
               setError(null);
+              const batteryNum = battery ? Number(battery) : undefined;
+              if (batteryNum !== undefined && (batteryNum < 0 || batteryNum > 100)) {
+                setError("La batterie doit être comprise entre 0 et 100 %.");
+                return;
+              }
               setBusy(true);
               try {
                 const { id } = await saveArticle({
@@ -79,14 +87,14 @@ export default function Article({ article }: ArticleProps) {
                   name,
                   category,
                   condition,
-                  battery: battery ? Number(battery) : undefined,
+                  battery: batteryNum,
                   info,
                   price: parseAmount(price),
                   photo,
                 });
                 if (toPublish) await publishArticle(id);
                 toast(toPublish ? `${name.split(" · ")[0]} mis en ligne à ${price} pts.` : editing ? "Article enregistré." : `Article ajouté et mis en ligne à ${price} pts.`);
-                go(paths.stock);
+                go(catalogueHref);
               } catch (err) {
                 setBusy(false);
                 setError(err instanceof RuleViolation ? err.message : "L'enregistrement n'a pas abouti. Réessayez.");
@@ -95,6 +103,11 @@ export default function Article({ article }: ArticleProps) {
           >
             <PanelHead title="L'article" />
             <PanelBody className="form-grid">
+              {error && (
+                <div className="full">
+                  <Notice tone="danger" role="alert" title={error} />
+                </div>
+              )}
               <fieldset className="full" style={{ border: 0, margin: 0, padding: 0 }} disabled={readOnly}>
                 <legend className="label" style={{ marginBottom: 10 }}>
                   Catégorie
@@ -118,13 +131,13 @@ export default function Article({ article }: ArticleProps) {
               <Field id="art-nom" label="Nom affiché sur le marché" full error={error?.includes("nom") ? error : null}>
                 <input className="input" id="art-nom" value={name} disabled={readOnly} placeholder="Marque, modèle et capacité" onChange={(e) => setName(e.target.value)} />
               </Field>
-              <fieldset className="full" style={{ border: 0, margin: 0, padding: 0 }}>
+              <fieldset className="full" style={{ border: 0, margin: 0, padding: 0 }} disabled={readOnly}>
                 <legend className="label" style={{ marginBottom: 10 }}>
                   État constaté
                 </legend>
                 <Segmented<Condition> label="État constaté" value={condition} onChange={setCondition} options={states.map((s) => ({ value: s, label: CONDITION_LABELS[s] }))} />
               </fieldset>
-              <Field id="art-batt" label="Batterie" optional>
+              <Field id="art-batt" label="Batterie" optional error={error?.includes("batterie") ? error : null}>
                 <div className="affix">
                   <input className="input" id="art-batt" inputMode="numeric" value={battery} disabled={readOnly} onChange={(e) => setBattery(e.target.value.replace(/\D/g, "").slice(0, 3))} />
                   <span className="affix__unit">%</span>
@@ -133,6 +146,10 @@ export default function Article({ article }: ArticleProps) {
               <div className="field">
                 <label htmlFor="art-prix">Prix d'affichage</label>
                 <AmountInput id="art-prix" value={price} onChange={setPrice} disabled={readOnly} invalid={!!error?.includes("prix")} />
+                <span className="hint">
+                  Baisse automatique de 5&nbsp;% le 1<sup>er</sup> de chaque mois
+                  {priceNum > 0 ? ` (${pts(afterFonte(priceNum, 1))} le mois prochain)` : ""}.
+                </span>
                 {error?.includes("prix") && <FieldError>{error}</FieldError>}
               </div>
               <Field id="art-info" label="Précisions" optional full hint="Visible sur la fiche : accessoires, défauts, détails.">
@@ -140,7 +157,14 @@ export default function Article({ article }: ArticleProps) {
               </Field>
               <div className="full field">
                 <span className="label">Photo prise au comptoir</span>
-                <PhotoSlots photos={[photo]} count={1} onAdd={(_, url) => setPhoto(url)} />
+                <PhotoSlots photos={[photo]} count={1} disabled={readOnly} onAdd={(_, url) => setPhoto(url)} />
+                {photo && !readOnly && (
+                  <div style={{ marginTop: 8 }}>
+                    <Button variant="ghost" size="sm" onClick={() => setPhoto(null)}>
+                      Retirer la photo
+                    </Button>
+                  </div>
+                )}
               </div>
             </PanelBody>
             {!readOnly && (
@@ -148,7 +172,7 @@ export default function Article({ article }: ArticleProps) {
                 <Button type="submit" disabled={busy}>
                   {toPublish ? "Enregistrer et mettre en ligne" : editing ? "Enregistrer l'article" : "Mettre en ligne"}
                 </Button>
-                <ButtonLink href={paths.stock} variant="ghost">
+                <ButtonLink href={catalogueHref} variant="ghost">
                   Annuler
                 </ButtonLink>
                 {editing && (
@@ -171,9 +195,14 @@ export default function Article({ article }: ArticleProps) {
                 cancelLabel="Garder en ligne"
                 onCancel={() => setWithdrawing(false)}
                 onConfirm={async () => {
-                  await withdrawArticle(article.id, "Retiré depuis la fiche de l'article.");
-                  toast(`${article.name.split(" · ")[0]} retiré du marché.`);
-                  go(paths.stock);
+                  try {
+                    await withdrawArticle(article.id, "Retiré depuis la fiche de l'article.");
+                    toast(`${article.name.split(" · ")[0]} retiré du marché.`);
+                    go(catalogueHref);
+                  } catch (err) {
+                    setWithdrawing(false);
+                    setError(err instanceof RuleViolation ? err.message : "Le retrait n'a pas abouti. Réessayez.");
+                  }
                 }}
               />
             </div>
@@ -181,24 +210,36 @@ export default function Article({ article }: ArticleProps) {
         </Panel>
 
         <aside className="stack sticky" style={{ gap: 16 }}>
-          {editing ? (
+          {editing || priceNum > 0 ? (
             <Panel>
               <PanelBody className="stack" style={{ gap: 12 }}>
-                <span className="label">Prix</span>
+                <span className="label">Évolution avec la baisse mensuelle (−5 %)</span>
                 <dl className="dl small">
-                  <dt>Prix initial</dt>
-                  <dd>{pts(article.initialPrice)}</dd>
-                  <dt>Prix du jour</dt>
-                  <dd className="pts">{pts(article.todayPrice)}</dd>
+                  {editing && (
+                    <>
+                      <dt>Prix initial</dt>
+                      <dd>{pts(article.initialPrice)}</dd>
+                    </>
+                  )}
+                  <dt>{editing ? "Prix proposé / du jour" : "Prix de départ"}</dt>
+                  <dd className="pts">{pts(priceNum > 0 ? priceNum : article?.todayPrice ?? 0)}</dd>
+                  {(priceNum > 0 || article) && (
+                    <>
+                      <dt>Mois prochain (−5 %)</dt>
+                      <dd>{pts(afterFonte(priceNum > 0 ? priceNum : article!.todayPrice, 1))}</dd>
+                      <dt>Dans 2 mois (−5 %)</dt>
+                      <dd>{pts(afterFonte(priceNum > 0 ? priceNum : article!.todayPrice, 2))}</dd>
+                    </>
+                  )}
                 </dl>
                 <p className="xs muted">
-                  Le prix baisse de 5&nbsp;% le 1<sup>er</sup> de chaque mois, comme les points des étudiants.
+                  Tous les prix et soldes baissent automatiquement de 5&nbsp;% le 1<sup>er</sup> de chaque mois.
                 </p>
               </PanelBody>
             </Panel>
           ) : (
             <Notice title="Avant de mettre en ligne">
-              Une photo nette de l'appareil allumé, l'état constaté au comptoir et un prix en points. L'article apparaît aussitôt sur le marché.
+              Une photo nette de l'appareil allumé, l'état constaté au comptoir et un prix en points. Tous les prix baissent de 5&nbsp;% chaque 1<sup>er</sup> du mois.
             </Notice>
           )}
           {readOnly && (

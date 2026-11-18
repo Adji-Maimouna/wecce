@@ -9,6 +9,10 @@
 .hero h1 { font-size: clamp(2.6rem, 5.2vw, 4.75rem); line-height: 1; letter-spacing: -0.045em; font-weight: 800; max-width: 13ch; }
 .hero__lead { font-size: 1.25rem; line-height: 1.5; max-width: 46ch; color: var(--ink-warm); margin-top: 22px; }
 .hero__actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+.hero__actions .btn--ghost { background: var(--surface); border-color: var(--surface); color: var(--ink); }
+@media (hover: hover) and (pointer: fine) {
+  .hero__actions .btn--ghost:hover { background: var(--surface-2); border-color: var(--surface-2); color: var(--ink); }
+}
 .hero__facts { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 36px; padding-top: 22px; border-top: 1px solid rgb(0 0 0 / 0.12); font-size: var(--t-sm); font-weight: 700; color: var(--ink-warm); }
 .hero__facts span { display: inline-flex; align-items: center; gap: 8px; }
 @media (max-width: 720px) {

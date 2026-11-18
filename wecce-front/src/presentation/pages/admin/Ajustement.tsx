@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/presentation/hooks/useSearchParams";
 import type { AccountSummary, AdjustmentDirection } from "@/domain/entities";
 import { ADJUSTMENT_REASON_MIN, balanceAfterAdjustment, checkAdjustment } from "@/domain/rules/adjustment";
 import { AccountPicker } from "@/presentation/components/admin/AccountPicker";

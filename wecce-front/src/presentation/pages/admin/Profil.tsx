@@ -16,7 +16,7 @@ export default function ProfilAdmin() {
     <BackOfficeLayout space="admin" current="profil">
       <PageTitle>Mon profil</PageTitle>
       <PageHead title="Mon profil" lead={`${displayName(a)} · administrateur`} />
-      <div className="cols">
+      <div className="profile-grid">
         <div className="stack" style={{ gap: 20 }}>
           <IdentityPanel
             rows={[
@@ -26,15 +26,15 @@ export default function ProfilAdmin() {
             ]}
             correction="La portée d'un compte administrateur se change en base, par un autre administrateur."
           />
-          <ContactForm email={a.email} telephone={a.telephone} />
-          <PasswordForm />
-        </div>
-        <aside className="stack sticky" style={{ gap: 16 }}>
           <Notice icon="lock" title="Vos actions sont signées à votre nom.">
             Chaque changement fait depuis ce compte est inscrit au journal, avec votre adresse IP.
           </Notice>
           <SignOutPanel />
-        </aside>
+        </div>
+        <div className="stack" style={{ gap: 20 }}>
+          <ContactForm email={a.email} telephone={a.telephone} />
+          <PasswordForm />
+        </div>
       </div>
     </BackOfficeLayout>
   );

@@ -18,6 +18,7 @@ type SiteFooterProps = {
  */
 export function SiteFooter({ space }: SiteFooterProps) {
   const student = space === "etudiant";
+  const role = useSessionRole();
   const help = student
     ? [
         { href: paths.faq, label: "Questions fréquentes" },
@@ -60,7 +61,7 @@ export function SiteFooter({ space }: SiteFooterProps) {
             Voir le campus sur la carte
           </a>
         </div>
-        {student ? <StudentAccount /> : <GuestAccount />}
+        {student && role === "ETUDIANT" ? <StudentAccount /> : <GuestAccount />}
       </div>
       <div className="wrap">
         <div className="site-foot__legal">

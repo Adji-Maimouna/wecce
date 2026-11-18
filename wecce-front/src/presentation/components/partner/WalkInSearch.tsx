@@ -11,7 +11,7 @@ export function WalkInSearch() {
     <form
       className="search"
       role="search"
-      style={{ maxWidth: 360, background: "var(--surface)" }}
+      style={{ width: "100%", maxWidth: 380, minWidth: 0, background: "var(--surface)" }}
       onSubmit={(e) => {
         e.preventDefault();
         const r = ref.trim().toUpperCase();
@@ -19,7 +19,7 @@ export function WalkInSearch() {
       }}
     >
       <Icon name="search" />
-      <input type="search" placeholder="Référence du dépôt, par exemple WC-2026-0634" aria-label="Référence du dépôt" value={ref} onChange={(e) => setRef(e.target.value)} />
+      <input type="search" placeholder="Référence (ex. WC-2026-0643)" aria-label="Référence du dépôt" value={ref} onChange={(e) => setRef(e.target.value)} />
     </form>
   );
 }

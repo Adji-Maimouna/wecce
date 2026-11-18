@@ -54,7 +54,7 @@ export default function Depot({ deposit: d }: { deposit: ProcessedDeposit }) {
                 <span className="sep" />
                 <dt className="total">Crédité à l'étudiant</dt>
                 <dd className="total pts">{pts(o.takeBack + o.bonus)}</dd>
-                <dt>Prix d'affichage</dt>
+                <dt>Prix d&apos;affichage (−5 % / mois)</dt>
                 <dd>{pts(o.listPrice)}</dd>
               </dl>
             ) : (

@@ -17,7 +17,7 @@ export default function ProfilPartenaire() {
     <BackOfficeLayout space="partenaire" current="profil">
       <PageTitle>Mon profil</PageTitle>
       <PageHead title="Mon profil" lead={`${displayName(a)} · ${a.fonction} · ${a.poste}`} />
-      <div className="cols">
+      <div className="profile-grid">
         <div className="stack" style={{ gap: 20 }}>
           <IdentityPanel
             rows={[
@@ -39,12 +39,12 @@ export default function ProfilPartenaire() {
             ]}
             correction="Votre fonction et vos droits sont gérés par l'administration de Wecce."
           />
+          <SignOutPanel device={`le ${a.poste.toLowerCase()}`} />
+        </div>
+        <div className="stack" style={{ gap: 20 }}>
           <ContactForm email={a.email} telephone={a.telephone} />
           <PasswordForm />
         </div>
-        <aside className="stack sticky" style={{ gap: 16 }}>
-          <SignOutPanel device={`le ${a.poste.toLowerCase()}`} />
-        </aside>
       </div>
     </BackOfficeLayout>
   );

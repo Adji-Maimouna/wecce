@@ -13,10 +13,11 @@ type PhotoSlotsProps = {
   onAdd: (index: number, dataUrl: string) => void;
   /** Nombre d'emplacements (4 par défaut). */
   count?: number;
+  disabled?: boolean;
 };
 
 /** Emplacements de photo ; l'aperçu remplace l'emplacement une fois la photo choisie. */
-export function PhotoSlots({ photos, onAdd, count = SLOTS.length }: PhotoSlotsProps) {
+export function PhotoSlots({ photos, onAdd, count = SLOTS.length, disabled = false }: PhotoSlotsProps) {
   return (
     <div className="photos-drop">
       {SLOTS.slice(0, count).map((s, i) => {
@@ -30,6 +31,7 @@ export function PhotoSlots({ photos, onAdd, count = SLOTS.length }: PhotoSlotsPr
               type="file"
               accept="image/*"
               hidden
+              disabled={disabled}
               onChange={(e) => {
                 const f = e.target.files?.[0];
                 if (!f) return;

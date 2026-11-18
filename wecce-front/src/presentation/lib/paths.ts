@@ -2,10 +2,10 @@ import type { Role } from "@/domain/entities";
 
 /** Adresses des écrans (avec Laravel : les noms de routes, via Ziggy `route()` par exemple). */
 export const paths = {
-  entree: "/",
+  entree: "/entree",
   connexion: "/connexion",
   inscription: "/connexion#inscription",
-  accueil: "/accueil",
+  accueil: "/",
   credits: "/credits",
   marche: "/etudiant/marche",
   item: (slug: string) => `/etudiant/objets/${slug}`,
@@ -29,10 +29,12 @@ export const paths = {
   /** Renoncement à signer sur la tablette du comptoir. */
   waiverCounter: (ref: string) => `/partenaire/depots/${ref}/renoncement`,
   couverture: "/partenaire/couverture",
+  statistiquesPartenaire: "/partenaire/statistiques",
   profilPartenaire: "/partenaire/profil",
   pilotage: "/admin/pilotage",
   ajustement: "/admin/ajustement",
   journal: "/admin/journal",
+  statistiquesAdmin: "/admin/statistiques",
   profilAdmin: "/admin/profil",
 } as const;
 

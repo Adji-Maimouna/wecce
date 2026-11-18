@@ -6,6 +6,14 @@ import { APPOINTMENT_STATUS_LABELS } from "@/presentation/lib/labels";
 
 /** Statut d'un rendez-vous au comptoir. */
 export function AppointmentStatusBadge({ a }: { a: Appointment }) {
+  if (a.missed) {
+    return (
+      <Badge tone="warn">
+        <Icon name="alert" size="sm" />
+        Non respecté
+      </Badge>
+    );
+  }
   switch (a.status) {
     case "repris":
       return (

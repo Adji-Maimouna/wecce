@@ -10,17 +10,19 @@ type AppointmentsTableProps = {
   appointments: Appointment[];
   /** Journée en cours : on peut commencer une expertise. */
   today?: boolean;
+  /** Affiche la date et l'heure prévues (pour les rendez-vous non respectés). */
+  showDate?: boolean;
 };
 
 /** Les rendez-vous d'une journée au comptoir ; l'action du moment au bout de chaque ligne. */
-export function AppointmentsTable({ appointments, today = true }: AppointmentsTableProps) {
+export function AppointmentsTable({ appointments, today = true, showDate = false }: AppointmentsTableProps) {
   return (
     <Panel>
       <div className="table-wrap">
         <table className="table">
           <thead>
             <tr>
-              <th>Heure</th>
+              <th>{showDate ? "Créneau prévu" : "Heure"}</th>
               <th>Étudiant</th>
               <th>Appareil déclaré</th>
               <th className="r">Prix souhaité</th>
@@ -34,16 +36,14 @@ export function AppointmentsTable({ appointments, today = true }: AppointmentsTa
               const cancelled = a.status === "annule";
               return (
                 <tr key={a.depositRef} style={open ? { background: "var(--accent-tint-2)" } : undefined}>
-                  <td className={cancelled ? "num muted" : "num"}>{open ? <strong>{a.time}</strong> : a.time}</td>
+                  <td className={cancelled ? "num muted" : "num"}>
+                    {open ? <strong>{showDate && a.dateLabel ? a.dateLabel : a.time}</strong> : showDate && a.dateLabel ? a.dateLabel : a.time}
+                  </td>
                   <td>
-                    <div className="who">
-                      <span className="avatar">{a.student.initials}</span>
-                      <div>
-                        <div className="who__name">{a.student.name}</div>
-                        <div className="who__sub">
-                          {a.student.card} · {a.depositRef}
-                        </div>
-                      </div>
+                    <div className="who__name">{a.student.name}</div>
+                    <div className="who__sub">
+                      {a.student.card} · {a.depositRef}
+                      {a.student.phone ? ` · ${a.student.phone}` : ""}
                     </div>
                   </td>
                   <td>
@@ -55,9 +55,9 @@ export function AppointmentsTable({ appointments, today = true }: AppointmentsTa
                     <AppointmentStatusBadge a={a} />
                   </td>
                   <td className="r">
-                    {today && (a.status === "a-venir" || a.status === "arrive") && (
+                    {(today || a.missed) && (a.status === "a-venir" || a.status === "arrive") && (
                       <ButtonLink href={paths.expertiseOf(a.depositRef)} size="sm" variant={a.status === "arrive" ? undefined : "ghost"}>
-                        Commencer l'expertise
+                        {a.missed ? "Examiner si présent" : "Commencer l'expertise"}
                       </ButtonLink>
                     )}
                     {a.status === "a-signer" && (

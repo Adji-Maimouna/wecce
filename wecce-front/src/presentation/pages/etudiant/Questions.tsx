@@ -7,11 +7,12 @@ import { Icon } from "@/presentation/components/ui/Icon";
 import { Ordinals } from "@/presentation/components/ui/Ordinals";
 import { Panel, PanelBody } from "@/presentation/components/ui/Panel";
 import { Tbd } from "@/presentation/components/ui/Tbd";
-import { helpSections, type FaqItem } from "@/presentation/content/faq";
+import { helpSections, type FaqItem, type FaqSection } from "@/presentation/content/faq";
 import { paths } from "@/presentation/lib/paths";
 
 /** Questions fréquentes de l'espace étudiant, rangées par sujet. Ancres : #deux-prix, #baisse, #deposer, #retrait. */
-export default function Questions() {
+export default function Questions({ sections }: { sections?: FaqSection[] }) {
+  const currentSections = sections && sections.length > 0 ? sections : helpSections;
   return (
     <StudentLayout section="aide">
       <PageTitle>Questions fréquentes</PageTitle>
@@ -19,7 +20,7 @@ export default function Questions() {
         <PageHead title="Questions fréquentes" lead="Les règles de Wecce, en quelques réponses." />
 
         <nav className="help-toc" aria-label="Sujets">
-          {helpSections.map((s) => (
+          {currentSections.map((s) => (
             <AppLink key={s.id} className="chip" href={`#${s.id}`}>
               {s.title}
             </AppLink>
@@ -27,7 +28,7 @@ export default function Questions() {
         </nav>
 
         <div className="stack" style={{ gap: 36 }}>
-          {helpSections.map((s) => (
+          {currentSections.map((s) => (
             <section key={s.id} id={s.id} className="help-section" aria-labelledby={`t-${s.id}`}>
               <h2 id={`t-${s.id}`}>{s.title}</h2>
               <div className="faq">

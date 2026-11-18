@@ -1,7 +1,7 @@
 /* Panel
    Porté de maquette/assets/wecce.css, à l'identique. */
 
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); min-width: 0; }
 .panel__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; padding: 26px 28px 0; }
 .panel__body { padding: 22px 28px 28px; }
 .panel__foot { padding: 18px 28px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }

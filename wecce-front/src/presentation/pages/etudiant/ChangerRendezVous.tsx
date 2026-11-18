@@ -44,8 +44,14 @@ export default function ChangerRendezVous({ deposit: d, days, times, initial, cu
           <PanelHead title="Nouveau créneau chez LBC" aside="LBC · campus de l'UGB, entre les villages E et F" />
           <PanelBody className="stack" style={{ gap: 20 }}>
             {d.appointment && (
-              <Notice icon="calendar" title={`Rendez-vous actuel : ${d.appointment.label}.`}>
-                Il est libéré dès que vous confirmez le nouveau créneau.
+              <Notice
+                tone={d.appointment.missed ? "warn" : undefined}
+                icon={d.appointment.missed ? "alert" : "calendar"}
+                title={d.appointment.missed ? `Rendez-vous manqué : ${d.appointment.label}.` : `Rendez-vous actuel : ${d.appointment.label}.`}
+              >
+                {d.appointment.missed
+                  ? "Votre créneau précédent est dépassé. Sélectionnez un nouveau jour et une nouvelle heure ci-dessous."
+                  : "Il est libéré dès que vous confirmez le nouveau créneau."}
               </Notice>
             )}
             <AppointmentPicker days={days} times={times} day={choice.day} slot={choice.slot} onChange={(day, slot) => setChoice({ day, slot })} />

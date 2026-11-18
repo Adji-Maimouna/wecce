@@ -17,15 +17,12 @@ export function AccountPicker({ query, onQuery, account }: AccountPickerProps) {
         <input type="search" value={query} aria-label="Numéro de carte ou nom de l'étudiant" placeholder="Numéro de carte ou nom de l'étudiant" onChange={(e) => onQuery(e.target.value)} />
       </label>
       {account ? (
-        <div className="who" style={{ padding: 12, border: "1px solid var(--line)", borderRadius: "var(--r)", background: "var(--surface-2)" }}>
-          <span className="avatar">{account.initials}</span>
-          <div>
-            <div className="who__name">
-              {account.name} · {account.card}
-            </div>
-            <div className="who__sub">
-              {account.study} · compte {account.active ? "actif" : "fermé"} · solde {pts(account.balance)}
-            </div>
+        <div style={{ padding: 12, border: "1px solid var(--line)", borderRadius: "var(--r)", background: "var(--surface-2)" }}>
+          <div className="who__name">
+            {account.name} · {account.card}
+          </div>
+          <div className="who__sub">
+            {account.study} · compte {account.active ? "actif" : "fermé"} · solde {pts(account.balance)}
           </div>
         </div>
       ) : (

@@ -1,13 +1,13 @@
 import { Reveal } from "@/presentation/components/ui/Reveal";
-import { faq } from "@/presentation/content/faq";
+import { faq, type FaqItem } from "@/presentation/content/faq";
 import { HomeSection } from "./HomeSection";
 
 /** Questions fréquentes, en deux colonnes. « 1er » s'écrit avec l'exposant. */
-export function Faq() {
+export function Faq({ items = faq }: { items?: FaqItem[] }) {
   return (
     <HomeSection id="questions" tone="tint" title="Questions fréquentes">
       <div className="faq">
-        {faq.map((f) => (
+        {(items && items.length > 0 ? items : faq).map((f) => (
           <Reveal key={f.q} className="faq__item">
             <h3>{f.q}</h3>
             <p>{withOrdinal(f.a)}</p>

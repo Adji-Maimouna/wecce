@@ -23,32 +23,70 @@ type SignupData = {
 type SignupFormProps = {
   onCreated: (data: StudentRegistration) => void | Promise<void>;
   onLogin: () => void;
-  /** Refus du serveur (e-mail ou carte déjà utilisés). */
+  /** Refus du serveur (e-mail, téléphone ou carte déjà utilisés). */
   serverError?: string | null;
+  serverFieldErrors?: Partial<Record<string, string>>;
+  onClearServerError?: (field: string) => void;
+};
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const SERVER_TO_FIELD: Record<string, string> = {
+  prenom: "prenom",
+  nom: "nom",
+  carte: "numeroCarte",
+  tel: "telephone",
+  email: "email",
+  "mdp-new": "motDePasse",
 };
 
 /** Création de compte, réservée aux étudiants de l'UGB (table etudiant : numero_carte, niveau, ufr). */
-export function SignupForm({ onCreated, onLogin, serverError }: SignupFormProps) {
+export function SignupForm({ onCreated, onLogin, serverError, serverFieldErrors, onClearServerError }: SignupFormProps) {
   const [d, setD] = useState<SignupData>({ prenom: "", nom: "", carte: "", tel: "", email: "", niveau: "", ufr: "", motDePasse: "" });
   const [fonte, setFonte] = useState(false);
   const [busy, setBusy] = useState(false);
-  const set = (k: keyof SignupData) => (e: { target: { value: string } }) => setD((v) => ({ ...v, [k]: e.target.value }));
+  const set = (k: keyof SignupData, serverKey?: string) => (e: { target: { value: string } }) => {
+    setD((v) => ({ ...v, [k]: e.target.value }));
+    if (serverKey) onClearServerError?.(serverKey);
+  };
 
+  const telDigits = d.tel.replace(/\D/g, "");
   const { errors, check } = useRequired({
     prenom: { ok: d.prenom.trim() !== "", message: "Indiquez votre prénom." },
     nom: { ok: d.nom.trim() !== "", message: "Indiquez votre nom." },
-    carte: { ok: d.carte.trim() !== "", message: "Indiquez le numéro de votre carte." },
-    tel: { ok: d.tel.trim() !== "", message: "Indiquez votre numéro." },
-    email: { ok: d.email.trim() !== "", message: "Indiquez votre e-mail." },
+    carte: {
+      ok: d.carte.trim() !== "" && d.carte.trim().length <= 16,
+      message: d.carte.trim() === "" ? "Indiquez le numéro de votre carte." : "16 caractères maximum.",
+    },
+    tel: {
+      ok: d.tel.trim() !== "" && telDigits.length >= 8 && d.tel.trim().length <= 20,
+      message: d.tel.trim() === "" ? "Indiquez votre numéro." : "Indiquez un numéro valide (8 chiffres au moins).",
+    },
+    email: {
+      ok: d.email.trim() !== "" && EMAIL_RE.test(d.email.trim()),
+      message: d.email.trim() === "" ? "Indiquez votre e-mail." : "Indiquez une adresse e-mail valide.",
+    },
     "mdp-new": { ok: isPasswordLongEnough(d.motDePasse), message: "Choisissez un mot de passe de 8 caractères au moins." },
     fonte: { ok: fonte, message: "Cochez la case pour continuer." },
   });
 
-  const text = (id: keyof typeof errors, key: keyof SignupData, label: string, extra: Record<string, string> = {}) => (
-    <Field id={id} label={label} error={errors[id]}>
-      <input className="input" id={id} value={d[key]} onChange={set(key)} aria-invalid={!!errors[id] || undefined} {...extra} />
-    </Field>
-  );
+  const fieldError = (id: keyof typeof errors) => errors[id] ?? serverFieldErrors?.[SERVER_TO_FIELD[id]] ?? null;
+
+  const text = (id: keyof typeof errors, key: keyof SignupData, label: string, extra: Record<string, string> = {}) => {
+    const err = fieldError(id);
+    return (
+      <Field id={id} label={label} error={err}>
+        <input
+          className="input"
+          id={id}
+          value={d[key]}
+          onChange={set(key, SERVER_TO_FIELD[id])}
+          aria-invalid={!!err || undefined}
+          {...extra}
+        />
+      </Field>
+    );
+  };
 
   return (
     <form
@@ -58,22 +96,44 @@ export function SignupForm({ onCreated, onLogin, serverError }: SignupFormProps)
         e.preventDefault();
         if (!check()) return;
         setBusy(true);
-        await onCreated({
-          prenom: d.prenom,
-          nom: d.nom,
-          numeroCarte: d.carte,
-          telephone: d.tel,
-          email: d.email,
-          niveau: d.niveau || undefined,
-          ufr: d.ufr || undefined,
-          motDePasse: d.motDePasse,
-        });
-        setBusy(false);
+        try {
+          await onCreated({
+            prenom: d.prenom,
+            nom: d.nom,
+            numeroCarte: d.carte,
+            telephone: d.tel,
+            email: d.email,
+            niveau: d.niveau || undefined,
+            ufr: d.ufr || undefined,
+            motDePasse: d.motDePasse,
+          });
+        } finally {
+          setBusy(false);
+        }
       }}
     >
       <h1 id="t-inscription">Créer un compte</h1>
       <p className="muted">Réservé aux étudiants de l'UGB.</p>
-      {serverError && <Notice tone="danger" role="alert" title={serverError} />}
+      {serverError && (
+        <Notice tone="danger" role="alert" title={serverError}>
+          {(serverFieldErrors?.email || serverFieldErrors?.telephone) && (
+            <p className="small">
+              Si ce compte est le vôtre,{" "}
+              <a
+                className="link"
+                href="#connexion"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onLogin();
+                }}
+              >
+                connectez-vous ici
+              </a>
+              .
+            </p>
+          )}
+        </Notice>
+      )}
 
       <div className="form-grid">
         {text("prenom", "prenom", "Prénom", { autoComplete: "given-name" })}
@@ -97,15 +157,15 @@ export function SignupForm({ onCreated, onLogin, serverError }: SignupFormProps)
             ))}
           </select>
         </Field>
-        <Field id="mdp-new" label="Mot de passe" hint="8 caractères au moins." error={errors["mdp-new"]} full>
+        <Field id="mdp-new" label="Mot de passe" hint="8 caractères au moins." error={fieldError("mdp-new")} full>
           <PasswordInput
             id="mdp-new"
             autoComplete="new-password"
             minLength={8}
             aria-describedby="mdp-new-aide"
-            aria-invalid={!!errors["mdp-new"] || undefined}
+            aria-invalid={!!fieldError("mdp-new") || undefined}
             value={d.motDePasse}
-            onChange={set("motDePasse")}
+            onChange={set("motDePasse", "motDePasse")}
           />
         </Field>
       </div>

@@ -1,14 +1,17 @@
-import { useLocation, useNavigate } from "react-router";
+import { router } from "@inertiajs/react";
 
 /**
- * Point unique de navigation.
- * Aujourd'hui : React Router. Avec Laravel + Inertia : remplacer par `usePage().url` et `router.visit()`.
+ * Point unique de navigation Wecce.
  */
 export function useCurrentPath(): string {
-  return useLocation().pathname;
+  if (typeof window !== "undefined") {
+    return window.location.pathname;
+  }
+  return "/";
 }
 
 export function useGo(): (href: string) => void {
-  const navigate = useNavigate();
-  return (href: string) => navigate(href, { viewTransition: true });
+  return (href: string) => {
+    router.visit(href);
+  };
 }

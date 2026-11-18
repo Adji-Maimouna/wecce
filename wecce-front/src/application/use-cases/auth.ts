@@ -18,7 +18,14 @@ export const makeRequestPasswordReset = (auth: AuthGateway) => (email: string) =
 /** Inscription, réservée aux étudiants de l'UGB. */
 export const makeRegisterStudent = (auth: AuthGateway) => async (data: StudentRegistration) => {
   if (!isPasswordLongEnough(data.motDePasse)) throw new RuleViolation("mot-de-passe-court", "Mot de passe trop court.");
-  await auth.registerStudent({ ...data, email: data.email.trim(), numeroCarte: data.numeroCarte.trim() });
+  await auth.registerStudent({
+    ...data,
+    prenom: data.prenom.trim(),
+    nom: data.nom.trim(),
+    telephone: data.telephone.trim(),
+    email: data.email.trim(),
+    numeroCarte: data.numeroCarte.trim(),
+  });
 };
 
 export const makeLogout = (auth: AuthGateway) => () => auth.logout();

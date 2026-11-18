@@ -52,27 +52,28 @@ const param = (ctx: Ctx, name: string) => ctx.params[name] ?? "";
 
 export const screens: Screen[] = [
   // Entrée et pages publiques
-  { path: "/", access: "public", render: () => <Entree /> },
+  { path: "/", access: "public", render: () => <Accueil {...server.homePage()} /> },
   { path: "/connexion", access: "guest", render: () => <Connexion /> },
-  { path: "/accueil", access: "public", render: () => <Accueil {...server.homePage()} /> },
+  { path: "/entree", access: "public", render: () => <Entree /> },
   { path: "/credits", access: "public", render: () => <Credits credits={Object.values(credits)} /> },
 
   // Étudiant
   {
     path: "/etudiant/marche",
-    access: "ETUDIANT",
-    render: (ctx) => <Marche items={server.marketItems(uid(ctx))} depositsSuspended={server.depositsSuspension().suspended} nextFonte={server.nextFonte()} />,
+    access: "public",
+    render: (ctx) => <Marche items={server.marketItems(ctx.user?.id)} depositsSuspended={server.depositsSuspension().suspended} nextFonte={server.nextFonte()} />,
   },
   {
     path: "/etudiant/objets/:slug",
-    access: "ETUDIANT",
+    access: "public",
     render: (ctx) => {
-      const page = server.itemPage(param(ctx, "slug"), uid(ctx));
+      const viewerId = ctx.user?.role === "ETUDIANT" ? ctx.user.id : "";
+      const page = server.itemPage(param(ctx, "slug"), viewerId);
       if (!page) return <NotFound />;
       return (
         <Fiche
           {...page.details}
-          balance={server.studentEntity(uid(ctx)).balance}
+          balance={viewerId ? server.studentEntity(viewerId).balance : 0}
           reservedByOther={page.reservedByOther}
           reservedByMe={page.reservedByMe}
           nextFonte={server.nextFonte()}
@@ -101,12 +102,12 @@ export const screens: Screen[] = [
   },
   {
     path: "/etudiant/deposer",
-    access: "ETUDIANT",
+    access: "public",
     render: (ctx) => {
       const suspension = server.depositsSuspension();
       const s = server.schedule();
       const draftRef = ctx.query.get("brouillon");
-      const draft = draftRef ? server.draftOf(uid(ctx), draftRef) : null;
+      const draft = draftRef && ctx.user ? server.draftOf(ctx.user.id, draftRef) : null;
       return (
         <Deposer
           depositsSuspended={suspension.suspended}
@@ -144,7 +145,7 @@ export const screens: Screen[] = [
     access: "ETUDIANT",
     render: (ctx) => <Solde {...server.balancePage(uid(ctx))} nextFonte={server.nextFonte()} />,
   },
-  { path: "/etudiant/questions", access: "ETUDIANT", render: () => <Questions /> },
+  { path: "/etudiant/questions", access: "public", render: () => <Questions /> },
   { path: "/etudiant/profil", access: "ETUDIANT", render: () => <ProfilEtudiant /> },
 
   // Boutique LBC

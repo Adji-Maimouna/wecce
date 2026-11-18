@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { AppLink } from "@/presentation/components/ui/AppLink";
+import { ButtonLink } from "@/presentation/components/ui/Button";
 import { Icon } from "@/presentation/components/ui/Icon";
 import { fmt, pts } from "@/presentation/lib/format";
 import { useGo } from "@/presentation/lib/navigation";
@@ -9,7 +10,7 @@ import { Brand } from "./Brand";
 import { useSearch } from "./searchContext";
 import { STUDENT_NAV, type StudentSection } from "./studentNav";
 
-type StudentTopBarProps = { student: Student; section: StudentSection };
+type StudentTopBarProps = { student?: Student; section: StudentSection };
 
 /** Barre haute de l'espace étudiant : navigation, recherche (touche « / »), solde et profil. */
 export function StudentTopBar({ student, section }: StudentTopBarProps) {
@@ -32,7 +33,7 @@ export function StudentTopBar({ student, section }: StudentTopBarProps) {
   return (
     <header className="top">
       <div className="wrap top__in">
-        <Brand href={paths.marche} label="Wecce, marché" />
+        <Brand href={student ? paths.marche : paths.accueil} label={student ? "Wecce, marché" : "Wecce, accueil"} />
         <nav className="nav" aria-label="Navigation principale">
           {STUDENT_NAV.map((n) => (
             <AppLink key={n.section} href={n.href} aria-current={n.section === section ? "page" : undefined}>
@@ -59,20 +60,28 @@ export function StudentTopBar({ student, section }: StudentTopBarProps) {
           />
         </form>
         <div className="top__end">
-          <AppLink className="balance" href="/etudiant/solde" aria-label={`Votre solde : ${fmt(student.balance)} points`}>
-            <Icon name="points" />
-            {pts(student.balance)}
-          </AppLink>
-          <AppLink
-            className="avatar"
-            href={paths.profilEtudiant}
-            title={`${displayName(student)} · mon profil`}
-            aria-label="Mon profil"
-            aria-current={section === "profil" ? "page" : undefined}
-            style={section === "profil" ? { boxShadow: "0 0 0 2px var(--accent)" } : undefined}
-          >
-            {initials(student)}
-          </AppLink>
+          {student ? (
+            <>
+              <AppLink className="balance" href="/etudiant/solde" aria-label={`Votre solde : ${fmt(student.balance)} points`}>
+                <Icon name="points" />
+                {pts(student.balance)}
+              </AppLink>
+              <AppLink
+                className="avatar"
+                href={paths.profilEtudiant}
+                title={`${displayName(student)} · mon profil`}
+                aria-label="Mon profil"
+                aria-current={section === "profil" ? "page" : undefined}
+                style={section === "profil" ? { boxShadow: "0 0 0 2px var(--accent)" } : undefined}
+              >
+                {initials(student)}
+              </AppLink>
+            </>
+          ) : (
+            <ButtonLink href={`${paths.connexion}?retour=${encodeURIComponent(typeof window !== "undefined" ? window.location.pathname + window.location.search : paths.marche)}`} variant="ghost" size="sm">
+              Se connecter
+            </ButtonLink>
+          )}
         </div>
       </div>
     </header>

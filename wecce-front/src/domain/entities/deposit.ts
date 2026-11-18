@@ -20,7 +20,7 @@ export type Deposit = {
   photo?: string;
   /** Étape en cours (rang dans DEPOSIT_STAGES) ; 5 quand tout est fait. */
   stageIndex?: number;
-  appointment?: { label: string; long: string };
+  appointment?: { label: string; long: string; missed?: boolean };
   wish?: number;
   missing?: string;
   signedOn?: string;

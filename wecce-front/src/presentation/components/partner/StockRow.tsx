@@ -56,31 +56,45 @@ export function StockRow({ a }: { a: StockArticle }) {
         <StockStatusBadge a={a} status={a.status} />
       </td>
       <td className="r">
-        {a.status === "a-photographier" && (
-          <Button size="sm" disabled={busy} onClick={() => run(() => publishArticle(a.id), `${short} mis en ligne à ${fmt(a.todayPrice)} pts.`)}>
-            Mettre en ligne
-          </Button>
-        )}
-        {a.status === "reserve" && a.acquisitionRef && (
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={busy}
-            onClick={() => run(() => handOver(a.acquisitionRef!), `${short} remis. L'acquisition ${a.acquisitionRef} est soldée, la garantie démarre.`)}
-          >
-            Remettre l'objet
-          </Button>
-        )}
-        {a.status === "en-ligne" && (
-          <AppLink className="link small" href={paths.article(a.id)}>
-            Modifier
-          </AppLink>
-        )}
-        {(a.status === "retire" || a.status === "remis") && (
-          <AppLink className="link small" href={paths.article(a.id)}>
-            Voir
-          </AppLink>
-        )}
+        <div className="row" style={{ justifyContent: "flex-end", gap: 10 }}>
+          {a.status === "a-photographier" && (
+            <>
+              <Button size="sm" disabled={busy} onClick={() => run(() => publishArticle(a.id), `${short} mis en ligne à ${fmt(a.todayPrice)} pts.`)}>
+                Mettre en ligne
+              </Button>
+              <AppLink className="link small" href={paths.article(a.id)}>
+                Modifier
+              </AppLink>
+            </>
+          )}
+          {a.status === "reserve" && (
+            <>
+              {a.acquisitionRef && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={busy}
+                  onClick={() => run(() => handOver(a.acquisitionRef!), `${short} remis. L'acquisition ${a.acquisitionRef} est soldée, la garantie démarre.`)}
+                >
+                  Remettre l'objet
+                </Button>
+              )}
+              <AppLink className="link small" href={paths.article(a.id)}>
+                Voir
+              </AppLink>
+            </>
+          )}
+          {a.status === "en-ligne" && (
+            <AppLink className="link small" href={paths.article(a.id)}>
+              Modifier
+            </AppLink>
+          )}
+          {(a.status === "retire" || a.status === "remis") && (
+            <AppLink className="link small" href={paths.article(a.id)}>
+              Voir
+            </AppLink>
+          )}
+        </div>
       </td>
     </tr>
   );

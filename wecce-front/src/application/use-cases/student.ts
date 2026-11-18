@@ -18,6 +18,9 @@ export const makeRescheduleDeposit = (deposits: DepositGateway) => async (ref: s
 /** Annuler un dépôt : le créneau est libéré. */
 export const makeCancelDeposit = (deposits: DepositGateway) => (ref: string) => deposits.cancel(ref);
 
+export const makeSaveDepositDraft = (deposits: DepositGateway) => (request: DepositRequest) =>
+  deposits.saveDraft ? deposits.saveDraft(request) : Promise.resolve({ ok: true, redirect: null, draftRef: null });
+
 /** Prendre un objet : les points d'abord, le complément en francs ensuite. */
 export const makeAcquireItem = (payments: PaymentGateway) => (request: AcquisitionRequest) => payments.acquire(request);
 

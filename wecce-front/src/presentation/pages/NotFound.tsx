@@ -13,7 +13,7 @@ export default function NotFound() {
       <h1>Cette page n'existe pas</h1>
       <p className="muted">L'adresse a peut-être changé. Repartez de l'accueil ou du marché.</p>
       <div className="row">
-        <ButtonLink href="/accueil" size="lg">
+        <ButtonLink href="/" size="lg">
           Aller à l'accueil
         </ButtonLink>
         <ButtonLink href="/etudiant/marche" variant="ghost" size="lg">

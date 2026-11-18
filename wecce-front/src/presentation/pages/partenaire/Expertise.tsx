@@ -14,7 +14,7 @@ import { AppointmentsTable } from "@/presentation/components/partner/Appointment
 import { WalkInSearch } from "@/presentation/components/partner/WalkInSearch";
 import { Icon } from "@/presentation/components/ui/Icon";
 import { Notice } from "@/presentation/components/ui/Notice";
-import { Panel, PanelBody, PanelHead } from "@/presentation/components/ui/Panel";
+import { Panel, PanelBody } from "@/presentation/components/ui/Panel";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { parseAmount } from "@/presentation/lib/format";
 import { useGo } from "@/presentation/lib/navigation";
@@ -30,6 +30,8 @@ export type ExpertiseProps = {
   controls: string[];
   /** Rendez-vous du jour qui attendent l'expertise. */
   queue: Appointment[];
+  /** Rendez-vous non respectés (dépassés) pouvant quand même être traités si l'étudiant se présente. */
+  missedQueue?: Appointment[];
   /** Référence cherchée mais introuvable, ou déjà traitée. */
   missingRef?: string;
 };
@@ -39,38 +41,56 @@ export default function Expertise(props: ExpertiseProps) {
   return (
     <BackOfficeLayout space="partenaire" current="expertise">
       <PageTitle>Expertise</PageTitle>
-      {props.declared ? <ExpertiseForm {...props} declared={props.declared} /> : <ChooseDeposit queue={props.queue} missingRef={props.missingRef} />}
+      {props.declared ? (
+        <ExpertiseForm {...props} declared={props.declared} />
+      ) : (
+        <ChooseDeposit queue={props.queue} missedQueue={props.missedQueue} missingRef={props.missingRef} />
+      )}
     </BackOfficeLayout>
   );
 }
 
-function ChooseDeposit({ queue, missingRef }: { queue: Appointment[]; missingRef?: string }) {
+function ChooseDeposit({ queue, missedQueue = [], missingRef }: { queue: Appointment[]; missedQueue?: Appointment[]; missingRef?: string }) {
   return (
     <>
-      <PageHead title="Expertise" lead="Choisissez l'étudiant qui se présente au comptoir." />
+      <PageHead
+        title="Expertise au comptoir"
+        lead="Sélectionnez le rendez-vous à examiner ou cherchez un dépôt par sa référence."
+        aside={queue.length > 0 ? <span className="small muted">{queue.length} dépôt(s) en attente</span> : undefined}
+      />
       {missingRef && (
         <Notice tone="warn" title={`Aucun dépôt à examiner sous la référence ${missingRef}.`} style={{ marginBottom: 18 }}>
-          Vérifiez la référence sur le téléphone de l'étudiant : elle commence par WC-.
+          Vérifiez la référence sur le téléphone de l&apos;étudiant : elle commence par WC-.
         </Notice>
       )}
-      <div className="stack" style={{ gap: 20 }}>
+      <div className="stack" style={{ gap: 18 }}>
+        <Panel>
+          <PanelBody className="row" style={{ gap: "10px 16px", justifyContent: "space-between", flexWrap: "wrap" }}>
+            <div style={{ minWidth: 0 }}>
+              <strong>Étudiant sans rendez-vous ?</strong>
+              <p className="xs muted">Saisissez la référence affichée dans « Mes dépôts » (ex. WC-2026-0643).</p>
+            </div>
+            <WalkInSearch />
+          </PanelBody>
+        </Panel>
+
         {queue.length > 0 ? (
           <AppointmentsTable appointments={queue} today />
         ) : (
           <Panel style={{ padding: "32px 28px" }}>
             <div className="stack" style={{ maxWidth: "52ch", gap: 10 }}>
               <Icon name="calendar" size="lg" style={{ color: "var(--muted)" }} />
-              <h2>Plus aucun rendez-vous à examiner aujourd'hui</h2>
+              <h2>Aucun rendez-vous prévu aujourd&apos;hui à examiner</h2>
             </div>
           </Panel>
         )}
-        <Panel>
-          <PanelHead title="Étudiant venu sans rendez-vous" />
-          <PanelBody className="stack" style={{ gap: 12 }}>
-            <p className="small muted">Cherchez son dépôt par la référence affichée dans « Mes dépôts ».</p>
-            <WalkInSearch />
-          </PanelBody>
-        </Panel>
+
+        {missedQueue.length > 0 && (
+          <section className="stack" style={{ gap: 10 }}>
+            <h2 style={{ fontSize: "var(--t-md)", margin: 0 }}>Rendez-vous dépassés ({missedQueue.length})</h2>
+            <AppointmentsTable appointments={missedQueue} today={false} showDate />
+          </section>
+        )}
       </div>
     </>
   );

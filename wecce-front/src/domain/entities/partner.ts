@@ -7,7 +7,9 @@ export type AppointmentStatus = "a-venir" | "arrive" | "a-signer" | "repris" | "
 /** Rendez-vous du jour au comptoir LBC (table rendez_vous). */
 export type Appointment = {
   time: string;
-  student: { name: string; initials: string; card: string };
+  dateLabel?: string;
+  missed?: boolean;
+  student: { name: string; initials: string; card: string; phone?: string };
   depositRef: string;
   device: string;
   deviceInfo: string;
@@ -30,6 +32,7 @@ export type DeclaredDevice = {
   /** État déclaré : appareil entier, ou pièce détachée. */
   etat: DeviceCondition | PartCondition;
   photoCount: number;
+  photos?: { src: string; alt: string }[];
   wish: number | null;
 };
 
@@ -114,9 +117,39 @@ export type CoverageSnapshot = {
   ratio: number;
   pointsInCirculation: number;
   studentAccounts: number;
+  fundedAccounts?: number;
   stockValue: number;
   stockCount: number;
   thresholds: { watch: number; suspend: number; reopen: number };
+};
+
+export type CoverageStockBreakdown = {
+  studentDepositsCount: number;
+  studentDepositsValue: number;
+  shopStockCount: number;
+  shopStockValue: number;
+  enLigneCount: number;
+  enLigneValue: number;
+  aPhotographierCount: number;
+  aPhotographierValue: number;
+  reserveeCount: number;
+  reserveeValue: number;
+};
+
+export type CoverageActivityStats = {
+  pointsIssued: number;
+  bonusIssued: number;
+  pointsSpent: number;
+  pointsMelted: number;
+  acquisitionsCount: number;
+  handedOverCount: number;
+  complementsTotal: number;
+  acquisitionsWithComplement: number;
+  avgBalance: number;
+  maxBalance: number;
+  acceptedExpertises: number;
+  piecesExpertises: number;
+  refusedExpertises: number;
 };
 
 export type CoveragePoint = {
@@ -128,4 +161,125 @@ export type CoveragePoint = {
   event?: string;
 };
 
-export type MarginRow = { month: string; expertises: number; margin: number };
+export type MarginRow = {
+  month: string;
+  expertises: number;
+  margin: number;
+  avgTakeBack?: number;
+  avgListPrice?: number;
+  totalMarginPoints?: number;
+};
+
+export type CategoryStat = {
+  code: string;
+  label: string;
+  deposits: number;
+  depAccepted: number;
+  depPending: number;
+  depRefused: number;
+  depCancelled: number;
+  fromDeposits: number;
+  fromShop: number;
+  totalEntered: number;
+  available: number;
+  toPhoto: number;
+  availableValue: number;
+  reserved: number;
+  reservedValue: number;
+  sold: number;
+  soldValue: number;
+  withdrawn: number;
+};
+
+export type ConditionStat = {
+  code: Condition;
+  available: number;
+  reserved: number;
+  sold: number;
+  withdrawn: number;
+  total: number;
+};
+
+export type PaymentMethodStat = {
+  key: "points" | "wave" | "om" | "especes";
+  label: string;
+  count: number;
+  pointsAmount: number;
+  fcfaAmount: number;
+};
+
+export type MonthlyActivityStat = {
+  key: string;
+  month: string;
+  deposits: number;
+  accepted: number;
+  refused: number;
+  acquisitions: number;
+  salesPoints: number;
+  complementsFcfa: number;
+  marginPoints: number;
+};
+
+export type UfrStat = {
+  ufr: string;
+  students: number;
+  deposits: number;
+  accepted: number;
+  acquisitions: number;
+  spentPoints: number;
+};
+
+export type PeriodOption = { value: string; label: string };
+
+export type PlatformStatistics = {
+  computedAt: string;
+  periode: string;
+  periodLabel: string;
+  periodOptions: PeriodOption[];
+  fromDate?: string;
+  toDate?: string;
+  summary: {
+    totalDeposits: number;
+    acceptedDeposits: number;
+    refusedDeposits: number;
+    pendingDeposits: number;
+    cancelledDeposits: number;
+    acceptanceRate: number;
+    fromDepositsCount: number;
+    fromShopCount: number;
+    totalEntered: number;
+    availableCount: number;
+    toPhotoCount: number;
+    reservedCount: number;
+    withdrawnCount: number;
+    totalAcquisitions: number;
+    handedOverAcquisitions: number;
+    reservedAcquisitions: number;
+    cancelledAcquisitions: number;
+    totalSalesPoints: number;
+    totalPointsDebited: number;
+    totalComplementsFcfa: number;
+    avgBasketPoints: number;
+    onlineCount: number;
+    onlineValue: number;
+    soldCount: number;
+    soldValue: number;
+    totalStudents: number;
+    studentsWithBalance: number;
+    totalPointsInCirculation: number;
+    avgBalance: number;
+    bonusActive: boolean;
+    bonusRate: number;
+    bonusConsumed: number;
+    bonusQuota: number;
+  };
+  byCategory: CategoryStat[];
+  byCondition: ConditionStat[];
+  paymentMethods: PaymentMethodStat[];
+  monthly: MonthlyActivityStat[];
+  byUfr: UfrStat[];
+  catalog?: {
+    articles: StockArticle[];
+    counts: Record<"tout" | StockOrigin, number>;
+  };
+};

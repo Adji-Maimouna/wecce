@@ -1,27 +1,32 @@
-import type { AnchorHTMLAttributes, ReactNode } from "react";
-import { Link } from "react-router";
+import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
+import { Link as InertiaLink, type InertiaLinkProps } from "@inertiajs/react";
 
-type AppLinkProps = Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
+type AppLinkProps = Omit<InertiaLinkProps, "href" | "onClick"> & {
   href: string;
   children?: ReactNode;
+  className?: string;
+  onClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
 };
 
 /**
- * Lien interne de l'application.
- * Aujourd'hui : React Router (avec transition de vue). Avec Inertia : `import { Link } from "@inertiajs/react"`.
+ * Lien interne de l'application Wecce connecté à Inertia.
  * Les liens externes (http…) et les ancres seules (#…) restent de simples <a>.
  */
-export function AppLink({ href, children, ...rest }: AppLinkProps) {
+export function AppLink({ href, children, onClick, ...rest }: AppLinkProps) {
   if (/^(https?:|mailto:|tel:)/.test(href) || href.startsWith("#")) {
+    const anchorProps = rest as AnchorHTMLAttributes<HTMLAnchorElement>;
     return (
-      <a href={href} {...rest}>
+      <a href={href} onClick={onClick} {...anchorProps}>
         {children}
       </a>
     );
   }
+
+  const inertiaClick = onClick as unknown as InertiaLinkProps["onClick"];
+
   return (
-    <Link to={href} viewTransition {...rest}>
+    <InertiaLink href={href} onClick={inertiaClick} {...rest}>
       {children}
-    </Link>
+    </InertiaLink>
   );
 }

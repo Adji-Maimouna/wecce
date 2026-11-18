@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/presentation/hooks/useSearchParams";
 import type { MarketItem } from "@/domain/entities";
 import { useSearch } from "@/presentation/components/layout/searchContext";
 import { PageHead } from "@/presentation/components/layout/PageHead";
@@ -10,7 +10,8 @@ import { ProductCard } from "@/presentation/components/market/ProductCard";
 import { useMarketFilters } from "@/presentation/components/market/useMarketFilters";
 import { Icon } from "@/presentation/components/ui/Icon";
 import { Notice } from "@/presentation/components/ui/Notice";
-import { useStudent } from "@/presentation/hooks/session";
+import { useSession } from "@/presentation/hooks/session";
+import { useGo } from "@/presentation/lib/navigation";
 import { paths } from "@/presentation/lib/paths";
 
 export type MarcheProps = {
@@ -34,13 +35,15 @@ export default function Marche(props: MarcheProps) {
 }
 
 function MarcheContent({ items, depositsSuspended, nextFonte }: MarcheProps) {
-  const student = useStudent();
+  const { student } = useSession();
+  const balance = student?.balance ?? 0;
+  const go = useGo();
   const { query, setQuery } = useSearch();
   const [params] = useSearchParams();
   const cat = params.get("categorie") as CategoryFilter | null;
-  const f = useMarketFilters(items, student.balance, query, {
+  const f = useMarketFilters(items, balance, query, {
     category: cat && CATEGORIES.includes(cat) ? cat : "tout",
-    onlyBalance: params.get("solde") === "1",
+    onlyBalance: Boolean(student) && params.get("solde") === "1",
   });
 
   return (
@@ -68,7 +71,7 @@ function MarcheContent({ items, depositsSuspended, nextFonte }: MarcheProps) {
           onCategory={f.setCategory}
           counts={f.counts}
           onlyBalance={f.onlyBalance}
-          onOnlyBalance={f.setOnlyBalance}
+          onOnlyBalance={(v) => (student ? f.setOnlyBalance(v) : go(`${paths.connexion}?retour=${encodeURIComponent("/etudiant/marche?solde=1")}`))}
           balanceCount={f.balanceCount}
           sort={f.sort}
           onSort={f.setSort}
@@ -77,7 +80,7 @@ function MarcheContent({ items, depositsSuspended, nextFonte }: MarcheProps) {
         {f.shown.length > 0 ? (
           <div className="grid" data-stagger>
             {f.shown.map((item, i) => (
-              <ProductCard key={item.slug} item={item} balance={student.balance} href={paths.item(item.slug)} index={i} />
+              <ProductCard key={item.slug} item={item} balance={balance} href={paths.item(item.slug)} index={i} />
             ))}
           </div>
         ) : (

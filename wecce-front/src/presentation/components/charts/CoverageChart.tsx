@@ -1,6 +1,5 @@
 import { Fragment } from "react";
 import type { CoveragePoint } from "@/domain/entities";
-import { Tbd } from "@/presentation/components/ui/Tbd";
 import { fmt, pts } from "@/presentation/lib/format";
 import { ChartTooltip } from "./ChartTooltip";
 
@@ -36,13 +35,14 @@ export function CoverageChart({ points, suspendFactor }: CoverageChartProps) {
   const TICKS = ticks.map((v) => ({ v, label: tickLabel(v) }));
   const line = (f: (p: CoveragePoint) => number) => points.map((p) => `${x(p.day)},${y(f(p))}`).join(" ");
   const labelled = points.filter((p, i) => i === points.length - 1 || (p.day % 14 === 0 && last.day - p.day >= 7));
-  const pct = Math.round((suspendFactor - 1) * 100);
+  const suspendPct = Math.round(suspendFactor * 100);
+  const ratioOf = (p: CoveragePoint) => (p.debt > 0 ? `${Math.round((p.stock / p.debt) * 100)} %` : "–");
 
   return (
     <ChartTooltip>
       <svg className="chart" viewBox="0 0 720 250" role="img" aria-labelledby="cv-t" style={{ width: "100%", height: "auto" }}>
         <title id="cv-t">
-          {`Valeur du stock, points en circulation et seuil de suspension. La dette monte de ${fmt(points[0].debt)} à ${fmt(last.debt)} points ; le stock passe de ${fmt(points[0].stock)} à ${fmt(last.stock)} points.`}
+          {`Valeur du stock, points des étudiants et minimum requis. Les points passent de ${fmt(points[0].debt)} à ${fmt(last.debt)} ; le stock passe de ${fmt(points[0].stock)} à ${fmt(last.stock)} points.`}
         </title>
         {TICKS.map((t) => (
           <Fragment key={t.v}>
@@ -61,11 +61,11 @@ export function CoverageChart({ points, suspendFactor }: CoverageChartProps) {
         <polyline className="ln-danger" fill="none" strokeWidth="1.5" strokeDasharray="5 4" points={line((p) => p.debt * suspendFactor)} />
         <polyline className="ln-points" fill="none" strokeWidth="3.5" strokeLinejoin="round" points={line((p) => p.debt)} />
         {[
-          { cls: "dot-ink", cx: x(last.day), cy: y(last.stock), r: 5.5, tip: `${last.label} · stock en ligne : ${pts(last.stock)}` },
-          { cls: "dot-points", cx: x(last.day), cy: y(last.debt), r: 6, tip: `${last.label} · points en circulation : ${pts(last.debt)}` },
+          { cls: "dot-ink", cx: x(last.day), cy: y(last.stock), r: 5.5, tip: `${last.label} · valeur du stock : ${pts(last.stock)} (${ratioOf(last)})` },
+          { cls: "dot-points", cx: x(last.day), cy: y(last.debt), r: 6, tip: `${last.label} · points étudiants : ${pts(last.debt)} (${ratioOf(last)})` },
           ...points
             .filter((p) => p.event)
-            .map((p) => ({ cls: "dot-points", cx: x(p.day), cy: y(p.debt), r: 5, tip: `${p.label} · ${p.event} : ${pts(p.debt)}` })),
+            .map((p) => ({ cls: "dot-points", cx: x(p.day), cy: y(p.debt), r: 5, tip: `${p.label} · ${p.event} : points ${pts(p.debt)}, stock ${pts(p.stock)} (${ratioOf(last)})` })),
         ].map((d) => (
           <circle key={d.tip} className={`${d.cls} hit`} cx={d.cx} cy={d.cy} r={d.r} strokeWidth="2" data-tip={d.tip} tabIndex={0} aria-label={d.tip} />
         ))}
@@ -83,11 +83,11 @@ export function CoverageChart({ points, suspendFactor }: CoverageChartProps) {
         </span>
         <span>
           <i style={{ background: "var(--points-fill)" }} />
-          Points en circulation
+          Points des étudiants
         </span>
         <span>
           <i style={{ background: "repeating-linear-gradient(90deg,var(--danger) 0 4px,transparent 4px 7px)" }} />
-          Seuil de suspension (dette + <Tbd note="Seuil à trancher">{pct} %</Tbd>)
+          Minimum requis ({suspendPct} %)
         </span>
       </div>
     </ChartTooltip>

@@ -10,6 +10,7 @@ import {
   makeCancelPayment,
   makeDeclineWaiver,
   makeRescheduleDeposit,
+  makeSaveDepositDraft,
   makeSignWaiver,
   makeSubmitDeposit,
 } from "./use-cases/student";
@@ -25,6 +26,7 @@ export function makeUseCases(ports: Ports) {
     requestPasswordReset: makeRequestPasswordReset(ports.auth),
     registerStudent: makeRegisterStudent(ports.auth),
     submitDeposit: makeSubmitDeposit(ports.deposits),
+    saveDepositDraft: makeSaveDepositDraft(ports.deposits),
     cancelDeposit: makeCancelDeposit(ports.deposits),
     rescheduleDeposit: makeRescheduleDeposit(ports.deposits),
     acquireItem: makeAcquireItem(ports.payments),

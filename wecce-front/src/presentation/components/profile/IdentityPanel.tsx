@@ -22,7 +22,7 @@ export function IdentityPanel({ rows, correction }: IdentityPanelProps) {
             </div>
           ))}
         </dl>
-        <p className="xs muted" style={{ display: "flex", gap: 6 }}>
+        <p className="xs muted" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Icon name="lock" size="sm" />
           {correction}
         </p>

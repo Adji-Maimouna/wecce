@@ -13,6 +13,7 @@ import { PageTitle } from "@/presentation/components/layout/PageTitle";
 import { StudentLayout } from "@/presentation/components/layout/StudentLayout";
 import { Notice } from "@/presentation/components/ui/Notice";
 import { Steps } from "@/presentation/components/ui/Steps";
+import { useSession } from "@/presentation/hooks/session";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { useGo } from "@/presentation/lib/navigation";
 import { paths } from "@/presentation/lib/paths";
@@ -27,17 +28,21 @@ export type DeposerProps = {
   times: string[];
   /** Point de départ du formulaire : brouillon repris (?brouillon=REF) et premier créneau libre. */
   start: DraftStart;
+  /** Brouillon en cours récupéré depuis la session serveur. */
+  hasPending?: boolean;
 };
 
 const STEP_LABELS = ["Votre appareil", "Prix souhaité", "Rendez-vous", "Vérification"];
 
 /** Déposer un objet : quatre étapes, rien n'est engagé avant l'examen chez LBC. */
-export default function Deposer({ depositsSuspended, suspensionReason, bonus, days, times, start }: DeposerProps) {
-  const [step, setStep] = useState(1);
+export default function Deposer({ depositsSuspended, suspensionReason, bonus, days, times, start, hasPending }: DeposerProps) {
+  const [step, setStep] = useState(hasPending ? 4 : 1);
+
   const [busy, setBusy] = useState(false);
   const [modeleError, setModeleError] = useState<string | null>(null);
   const { draft, update } = useDepositDraft(start);
-  const { submitDeposit } = useUseCases();
+  const { student } = useSession();
+  const { submitDeposit, saveDepositDraft } = useUseCases();
   const toast = useToast();
   const go = useGo();
 
@@ -93,6 +98,18 @@ export default function Deposer({ depositsSuspended, suspensionReason, bonus, da
                   busy={busy}
                   onPrev={() => goTo(3)}
                   onConfirm={async (rdv) => {
+                    if (!student) {
+                      setBusy(true);
+                      try {
+                        const res = await saveDepositDraft(toDepositRequest(draft));
+                        go(res.redirect || `${paths.connexion}?retour=${encodeURIComponent(paths.deposer)}`);
+                      } catch {
+                        go(`${paths.connexion}?retour=${encodeURIComponent(paths.deposer)}`);
+                      } finally {
+                        setBusy(false);
+                      }
+                      return;
+                    }
                     setBusy(true);
                     try {
                       const { ref } = await submitDeposit(toDepositRequest(draft));
