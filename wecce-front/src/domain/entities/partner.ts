@@ -301,6 +301,10 @@ export type PlatformStatistics = {
   periodOptions: PeriodOption[];
   fromDate?: string;
   toDate?: string;
+  /** Dernière activité enregistrée (pour guider quand la période choisie est vide). */
+  lastActivity?: { date: string; label: string; month: string } | null;
+  /** Activité jour par jour quand la période fait au plus 62 jours. */
+  daily?: { key: string; label: string; deposits: number; accepted: number; acquisitions: number }[];
   summary: {
     totalDeposits: number;
     acceptedDeposits: number;
@@ -328,6 +332,8 @@ export type PlatformStatistics = {
     soldCount: number;
     soldValue: number;
     totalStudents: number;
+    /** Étudiants ayant déposé ou acheté sur la période. */
+    activeStudents?: number;
     studentsWithBalance: number;
     totalPointsInCirculation: number;
     avgBalance: number;

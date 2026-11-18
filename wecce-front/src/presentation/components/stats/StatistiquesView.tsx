@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { router } from "@inertiajs/react";
-import type { PlatformStatistics, StockOrigin, StockStatus } from "@/domain/entities";
-import { Kpis } from "@/presentation/components/admin/Kpis";
+import type { PlatformStatistics } from "@/domain/entities";
+import { GroupedColumns, HBars, SegmentBar } from "@/presentation/components/charts/PartnerCharts";
 import { BackOfficeLayout } from "@/presentation/components/layout/BackOfficeLayout";
 import { PageHead } from "@/presentation/components/layout/PageHead";
 import { PageTitle } from "@/presentation/components/layout/PageTitle";
-import { StockRow } from "@/presentation/components/partner/StockRow";
 import { Badge } from "@/presentation/components/ui/Badge";
 import { Button, ButtonLink } from "@/presentation/components/ui/Button";
+import { Notice } from "@/presentation/components/ui/Notice";
 import { ChipGroup } from "@/presentation/components/ui/Chip";
 import { CountUp } from "@/presentation/components/ui/CountUp";
 import { Icon } from "@/presentation/components/ui/Icon";
@@ -21,8 +21,6 @@ type StatistiquesViewProps = {
   stats: PlatformStatistics;
 };
 
-type OriginFilter = "tout" | StockOrigin;
-type StatusFilter = "tout" | StockStatus;
 
 function share(part: number, total: number): number {
   return total > 0 ? Math.round((part / total) * 100) : 0;
@@ -33,9 +31,6 @@ export function StatistiquesView({ space, stats }: StatistiquesViewProps) {
   const s = stats.summary;
   const maxCategoryVolume = Math.max(1, ...stats.byCategory.map((c) => c.availableValue + c.reservedValue + c.soldValue));
 
-  const [originFilter, setOriginFilter] = useState<OriginFilter>("tout");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("tout");
-  const [query, setQuery] = useState("");
   const [fromDate, setFromDate] = useState(stats.fromDate ?? "");
   const [toDate, setToDate] = useState(stats.toDate ?? "");
 
@@ -62,17 +57,22 @@ export function StatistiquesView({ space, stats }: StatistiquesViewProps) {
     router.get(basePath, params, { preserveScroll: true });
   };
 
-  const catalogArticles = stats.catalog?.articles ?? [];
-  const catalogCounts = stats.catalog?.counts ?? { tout: 0, depot: 0, boutique: 0 };
-  const shownArticles = catalogArticles.filter((a) => {
-    if (originFilter !== "tout" && a.origin !== originFilter) return false;
-    if (statusFilter !== "tout" && a.status !== statusFilter) return false;
-    if (query.trim()) {
-      const q = query.trim().toLowerCase();
-      return `${a.name} ${a.originRef ?? ""} ${a.info}`.toLowerCase().includes(q);
-    }
-    return true;
-  });
+  const empty = stats.periode !== "tout" && s.totalDeposits === 0 && s.totalAcquisitions === 0 && s.totalEntered === 0;
+  const daily = stats.daily ?? [];
+  const activity = daily.length > 0
+    ? daily.map((d) => ({ label: d.label, values: { deposits: d.deposits, acquisitions: d.acquisitions } }))
+    : stats.monthly.map((m) => ({ label: m.month.replace(", en cours", ""), current: m.month.includes("en cours"), values: { deposits: m.deposits, acquisitions: m.acquisitions } }));
+  // Le mois courant et le précédent ont leurs propres puces : on les réutilise pour que la puce s'allume.
+  const monthShortcut = (key: string) => {
+    const cur = stats.periodOptions.some((o) => o.value === key) ? key : null;
+    if (cur) return cur;
+    const now = new Date();
+    const curKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const prevKey = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, "0")}`;
+    return key === curKey ? "mois" : key === prevKey ? "mois-prec" : key;
+  };
+  const PAYMENT_COLORS: Record<string, string> = { points: "var(--series-1)", wave: "var(--series-3)", om: "var(--series-2)", especes: "var(--series-4)" };
 
   const totalPaymentCount = stats.paymentMethods.reduce((acc, m) => acc + m.count, 0);
   const totalConditionCount = stats.byCondition.reduce((acc, c) => acc + c.total, 0);
@@ -89,15 +89,10 @@ export function StatistiquesView({ space, stats }: StatistiquesViewProps) {
         lead={`Période : ${stats.periodLabel} · ${stats.computedAt}`}
         aside={
           space === "partenaire" ? (
-            <div className="row" style={{ gap: 10 }}>
-              <ButtonLink href="#catalogue" variant="ghost">
-                Gérer les articles ({catalogCounts.tout})
-              </ButtonLink>
-              <ButtonLink href={paths.articleNew}>
-                <Icon name="plus" size="sm" />
-                Ajouter un article
-              </ButtonLink>
-            </div>
+            <ButtonLink href={paths.stockTab("catalogue")} variant="ghost">
+              <Icon name="package" size="sm" />
+              Gérer le stock
+            </ButtonLink>
           ) : undefined
         }
       />
@@ -154,32 +149,118 @@ export function StatistiquesView({ space, stats }: StatistiquesViewProps) {
         </PanelBody>
       </Panel>
 
-      <Kpis
-        style={{ marginBottom: 20 }}
-        items={[
-          {
-            label: "Dépôts sur la période",
-            value: <CountUp value={s.totalDeposits} />,
-            sub: `${s.acceptedDeposits} repris (${s.acceptanceRate} %) · ${s.pendingDeposits} en attente · ${s.refusedDeposits} refusés · ${s.cancelledDeposits} annulés`,
-          },
-          {
-            label: "Entrées en boutique",
-            value: <CountUp value={s.totalEntered} />,
-            sub: `${s.fromDepositsCount} dépôts repris + ${s.fromShopCount} ajouts boutique`,
-          },
-          {
-            label: "Ventes réalisées",
-            value: <CountUp value={s.totalAcquisitions} />,
-            sub: `${pts(s.totalSalesPoints)} (${pts(s.totalPointsDebited)} + ${fmt(s.totalComplementsFcfa)} FCFA)`,
-          },
-          {
-            label: "Étudiants actifs",
-            value: <CountUp value={s.studentsWithBalance} />,
-            sub: `avec solde sur ${s.totalStudents} inscrits · moy. ${pts(s.avgBalance)}`,
-          },
-        ]}
-      />
+      {empty && (
+        <Notice tone="warn" icon="calendar" title={`Aucune activité sur cette période (${stats.periodLabel}).`} style={{ marginBottom: 20 }}>
+          <p className="small">
+            {stats.lastActivity ? `Dernière activité enregistrée le ${stats.lastActivity.label}.` : "Aucune activité enregistrée pour l'instant."}
+          </p>
+          {stats.lastActivity && (
+            <div className="row" style={{ gap: 8, marginTop: 8 }}>
+              <Button size="sm" onClick={() => changePeriod(monthShortcut(stats.lastActivity!.month))}>
+                Voir ce mois-là
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => changePeriod("tout")}>
+                Tout l'historique
+              </Button>
+            </div>
+          )}
+        </Notice>
+      )}
 
+      <div className="tiles">
+        <div className="tile tile--mustard">
+          <div className="tile__top">
+            <span className="tile__label">Dépôts sur la période</span>
+            <span className="tile__icon">
+              <Icon name="clipboard" />
+            </span>
+          </div>
+          <span className="tile__value">
+            <CountUp value={s.totalDeposits} />
+          </span>
+          <span className="tile__sub">
+            {s.pendingDeposits} en attente · {s.refusedDeposits} refusés · {s.cancelledDeposits} annulés
+          </span>
+        </div>
+        <div className="tile tile--cobalt">
+          <div className="tile__top">
+            <span className="tile__label">Repris en boutique</span>
+            <span className="tile__icon">
+              <Icon name="check-circle" />
+            </span>
+          </div>
+          <span className="tile__value">
+            <CountUp value={s.acceptedDeposits} />
+            <small>{s.acceptanceRate} %</small>
+          </span>
+          <span className="tile__sub">
+            taux d'acceptation · {s.fromShopCount} ajouts boutique
+          </span>
+        </div>
+        <div className="tile tile--green">
+          <div className="tile__top">
+            <span className="tile__label">Ventes réalisées</span>
+            <span className="tile__icon">
+              <Icon name="cash" />
+            </span>
+          </div>
+          <span className="tile__value">
+            <CountUp value={s.totalAcquisitions} />
+          </span>
+          <span className="tile__sub">
+            {pts(s.totalSalesPoints)} · dont {fmt(s.totalComplementsFcfa)} FCFA
+          </span>
+        </div>
+        <div className="tile tile--ink">
+          <div className="tile__top">
+            <span className="tile__label">Étudiants actifs</span>
+            <span className="tile__icon">
+              <Icon name="user" />
+            </span>
+          </div>
+          <span className="tile__value">
+            <CountUp value={s.activeStudents ?? s.studentsWithBalance} />
+          </span>
+          <span className="tile__sub">
+            ont déposé ou acheté · {s.studentsWithBalance} avec un solde sur {s.totalStudents}
+          </span>
+        </div>
+      </div>
+
+      <div className="dash-grid">
+        <Panel>
+          <PanelHead title={daily.length > 0 ? "Activité jour par jour" : "Activité mois par mois"} aside="Dépôts reçus et ventes" />
+          <PanelBody>
+            {activity.length === 0 ? (
+              <p className="muted">Aucune activité sur cette période.</p>
+            ) : (
+              <GroupedColumns
+                ariaLabel="Dépôts et ventes sur la période"
+                series={[
+                  { key: "deposits", label: "Dépôts", color: "var(--series-1)" },
+                  { key: "acquisitions", label: "Ventes", color: "var(--series-2)" },
+                ]}
+                data={activity}
+              />
+            )}
+          </PanelBody>
+        </Panel>
+        <Panel>
+          <PanelHead title="Paiement des achats" aside={`${totalPaymentCount} achats`} />
+          <PanelBody className="stack" style={{ gap: 18 }}>
+            <SegmentBar
+              ariaLabel="Moyens de paiement"
+              parts={stats.paymentMethods.map((m) => ({ label: m.label, value: m.count, color: PAYMENT_COLORS[m.key], darkText: m.key === "especes" || m.key === "wave" }))}
+            />
+            <div>
+              <span className="label">Valeur vendue par catégorie</span>
+              <HBars rows={stats.byCategory.map((c) => ({ label: c.label, value: c.soldValue, sub: `${c.sold} vendus` }))} />
+            </div>
+          </PanelBody>
+        </Panel>
+      </div>
+
+      <h2 style={{ margin: "8px 0 14px" }}>Tableaux détaillés</h2>
       <div className="stack" style={{ gap: 20 }}>
         <Panel>
           <PanelHead
@@ -510,92 +591,6 @@ export function StatistiquesView({ space, stats }: StatistiquesViewProps) {
           </PanelBody>
         </Panel>
 
-        {space === "partenaire" && stats.catalog && (
-          <section id="catalogue" className="stack" style={{ gap: 14 }}>
-            <div className="row" style={{ gap: "10px 14px", alignItems: "center" }}>
-              <div>
-                <h2 style={{ margin: 0 }}>Articles en boutique</h2>
-                <p className="small muted">Les prix baissent automatiquement de 5 % le 1er de chaque mois.</p>
-              </div>
-              <span className="spacer" />
-              <ButtonLink href={paths.articleNew} size="sm">
-                <Icon name="plus" size="sm" />
-                Ajouter un article de la boutique
-              </ButtonLink>
-            </div>
-
-            <div className="row" style={{ gap: "10px 14px" }}>
-              <ChipGroup<OriginFilter>
-                label="Origine"
-                value={originFilter}
-                onChange={setOriginFilter}
-                options={[
-                  { value: "tout", label: "Tous", count: catalogCounts.tout },
-                  { value: "depot", label: "Dépôts étudiants", count: catalogCounts.depot },
-                  { value: "boutique", label: "Stock boutique", count: catalogCounts.boutique },
-                ]}
-              />
-              <select
-                className="select"
-                aria-label="Filtrer par statut"
-                style={{ width: "auto" }}
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-              >
-                <option value="tout">Tous les statuts</option>
-                <option value="en-ligne">En ligne</option>
-                <option value="a-photographier">À photographier</option>
-                <option value="reserve">Réservés</option>
-                <option value="remis">Remis</option>
-                <option value="retire">Retirés</option>
-              </select>
-              <span className="spacer" />
-              <label className="search" style={{ background: "var(--surface)", maxWidth: 260 }}>
-                <Icon name="search" />
-                <input
-                  type="search"
-                  placeholder="Modèle ou référence"
-                  aria-label="Chercher dans le catalogue"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <Panel>
-              <div className="table-wrap">
-                <table className="table">
-                  <thead>
-                    <tr>
-                      <th>Objet</th>
-                      <th>Origine</th>
-                      <th>En ligne depuis</th>
-                      <th className="r">Prix initial</th>
-                      <th className="r">Prix du jour</th>
-                      <th>Statut</th>
-                      <th />
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {shownArticles.map((a) => (
-                      <StockRow key={a.id} a={a} />
-                    ))}
-                    {shownArticles.length === 0 && (
-                      <tr>
-                        <td colSpan={7} className="muted" style={{ padding: "28px 14px", textAlign: "center" }}>
-                          Aucun article ne correspond.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              <div className="panel__foot small muted">
-                {shownArticles.length} objet(s) affiché(s) sur {catalogCounts.tout} au total
-              </div>
-            </Panel>
-          </section>
-        )}
       </div>
     </BackOfficeLayout>
   );

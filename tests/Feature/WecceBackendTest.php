@@ -371,6 +371,19 @@ class WecceBackendTest extends TestCase
             ->where('fromDate', '2026-11-01')
             ->where('toDate', '2026-11-07')
         );
+        // Dates à l'envers remises dans l'ordre, série quotidienne et étudiants actifs sur la période
+        $this->get('/partenaire/statistiques?periode=personnalisee&du=2026-11-07&au=2026-11-01')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('fromDate', '2026-11-01')
+            ->where('toDate', '2026-11-07')
+            ->has('daily', 7)
+            ->where('summary.activeStudents', fn ($n) => $n > 0)
+            ->where('lastActivity.date', '2026-11-07')
+        );
+        $this->get('/partenaire/statistiques?periode=2026-08')->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('summary.totalDeposits', 0)
+            ->where('summary.activeStudents', 0)
+            ->has('lastActivity.label')
+        );
 
         // Rendez-vous non respectés quand la date du jour avance (ex. 2026-11-18)
         config(['wecce.reference_date' => '2026-11-18']);

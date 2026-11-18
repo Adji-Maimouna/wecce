@@ -190,6 +190,7 @@ export default function Tableau(p: TableauProps) {
           <PanelBody>
             <GroupedColumns
               ariaLabel="Reprises et ventes par semaine"
+              tipTitle={(l) => `Semaine du ${l}`}
               series={[
                 { key: "takeBacks", label: "Reprises", color: "var(--series-1)" },
                 { key: "sales", label: "Ventes", color: "var(--series-2)" },

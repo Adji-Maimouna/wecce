@@ -2090,6 +2090,10 @@ class WecceQueries
             $periode = 'personnalisee';
             $startDate = $validDate($fromDate) ? $fromDate : null;
             $endDate = $validDate($toDate) ? $toDate : null;
+            // Dates saisies à l'envers : on les remet dans l'ordre plutôt que de renvoyer une période vide.
+            if ($startDate && $endDate && $startDate > $endDate) {
+                [$startDate, $endDate] = [$endDate, $startDate];
+            }
             if ($startDate && $endDate) {
                 $periodLabel = 'Du ' . WecceClock::dayMonthYearShort($startDate) . ' au ' . WecceClock::dayMonthYearShort($endDate);
             } elseif ($startDate) {
@@ -2120,6 +2124,10 @@ class WecceQueries
             $startDate = $prevMonthCarbon->copy()->startOfMonth()->format('Y-m-d');
             $endDate = $prevMonthCarbon->copy()->endOfMonth()->format('Y-m-d');
             $periodLabel = ucfirst(WecceClock::monthTitle("{$prevKey}-01"));
+        } elseif ($periode === 'annee') {
+            $startDate = $today->copy()->startOfYear()->format('Y-m-d');
+            $endDate = $todayStr;
+            $periodLabel = 'Cette année (' . $today->format('Y') . ')';
         } elseif (preg_match('/^\d{4}-\d{2}$/', $periode)) {
             $target = Carbon::parse("{$periode}-01");
             $startDate = $target->copy()->startOfMonth()->format('Y-m-d');
@@ -2136,6 +2144,7 @@ class WecceQueries
             ['value' => '30j', 'label' => '30 derniers jours'],
             ['value' => 'mois', 'label' => 'Ce mois-ci'],
             ['value' => 'mois-prec', 'label' => 'Mois dernier'],
+            ['value' => 'annee', 'label' => 'Cette année'],
         ];
         foreach (array_keys($availableMonthKeys) as $mKey) {
             if ($mKey !== $todayMonth && $mKey !== $prevMonthCarbon->format('Y-m')) {
@@ -2191,6 +2200,35 @@ class WecceQueries
         $withdrawnAnnonces = $annonces->where('statut', 'RETIREE');
 
         $totalStudents = User::query()->where('role', 'ETUDIANT')->count();
+        // Étudiants actifs SUR LA PÉRIODE : au moins un dépôt ou un achat dans l'intervalle.
+        $activeStudents = collect($depots->pluck('etudiant_id'))
+            ->merge($acquisitions->pluck('etudiant_id'))
+            ->unique()
+            ->count();
+
+        // Dernière activité connue, pour guider quand la période choisie est vide.
+        $lastActivity = collect([
+            $allDepots->max(fn (Depot $d) => $d->cree_le ? WecceClock::toIso($d->cree_le) : null),
+            $allExpertises->max(fn (Expertise $e) => $e->realisee_le ? WecceClock::toIso($e->realisee_le) : null),
+            $allAcquisitions->max(fn (Acquisition $a) => $a->cree_le ? WecceClock::toIso($a->cree_le) : null),
+        ])->filter()->max();
+
+        // Série quotidienne pour une période courte (jusqu'à 62 jours) : l'activité jour par jour.
+        $daily = [];
+        $seriesStart = $startDate ?? null;
+        $seriesEnd = $endDate ?? null;
+        if ($seriesStart && $seriesEnd && WecceClock::daysBetween($seriesStart, $seriesEnd) <= 62) {
+            for ($d = $seriesStart; $d <= $seriesEnd; $d = WecceClock::addDays($d, 1)) {
+                $pp = WecceClock::parts($d);
+                $daily[] = [
+                    'key' => $d,
+                    'label' => WecceClock::dayNumber($pp['d']) . ' ' . WecceClock::MONTHS_SHORT[$pp['m']],
+                    'deposits' => $depots->filter(fn (Depot $x) => WecceClock::dateOf($x->cree_le) === $d)->count(),
+                    'accepted' => $expertises->filter(fn (Expertise $e) => $e->decision !== 'REFUSE' && WecceClock::dateOf($e->realisee_le) === $d)->count(),
+                    'acquisitions' => $acquisitions->filter(fn (Acquisition $a) => in_array($a->statut, ['RESERVE', 'REMIS'], true) && WecceClock::dateOf($a->cree_le) === $d)->count(),
+                ];
+            }
+        }
         $fundedAccounts = $comptes->filter(fn (ComptePoints $c) => $c->solde > 0);
         $fundedCount = $fundedAccounts->count();
         $debt = $this->engine->debt();
@@ -2359,6 +2397,12 @@ class WecceQueries
             'periodOptions' => $periodOptions,
             'fromDate' => $startDate ?? '',
             'toDate' => $endDate ?? '',
+            'lastActivity' => $lastActivity ? [
+                'date' => WecceClock::dateOf($lastActivity),
+                'label' => WecceClock::dayMonthYear($lastActivity),
+                'month' => WecceClock::monthKey($lastActivity),
+            ] : null,
+            'daily' => $daily,
             'summary' => [
                 'totalDeposits' => $depots->count(),
                 'acceptedDeposits' => $acceptedDeposits,
@@ -2386,6 +2430,7 @@ class WecceQueries
                 'soldCount' => $soldAnnonces->count(),
                 'soldValue' => (int) $soldAnnonces->sum('prix_courant'),
                 'totalStudents' => $totalStudents,
+                'activeStudents' => $activeStudents,
                 'studentsWithBalance' => $fundedCount,
                 'totalPointsInCirculation' => $debt,
                 'avgBalance' => $fundedCount > 0 ? (int) round($debt / $fundedCount) : 0,

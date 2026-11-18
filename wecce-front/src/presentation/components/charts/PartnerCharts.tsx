@@ -26,7 +26,20 @@ function columnPath(x: number, y: number, w: number, h: number): string {
 }
 
 /** Colonnes groupées (par semaine), deux séries au plus, avec infobulle au survol et au clavier. */
-export function GroupedColumns({ data, series, height = 220, ariaLabel }: { data: ColumnDatum[]; series: ColumnSeries[]; height?: number; ariaLabel: string }) {
+export function GroupedColumns({
+  data,
+  series,
+  height = 220,
+  ariaLabel,
+  tipTitle,
+}: {
+  data: ColumnDatum[];
+  series: ColumnSeries[];
+  height?: number;
+  ariaLabel: string;
+  /** Titre de l'infobulle (« Semaine du 2 nov. ») à partir du libellé de la colonne. */
+  tipTitle?: (label: string) => string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const width = 640;
   const pad = { top: 12, right: 8, bottom: 28, left: 30 };
@@ -34,7 +47,9 @@ export function GroupedColumns({ data, series, height = 220, ariaLabel }: { data
   const innerH = height - pad.top - pad.bottom;
   const max = niceMax(Math.max(1, ...data.flatMap((d) => series.map((s) => d.values[s.key] ?? 0))));
   const band = innerW / Math.max(1, data.length);
-  const barW = Math.min(18, (band - 14) / series.length);
+  const gap = band > 24 ? 14 : 4;
+  const barW = Math.max(2, Math.min(18, (band - gap) / series.length - 2));
+  const labelEvery = Math.max(1, Math.ceil(data.length / 12));
   const ticks = [0, max / 2, max];
   const y = (v: number) => pad.top + innerH - (v / max) * innerH;
 
@@ -60,9 +75,11 @@ export function GroupedColumns({ data, series, height = 220, ariaLabel }: { data
                 const top = y(v);
                 return <path key={s.key} d={columnPath(x0 + k * (barW + 2), top, barW, pad.top + innerH - top)} fill={s.color} />;
               })}
-              <text className="tick" x={pad.left + i * band + band / 2} y={height - 8} textAnchor="middle" fontWeight={d.current ? 700 : 400}>
-                {d.label}
-              </text>
+              {i % labelEvery === 0 && (
+                <text className="tick" x={pad.left + i * band + band / 2} y={height - 8} textAnchor="middle" fontWeight={d.current ? 700 : 400}>
+                  {d.label}
+                </text>
+              )}
               <rect
                 x={pad.left + i * band}
                 y={pad.top}
@@ -82,7 +99,7 @@ export function GroupedColumns({ data, series, height = 220, ariaLabel }: { data
       </svg>
       {hover !== null && data[hover] && (
         <div className="viz-tip" style={{ left: `${((pad.left + hover * band + band / 2) / width) * 100}%`, top: `${(pad.top / height) * 100}%` }}>
-          <strong>Semaine du {data[hover].label}</strong>
+          <strong>{tipTitle ? tipTitle(data[hover].label) : data[hover].label}</strong>
           {series.map((s) => (
             <div key={s.key}>
               <i style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: s.color, marginRight: 6 }} />
@@ -115,7 +132,7 @@ export function HBars({ rows, unit = "pts" }: { rows: { label: string; value: nu
             {r.sub && <span className="xs muted"> · {r.sub}</span>}
           </span>
           <span className="hbar__track">
-            <span className="hbar__fill" style={{ display: "block", width: `${(r.value / max) * 100}%` }} />
+            {r.value > 0 && <span className="hbar__fill" style={{ display: "block", width: `${(r.value / max) * 100}%` }} />}
           </span>
           <span className="hbar__val">
             {fmt(r.value)} {unit}
