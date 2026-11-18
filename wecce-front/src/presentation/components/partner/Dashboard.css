@@ -114,3 +114,5 @@ a.tile:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgb(28 26 20
 .activity-ico--reprise { background: var(--accent-tint); color: var(--accent); }
 .activity-ico--vente { background: #fdeee6; color: #b4471b; }
 .activity-ico--remise { background: var(--ok-tint); color: var(--ok); }
+
+.cat-tag { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); font-size: var(--t-xs); font-weight: 600; color: var(--ink-2); white-space: nowrap; }

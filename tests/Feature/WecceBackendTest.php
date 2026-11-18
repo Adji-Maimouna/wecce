@@ -279,7 +279,9 @@ class WecceBackendTest extends TestCase
             ->where('date', '2026-11-07')
             ->has('appointments', 6)
             ->has('week', 6)
-            ->has('requests')
+            ->has('requests', 2)
+            ->where('requests.0.status', 'a-planifier')
+            ->where('auth.partnerTodo.requests', 2)
             ->where('auth.appointmentsToReceive', 3)
             ->where('auth.partnerTodo.purchases', 1)
         );
@@ -417,7 +419,7 @@ class WecceBackendTest extends TestCase
             ->assertStatus(422); // dimanche
         $this->postJson('/partenaire/depots/WC-2026-0643/rendez-vous', ['date' => '2026-11-20', 'time' => '15:30'])->assertOk();
         $this->get('/partenaire/rendez-vous?date=2026-11-20')->assertOk()->assertInertia(fn (Assert $page) => $page
-            ->has('requests', 0)
+            ->has('requests', 2) // les deux demandes de démonstration restent à planifier
             ->where('appointments.0.depositRef', 'WC-2026-0643')
         );
         $this->actingAs($fatou);

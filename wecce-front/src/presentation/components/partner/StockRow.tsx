@@ -9,6 +9,7 @@ import type { IconName } from "@/presentation/components/ui/icons";
 import { useUseCases } from "@/presentation/hooks/useUseCases";
 import { cn } from "@/presentation/lib/cn";
 import { fmt } from "@/presentation/lib/format";
+import { CATEGORY_LABELS } from "@/presentation/lib/labels";
 import { paths } from "@/presentation/lib/paths";
 import { StockStatusBadge } from "./StockStatusBadge";
 
@@ -52,14 +53,24 @@ export function StockRow({ a }: { a: StockArticle }) {
             <AppLink className="who__name" href={paths.article(a.id)}>
               {a.name}
             </AppLink>
-            <div className="who__sub">{a.info}</div>
+            <div className="who__sub">
+              {a.origin === "depot" ? `Dépôt ${a.originRef}` : "Stock de la boutique"}
+              {a.info ? ` · ${a.info}` : ""}
+            </div>
           </div>
         </div>
       </td>
-      <td>{a.origin === "depot" ? `Dépôt ${a.originRef}` : "Stock de la boutique"}</td>
+      <td>
+        <span className="cat-tag">
+          <Icon name={CATEGORY_ICON[a.category]} size="sm" />
+          {CATEGORY_LABELS[a.category].label}
+        </span>
+      </td>
       <td>{a.onlineSince}</td>
-      <td className="r">{fmt(a.initialPrice)}</td>
-      <td className={a.status === "retire" ? "r muted" : "r"}>{fmt(a.todayPrice)}</td>
+      <td className={a.status === "retire" ? "r muted" : "r"}>
+        {fmt(a.todayPrice)}
+        {a.initialPrice !== a.todayPrice && <div className="xs muted">au départ {fmt(a.initialPrice)}</div>}
+      </td>
       <td>
         <StockStatusBadge a={a} status={a.status} />
       </td>
