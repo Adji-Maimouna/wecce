@@ -3,7 +3,7 @@ import { Panel, PanelBody, PanelHead } from "@/presentation/components/ui/Panel"
 import { Tbd } from "@/presentation/components/ui/Tbd";
 import type { AvailabilityDay } from "@/domain/entities";
 import { AGE_LABELS, DEVICE_CONDITIONS, PART_CONDITIONS } from "@/presentation/lib/labels";
-import { availabilityText } from "./AvailabilityPicker";
+import { availabilityText } from "./availabilityText";
 import type { DepositDraft } from "./useDepositDraft";
 import { WizardFoot } from "./WizardFoot";
 

@@ -18,7 +18,7 @@ export default function Depot({ deposit: d }: { deposit: ProcessedDeposit }) {
   return (
     <BackOfficeLayout space="partenaire" current="rendez-vous">
       <PageTitle>{`Dépôt ${d.ref}`}</PageTitle>
-      <Crumbs items={[{ label: "Rendez-vous du jour", href: paths.rendezVous }, { label: d.ref }]} />
+      <Crumbs items={[{ label: "Rendez-vous", href: paths.rendezVous }, { label: d.ref }]} />
       <PageHead
         title={d.device}
         lead={`${d.student.name} · carte ${d.student.card} · dépôt ${d.ref}`}

@@ -123,7 +123,7 @@ function ExpertiseForm({ declared, bonus, controls, shopItems = [] }: ExpertiseP
 
   return (
     <>
-      <Crumbs items={[{ label: "Rendez-vous du jour", href: paths.rendezVous }, { label: declared.depositRef }]} />
+      <Crumbs items={[{ label: "Rendez-vous", href: paths.rendezVous }, { label: declared.depositRef }]} />
       <PageHead
         title={`Expertise · ${declared.modele}`}
         lead={`${declared.student.name} · carte ${declared.student.card} · rendez-vous de ${declared.appointmentTime}`}

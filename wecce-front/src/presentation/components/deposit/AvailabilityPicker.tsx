@@ -1,17 +1,12 @@
 import type { AppointmentAvailability, AvailabilityDay, AvailabilityMoment } from "@/domain/entities";
 import { Segmented } from "@/presentation/components/ui/Segmented";
+import { MOMENTS } from "./availabilityText";
 
 type AvailabilityPickerProps = {
   days: AvailabilityDay[];
   value: AppointmentAvailability;
   onChange: (value: AppointmentAvailability) => void;
 };
-
-const MOMENTS: { value: AvailabilityMoment; label: string }[] = [
-  { value: "matin", label: "Le matin" },
-  { value: "apres-midi", label: "L'après-midi" },
-  { value: "indifferent", label: "Peu importe" },
-];
 
 /** Disponibilités de l'étudiant : plusieurs jours, un moment de la journée, un mot pour LBC. */
 export function AvailabilityPicker({ days, value, onChange }: AvailabilityPickerProps) {
@@ -58,12 +53,4 @@ export function AvailabilityPicker({ days, value, onChange }: AvailabilityPicker
       </div>
     </div>
   );
-}
-
-/** « Lun. 23, mar. 24 · le matin » : résumé lisible des disponibilités. */
-export function availabilityText(value: AppointmentAvailability, days: AvailabilityDay[]): string {
-  if (!value.days.length) return "aucun jour choisi";
-  const names = value.days.map((d) => days.find((x) => x.date === d)?.label ?? d);
-  const moment = MOMENTS.find((m) => m.value === value.moment)?.label.toLowerCase() ?? "";
-  return `${names.join(", ")} · ${value.moment === "indifferent" ? "à n'importe quelle heure" : moment}${value.note.trim() ? ` · « ${value.note.trim()} »` : ""}`;
 }

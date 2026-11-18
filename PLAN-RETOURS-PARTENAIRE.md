@@ -39,6 +39,8 @@ Le serveur simulé du navigateur (`wecce-front/src/infrastructure/demo`) n'est q
 
 ## 3. Plan d'exécution
 
+Toutes les étapes sont faites (novembre 2026) ; 9 tests de bout en bout couvrent les nouveaux parcours.
+
 | Étape | Contenu | Fichiers principaux |
 |---|---|---|
 | 0 | Migration additive : `depot.disponibilites`, `depot.rdv_fixe_le`, `expertise.mode_reprise`, `expertise.contrepartie_*`, `configuration_plateforme.bonus_plafond_points`, `bonus_un_par_etudiant` ; valeurs d'énumération `RDV_DEMANDE` et `EN_BOUTIQUE` ; garantie par défaut à 90 jours | `database/migrations/*` |
@@ -51,3 +53,10 @@ Le serveur simulé du navigateur (`wecce-front/src/infrastructure/demo`) n'est q
 | 7 | Filtres temporels : rendez-vous par date (jour précédent/suivant, calendrier, vue semaine) ; statistiques entièrement filtrées, « dernière activité » quand la période est vide | `RendezVous`, `WecceQueries::statisticsPage` |
 | 8 | Refonte visuelle : **tableau de bord** d'accueil coloré (tuiles moutarde/cobalt/vert, graphiques, tâches du jour), barre latérale sombre, statistiques en graphiques | `BackOfficeLayout`, `partenaire/Tableau`, `StatistiquesView` |
 | 9 | Tests PHP de bout en bout, vérification de types, contrôle dans le navigateur | `tests/Feature/*` |
+
+## 4. Ce qu'il reste à décider avec LBC
+
+- Valeurs par défaut : garantie 90 jours, bonus plafonné à 5 000 points et un par étudiant (réglables dans le pilotage admin).
+- Remboursement d'un complément Wave / Orange Money quand LBC refuse un achat déjà payé : l'application l'annonce à l'agent mais ne déclenche pas le remboursement (à faire par l'opérateur).
+- Délai de réponse attendu de LBC sur une demande de rendez-vous (aucune relance automatique n'est envoyée à l'étudiant pour l'instant).
+- Données de démonstration : elles s'arrêtent au 11 novembre 2026. Sans `WECCE_REFERENCE_DATE`, les périodes récentes (« 7 derniers jours ») sont vides ; les écrans l'expliquent et proposent d'aller à la dernière activité.

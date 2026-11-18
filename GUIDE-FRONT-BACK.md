@@ -295,6 +295,24 @@ Le serveur simulé renvoie en plus des refus que seul le serveur peut constater 
 
 ---
 
+### 6 bis. Retours LBC de novembre 2026 (voir `PLAN-RETOURS-PARTENAIRE.md`)
+
+Ces routes sont implémentées dans Laravel ; le serveur simulé du navigateur ne les connaît pas (il répond « Disponible avec le serveur Laravel uniquement »).
+
+| Port / cas d'usage | Route | Effet |
+|---|---|---|
+| `PartnerGateway.validateAcquisition` | `POST /partenaire/acquisitions/{ref}/validation` | `A_VALIDER` → `RESERVE`, **seul moment où les points sont débités** |
+| `PartnerGateway.refuseAcquisition` | `POST /partenaire/acquisitions/{ref}/refus` `{reason}` | → `ANNULE`, annonce remise `EN_LIGNE`, renvoie le complément mobile à rembourser |
+| `PartnerGateway.handOver` | `POST /partenaire/acquisitions/{ref}/remise` | exige `RESERVE` ; enregistre `remis_par`, garantie de 90 jours |
+| `PartnerGateway.scheduleAppointment` | `POST /partenaire/depots/{ref}/rendez-vous` `{date, time}` | `RDV_DEMANDE`/`RDV_PRIS` → `RDV_PRIS` ; refuse dimanche, passé, créneau pris |
+| `DepositGateway.requestAppointment` | `PUT /etudiant/depots/{ref}/rendez-vous` `{availability}` | → `RDV_DEMANDE`, créneau libéré |
+| `PartnerGateway.unpublishArticle` | `DELETE /partenaire/stock/{id}/publication` | `EN_LIGNE` → `EN_BOUTIQUE` (hors marché, toujours en stock) |
+| `submitExpertise` (champs ajoutés) | `POST /partenaire/expertises` `{mode, counterpartArticleId?, counterpartLabel?}` | `mode` : `vente`, `echange-points`, `echange-objet` |
+| `saveArticle` (champ ajouté) | `POST /partenaire/stock` `{online}` | `online: false` → article au catalogue LBC, hors ligne |
+
+Écrans : `GET /partenaire/tableau-de-bord` (accueil LBC, `partenaire/Tableau`), `GET /partenaire/rendez-vous?date=AAAA-MM-JJ`, `GET /partenaire/stock?onglet=achats|depots|catalogue`.
+Nouveaux statuts : dépôt `RDV_DEMANDE` (`demande-rdv`), annonce `EN_BOUTIQUE` (`en-boutique`), acquisition `A_VALIDER` (`a-valider`).
+
 ## 7. Règles métier présentes des deux côtés
 
 Le front les applique pour afficher et pour bloquer tôt ; **le back reste la source de vérité**. Fichiers : `wecce-front/src/domain/rules/`.
