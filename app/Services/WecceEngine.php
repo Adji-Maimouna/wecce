@@ -730,7 +730,24 @@ class WecceEngine
         return $appareil->fullName();
     }
 
+    /** Statuts d'une acquisition qui bloquent les points de l'étudiant sans les avoir encore débités. */
+    public const ACQ_EN_COURS = ['EN_ATTENTE', 'A_VALIDER'];
+
+    /** Points engagés dans des achats pas encore validés par LBC. */
+    public function heldPoints(string $userId, ?string $exceptAcquisitionId = null): int
+    {
+        return (int) Acquisition::query()
+            ->where('etudiant_id', $userId)
+            ->whereIn('statut', self::ACQ_EN_COURS)
+            ->when($exceptAcquisitionId, fn ($q) => $q->where('id', '<>', $exceptAcquisitionId))
+            ->sum('points_debites');
+    }
+
     /**
+     * L'étudiant prend un objet. Rien n'est débité ici : l'achat attend la validation de LBC
+     * (statut A_VALIDER), ou d'abord la confirmation du paiement mobile (EN_ATTENTE).
+     * Les points prévus sont bloqués : ils ne peuvent pas servir à un second achat.
+     *
      * @return array{acquisition: Acquisition, paiement: Paiement|null}
      */
     public function acquire(string $userId, string $articleId, string $methodFront, string $at, ?string $phone = null, ?string $forcedPaymentRef = null): array
@@ -746,9 +763,9 @@ class WecceEngine
 
             $compte = ComptePoints::query()->where('etudiant_id', $userId)->lockForUpdate()->firstOrFail();
             $price = (int) $annonce->prix_courant;
-            $balance = (int) $compte->solde;
-            $covered = min($price, $balance);
-            $complement = max(0, $price - $balance);
+            $available = max(0, (int) $compte->solde - $this->heldPoints($userId));
+            $covered = min($price, $available);
+            $complement = max(0, $price - $available);
 
             $methodSql = WecceCodes::PAYMENT_METHOD_TO_SQL[$methodFront] ?? 'ESPECES';
             $immediate = $methodFront === 'especes' || $complement === 0;
@@ -762,7 +779,7 @@ class WecceEngine
                 'prix_total' => $price,
                 'points_debites' => $covered,
                 'complement_du' => $complement,
-                'statut' => $immediate ? 'RESERVE' : 'EN_ATTENTE',
+                'statut' => $immediate ? 'A_VALIDER' : 'EN_ATTENTE',
                 'cree_le' => $at,
                 'confirme_le' => $immediate ? $at : null,
             ]);
@@ -777,16 +794,6 @@ class WecceEngine
                 $paiement = $this->especesPasserelle->initier($acquisition, $complement, $phone, $at, $forcedPaymentRef);
             }
 
-            if ($immediate && $covered > 0) {
-                $this->debiterAcquisition->execute(
-                    $compte,
-                    $acquisition,
-                    $this->articleDisplayName($annonce),
-                    $covered,
-                    $at
-                );
-            }
-
             return [
                 'acquisition' => $acquisition,
                 'paiement' => $paiement,
@@ -794,6 +801,7 @@ class WecceEngine
         });
     }
 
+    /** Le prestataire confirme le paiement mobile : l'achat passe à la validation de LBC. */
     public function confirmPayment(string $refOrPaymentRef, string $at): Acquisition
     {
         return DB::transaction(function () use ($refOrPaymentRef, $at) {
@@ -810,17 +818,8 @@ class WecceEngine
                 return $acquisition;
             }
 
-            $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);
-            $compte = ComptePoints::query()->where('etudiant_id', $acquisition->etudiant_id)->lockForUpdate()->firstOrFail();
-
-            $points = min((int) $acquisition->points_debites, (int) $compte->solde);
-            $complement = (int) $annonce->prix_courant - $points;
-
             $acquisition->update([
-                'points_debites' => $points,
-                'complement_du' => $complement,
-                'prix_total' => (int) $annonce->prix_courant,
-                'statut' => 'RESERVE',
+                'statut' => 'A_VALIDER',
                 'confirme_le' => $at,
             ]);
 
@@ -830,6 +829,43 @@ class WecceEngine
                     'statut' => 'CONFIRME',
                     'confirme_le' => $at,
                 ]);
+
+            return $acquisition->fresh();
+        });
+    }
+
+    /**
+     * LBC valide l'achat : les points sont débités (seul moment où ils le sont) et l'objet
+     * est réservé à l'étudiant jusqu'à son retrait.
+     */
+    public function validateAcquisition(string $agentId, string $acquisitionRef, string $at): Acquisition
+    {
+        return DB::transaction(function () use ($agentId, $acquisitionRef, $at) {
+            $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
+            if (!$acquisition) {
+                throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if ($acquisition->statut !== 'A_VALIDER') {
+                throw new RuleViolationException('acquisition-traitee', $acquisition->statut === 'EN_ATTENTE'
+                    ? "Le paiement mobile de l'étudiant n'est pas encore confirmé."
+                    : 'Cet achat a déjà été traité.');
+            }
+
+            $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);
+            $compte = ComptePoints::query()->where('etudiant_id', $acquisition->etudiant_id)->lockForUpdate()->firstOrFail();
+
+            // Les points ont été bloqués à la demande ; une baisse mensuelle a pu entamer le solde depuis.
+            $available = max(0, (int) $compte->solde - $this->heldPoints($acquisition->etudiant_id, $acquisition->id));
+            $points = min((int) $acquisition->points_debites, $available);
+            $complement = (int) $acquisition->prix_total - $points;
+
+            $acquisition->update([
+                'points_debites' => $points,
+                'complement_du' => $complement,
+                'statut' => 'RESERVE',
+                'valide_le' => $at,
+                'valide_par' => $agentId,
+            ]);
 
             if ($points > 0) {
                 $this->debiterAcquisition->execute(
@@ -845,6 +881,52 @@ class WecceEngine
         });
     }
 
+    /**
+     * LBC refuse l'achat : rien n'a été débité, l'objet revient sur le marché.
+     *
+     * @return array{refundFcfa: int}
+     */
+    public function refuseAcquisition(string $agentId, string $acquisitionRef, string $reason, string $at): array
+    {
+        return DB::transaction(function () use ($agentId, $acquisitionRef, $reason, $at) {
+            $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
+            if (!$acquisition) {
+                throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if (!in_array($acquisition->statut, self::ACQ_EN_COURS, true)) {
+                throw new RuleViolationException('acquisition-traitee', 'Seul un achat en attente de validation peut être refusé.');
+            }
+            if (mb_strlen(trim($reason), 'UTF-8') < 3) {
+                throw new RuleViolationException('motif-manquant', "Indiquez le motif du refus : il est montré à l'étudiant.");
+            }
+
+            $refund = (int) Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'CONFIRME')
+                ->whereIn('moyen', ['WAVE', 'ORANGE_MONEY'])
+                ->sum('montant_fcfa');
+
+            $acquisition->update([
+                'statut' => 'ANNULE',
+                'motif_refus' => trim($reason),
+                'valide_le' => $at,
+                'valide_par' => $agentId,
+            ]);
+            Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'EN_ATTENTE')
+                ->update(['statut' => 'ECHOUE']);
+
+            $annonce = Annonce::query()->find($acquisition->annonce_id);
+            if ($annonce && $annonce->statut === 'RESERVEE') {
+                $annonce->update(['statut' => 'EN_LIGNE']);
+            }
+
+            return ['refundFcfa' => $refund];
+        });
+    }
+
+    /** L'étudiant abandonne avant la validation de LBC (rien n'a été débité). */
     public function cancelPayment(string $refOrPaymentRef): void
     {
         DB::transaction(function () use ($refOrPaymentRef) {
@@ -856,8 +938,16 @@ class WecceEngine
             if (!$acquisition) {
                 throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
             }
-            if ($acquisition->statut !== 'EN_ATTENTE') {
-                throw new RuleViolationException('paiement-confirme', 'Le paiement est déjà confirmé.');
+            if (!in_array($acquisition->statut, self::ACQ_EN_COURS, true)) {
+                throw new RuleViolationException('paiement-confirme', 'LBC a déjà validé cet achat : adressez-vous au comptoir.');
+            }
+            $paidMobile = Paiement::query()
+                ->where('acquisition_id', $acquisition->id)
+                ->where('statut', 'CONFIRME')
+                ->whereIn('moyen', ['WAVE', 'ORANGE_MONEY'])
+                ->exists();
+            if ($paidMobile) {
+                throw new RuleViolationException('paiement-confirme', 'Votre complément est déjà payé : demandez l\'annulation au comptoir LBC, qui vous remboursera.');
             }
 
             $acquisition->update(['statut' => 'ANNULE']);
@@ -870,12 +960,16 @@ class WecceEngine
         });
     }
 
-    public function handOver(string $acquisitionRef, string $at): void
+    /** LBC confirme avoir remis l'objet à l'étudiant : l'achat est soldé, la garantie démarre. */
+    public function handOver(string $acquisitionRef, string $at, ?string $agentId = null): void
     {
-        DB::transaction(function () use ($acquisitionRef, $at) {
+        DB::transaction(function () use ($acquisitionRef, $at, $agentId) {
             $acquisition = Acquisition::query()->where('reference', strtoupper($acquisitionRef))->lockForUpdate()->first();
             if (!$acquisition) {
                 throw new RuleViolationException('acquisition-inconnue', 'Acquisition introuvable.');
+            }
+            if ($acquisition->statut === 'A_VALIDER') {
+                throw new RuleViolationException('acquisition-a-valider', "Validez d'abord l'achat : les points ne sont pas encore débités.");
             }
             if ($acquisition->statut !== 'RESERVE') {
                 throw new RuleViolationException('acquisition-ouverte', "Cet objet n'est pas prêt à être remis.");
@@ -888,6 +982,7 @@ class WecceEngine
                 'statut' => 'REMIS',
                 'retire_le' => $at,
                 'garantie_jusquau' => $garantieJusquau,
+                'remis_par' => $agentId,
             ]);
 
             $annonce = Annonce::query()->with('appareil')->findOrFail($acquisition->annonce_id);

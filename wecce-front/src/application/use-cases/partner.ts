@@ -16,6 +16,15 @@ export const makeRefuseDeposit = (partner: PartnerGateway) => (depositRef: strin
 
 export const makePublishArticle = (partner: PartnerGateway) => (articleId: string) => partner.publishArticle(articleId);
 
+/** Valider un achat demandé par un étudiant : c'est à ce moment que ses points sont débités. */
+export const makeValidateAcquisition = (partner: PartnerGateway) => (acquisitionRef: string) => partner.validateAcquisition(acquisitionRef);
+
+/** Refuser un achat (objet introuvable, abîmé…) : motif obligatoire, montré à l'étudiant. */
+export const makeRefuseAcquisition = (partner: PartnerGateway) => async (acquisitionRef: string, reason: string) => {
+  if (reason.trim().length < 3) throw new RuleViolation("motif-manquant", "Indiquez le motif du refus : il est montré à l'étudiant.");
+  return partner.refuseAcquisition(acquisitionRef, reason.trim());
+};
+
 /** Remettre un objet réservé : l'acquisition est soldée, la garantie démarre. */
 export const makeHandOver = (partner: PartnerGateway) => (acquisitionRef: string) => partner.handOver(acquisitionRef);
 

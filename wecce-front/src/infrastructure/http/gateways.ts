@@ -138,6 +138,16 @@ export const httpPorts: Ports = {
       request("POST", `/partenaire/stock/${encodeURIComponent(articleId)}/publication`).then(() => {
         reloadProps();
       }),
+    validateAcquisition: (acquisitionRef) =>
+      request<{ points: number; complement: number }>("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/validation`).then((r) => {
+        reloadProps();
+        return r;
+      }),
+    refuseAcquisition: (acquisitionRef, reason) =>
+      request<{ refundFcfa: number }>("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/refus`, { reason }).then((r) => {
+        reloadProps();
+        return r;
+      }),
     handOver: (acquisitionRef) =>
       request("POST", `/partenaire/acquisitions/${encodeURIComponent(acquisitionRef)}/remise`).then(() => {
         reloadProps();

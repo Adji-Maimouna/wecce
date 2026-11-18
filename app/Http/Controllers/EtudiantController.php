@@ -70,12 +70,18 @@ class EtudiantController extends Controller
         }
 
         $student = $this->queries->studentEntity($uid);
+        // Une acquisition en cours sur CET objet ne doit pas se bloquer elle-même.
+        $held = $acquisition && in_array($acquisition['status'], ['en-attente', 'a-valider'], true)
+            ? max(0, $student['heldPoints'] - $acquisition['points'])
+            : $student['heldPoints'];
 
         return Inertia::render('etudiant/Prendre', [
             'item' => $page['details']['item'],
             'title' => $page['details']['title'],
-            'balance' => $student['balance'],
+            'balance' => max(0, $student['balance'] - $held),
+            'heldPoints' => $held,
             'acquisition' => $acquisition,
+            'refusal' => $acquisition ? null : $this->queries->lastRefusedAcquisition($uid, $slug),
             'unavailable' => $page['reservedByOther'],
         ]);
     }
@@ -312,7 +318,7 @@ class EtudiantController extends Controller
         }
 
         return response()->json([
-            'status' => 'reserve',
+            'status' => 'a-valider',
             'acquisitionRef' => $q->reference,
         ]);
     }

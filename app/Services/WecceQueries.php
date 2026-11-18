@@ -69,6 +69,7 @@ class WecceQueries
             'niveau' => $etudiant?->niveau,
             'ufr' => $etudiant?->ufr,
             'balance' => (int) ($compte?->solde ?? 0),
+            'heldPoints' => $this->engine->heldPoints($userId),
             'memberSince' => WecceClock::dayMonthYear($u->cree_le),
             'depositCount' => Depot::query()->where('etudiant_id', $userId)->count(),
         ];
@@ -221,8 +222,31 @@ class WecceQueries
         return Acquisition::query()
             ->with('paiements')
             ->where('annonce_id', $annonceId)
-            ->whereIn('statut', ['EN_ATTENTE', 'RESERVE'])
+            ->whereIn('statut', ['EN_ATTENTE', 'A_VALIDER', 'RESERVE'])
             ->first();
+    }
+
+    /** Dernier achat de cet objet refusé par LBC, s'il est le plus récent de l'étudiant sur cet objet. */
+    public function lastRefusedAcquisition(string $viewerId, string $slug): ?array
+    {
+        $a = Annonce::query()->where('slug', $slug)->first();
+        if (!$a) {
+            return null;
+        }
+        $last = Acquisition::query()
+            ->where('annonce_id', $a->id)
+            ->where('etudiant_id', $viewerId)
+            ->orderByDesc('cree_le')
+            ->first();
+        if (!$last || $last->statut !== 'ANNULE' || !$last->motif_refus) {
+            return null;
+        }
+
+        return [
+            'ref' => $last->reference,
+            'reason' => $last->motif_refus,
+            'at' => $last->valide_le ? WecceClock::stampAt($last->valide_le) : '',
+        ];
     }
 
     public function itemPage(string $slug, ?string $viewerId = null, bool $includeSold = false): ?array
@@ -288,6 +312,7 @@ class WecceQueries
 
         $statusMap = [
             'EN_ATTENTE' => 'en-attente',
+            'A_VALIDER' => 'a-valider',
             'RESERVE' => 'reserve',
             'REMIS' => 'remis',
         ];
@@ -307,6 +332,15 @@ class WecceQueries
         }
         if ($q->confirme_le) {
             $res['confirmedAt'] = WecceClock::stampAt($q->confirme_le);
+        }
+        if ($q->valide_le) {
+            $res['validatedAt'] = WecceClock::stampAt($q->valide_le);
+        }
+        if ($q->retire_le) {
+            $res['handedAt'] = WecceClock::stampAt($q->retire_le);
+        }
+        if ($q->garantie_jusquau) {
+            $res['warrantyUntil'] = WecceClock::dayMonthYear($q->garantie_jusquau);
         }
 
         return $res;

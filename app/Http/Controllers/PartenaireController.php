@@ -186,9 +186,28 @@ class PartenaireController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    public function handOver(string $ref): JsonResponse
+    public function validateAcquisition(Request $request, string $ref): JsonResponse
     {
-        $this->engine->handOver($ref, WecceClock::now());
+        $q = $this->engine->validateAcquisition($request->user()->id, $ref, WecceClock::now());
+
+        return response()->json(['ok' => true, 'points' => (int) $q->points_debites, 'complement' => (int) $q->complement_du]);
+    }
+
+    public function refuseAcquisition(Request $request, string $ref): JsonResponse
+    {
+        $res = $this->engine->refuseAcquisition(
+            $request->user()->id,
+            $ref,
+            (string) $request->input('reason', ''),
+            WecceClock::now()
+        );
+
+        return response()->json(['ok' => true, 'refundFcfa' => $res['refundFcfa']]);
+    }
+
+    public function handOver(Request $request, string $ref): JsonResponse
+    {
+        $this->engine->handOver($ref, WecceClock::now(), $request->user()->id);
         return response()->json(['ok' => true]);
     }
 

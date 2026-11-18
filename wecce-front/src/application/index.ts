@@ -1,7 +1,16 @@
 import type { Ports } from "./ports";
 import { makeLogin, makeLogout, makeRegisterStudent, makeRequestPasswordReset } from "./use-cases/auth";
 import { makeAdjustPoints, makeSaveBonus, makeSetDepositsSuspended } from "./use-cases/admin";
-import { makeHandOver, makePublishArticle, makeRefuseDeposit, makeSaveArticle, makeSubmitExpertise, makeWithdrawArticle } from "./use-cases/partner";
+import {
+  makeHandOver,
+  makePublishArticle,
+  makeRefuseAcquisition,
+  makeRefuseDeposit,
+  makeSaveArticle,
+  makeSubmitExpertise,
+  makeValidateAcquisition,
+  makeWithdrawArticle,
+} from "./use-cases/partner";
 import { makeChangePassword, makeUpdateContact } from "./use-cases/profile";
 import {
   makeAcquireItem,
@@ -39,6 +48,8 @@ export function makeUseCases(ports: Ports) {
     submitExpertise: makeSubmitExpertise(ports.partner),
     refuseDeposit: makeRefuseDeposit(ports.partner),
     publishArticle: makePublishArticle(ports.partner),
+    validateAcquisition: makeValidateAcquisition(ports.partner),
+    refuseAcquisition: makeRefuseAcquisition(ports.partner),
     handOver: makeHandOver(ports.partner),
     saveArticle: makeSaveArticle(ports.partner),
     withdrawArticle: makeWithdrawArticle(ports.partner),

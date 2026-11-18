@@ -284,22 +284,27 @@ class DatabaseSeeder extends Seeder
             'run' => fn () => $engine->addShopArticle($a + ['at' => $at]),
         ];
 
-        $bought = function (string $userKey, string $slug, string $method, string $at, ?string $handedAt = null) use ($engine): array {
+        $bought = function (string $userKey, string $slug, string $method, string $at, ?string $handedAt = null, bool $validate = true) use ($engine, $agentId): array {
             $mm = str_pad((string) min(59, ((int) substr($at, 14, 2)) + 1), 2, '0', STR_PAD_LEFT);
             $confirmAt = substr($at, 0, 14) . $mm;
 
             return [
                 [
                     'at' => $at,
-                    'run' => function () use ($engine, $userKey, $slug, $method, $at, $confirmAt, $handedAt) {
+                    'run' => function () use ($engine, $agentId, $userKey, $slug, $method, $at, $confirmAt, $handedAt, $validate) {
                         $article = Annonce::query()->where('slug', $slug)->firstOrFail();
                         $res = $engine->acquire($this->uid($userKey), $article->id, $method, $at);
                         $q = $res['acquisition'];
                         if ($q->statut === 'EN_ATTENTE') {
                             $engine->confirmPayment($q->reference, $confirmAt);
                         }
+                        if (!$validate) {
+                            return;
+                        }
+                        // LBC valide l'achat peu après (les points sont débités à ce moment).
+                        $engine->validateAcquisition($agentId, $q->reference, $confirmAt);
                         if ($handedAt) {
-                            $engine->handOver($q->reference, $handedAt);
+                            $engine->handOver($q->reference, $handedAt, $agentId);
                         }
                     },
                 ],
@@ -432,6 +437,8 @@ class DatabaseSeeder extends Seeder
             $declare(['ref' => 'WC-2026-0619', 'user' => 'u-aliou', 'created' => '2026-11-04T07:45', 'slot' => '2026-11-06T15:00', 'category' => 'piece', 'modele' => 'Clé USB', 'stockage' => '64 Go', 'age' => 'inconnu']),
             $refused('WC-2026-0619', '2026-11-06T15:03', 'modele', 'Une clé USB de 64 Go se trouve neuve pour moins cher : elle ne se revendrait pas sur Wecce.'),
             ...$bought('u-fatou', 'iphone-11', 'especes', '2026-11-06T16:20'),
+            // Achat en attente de validation par LBC (démonstration de l'onglet Stock).
+            ...$bought('u-aissatou', 'ram-ddr4-16', 'especes', '2026-11-07T10:50', null, false),
             $declare(['ref' => 'WC-2026-0629', 'user' => 'u-aissatou', 'created' => '2026-11-03T12:30', 'slot' => '2026-11-07T09:30', 'category' => 'tel', 'modele' => 'Galaxy A32', 'stockage' => '128 Go', 'wish' => 45000]),
             ...$takenBack('WC-2026-0629', '2026-11-07T09:42', ['condition' => 'bon', 'battery' => 87, 'takeBack' => 38000, 'listPrice' => 51000]),
             $declare(['ref' => 'WC-2026-0631', 'user' => 'u-ismaila', 'created' => '2026-11-04T10:00', 'slot' => '2026-11-07T10:00', 'category' => 'audio', 'modele' => 'Écouteurs Oraimo FreePods', 'age' => '2-3', 'etat' => 'use']),

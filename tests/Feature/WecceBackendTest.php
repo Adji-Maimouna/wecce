@@ -10,6 +10,7 @@ use App\Models\MouvementPoints;
 use App\Models\User;
 use App\Services\WecceEngine;
 use App\Services\WecceQueries;
+use App\Support\WecceClock;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -445,15 +446,44 @@ class WecceBackendTest extends TestCase
             'method'   => 'especes',
         ])->assertOk();
 
-        $this->assertSame('reserve', $acqResp->json('status'));
+        // L'achat attend la validation de LBC : rien n'est encore débité, mais les points sont bloqués.
+        $this->assertSame('a-valider', $acqResp->json('status'));
         $acqRef = $acqResp->json('acquisitionRef');
 
         $compteFatou = ComptePoints::query()->where('etudiant_id', $fatou->id)->firstOrFail();
-        $this->assertSame(55000 - $jblPrice, (int) $compteFatou->solde);
+        $this->assertSame(55000, (int) $compteFatou->solde);
+        $this->assertSame($jblPrice, app(WecceEngine::class)->heldPoints($fatou->id));
 
-        // 5. Remise au comptoir par l'agent LBC
+        // 5. Remettre l'objet avant validation est refusé
         $this->actingAs($agent);
+        $this->postJson("/partenaire/acquisitions/{$acqRef}/remise")->assertStatus(422);
+
+        // 6. LBC valide l'achat : les points sont débités à ce moment
+        $this->postJson("/partenaire/acquisitions/{$acqRef}/validation")->assertOk();
+        $compteFatou->refresh();
+        $this->assertSame(55000 - $jblPrice, (int) $compteFatou->solde);
+        $this->assertSame(0, app(WecceEngine::class)->heldPoints($fatou->id));
+
+        // 7. LBC confirme la remise : la garantie de 90 jours démarre
         $this->postJson("/partenaire/acquisitions/{$acqRef}/remise")->assertOk();
+        $acq = \App\Models\Acquisition::query()->where('reference', $acqRef)->firstOrFail();
+        $this->assertSame('REMIS', $acq->statut);
+        $this->assertSame($agent->id, $acq->remis_par);
+        $this->assertSame(WecceClock::addDays(WecceClock::dateOf($acq->retire_le), 90), WecceClock::dateOf($acq->garantie_jusquau));
+
+        // 8. Un achat refusé par LBC remet l'objet en ligne sans rien débiter
+        $this->actingAs($fatou);
+        $refusedRef = $this->postJson('/etudiant/acquisitions', ['itemSlug' => 'batterie-fujitsu', 'method' => 'especes'])->assertOk()->json('acquisitionRef');
+        $before = (int) $compteFatou->fresh()->solde;
+        $this->actingAs($agent);
+        $this->postJson("/partenaire/acquisitions/{$refusedRef}/refus", ['reason' => 'Objet introuvable en rayon.'])->assertOk();
+        $this->assertSame($before, (int) $compteFatou->fresh()->solde);
+        $refused = \App\Models\Acquisition::query()->where('reference', $refusedRef)->firstOrFail();
+        $this->assertSame('ANNULE', $refused->statut);
+        $this->assertSame('EN_LIGNE', Annonce::query()->findOrFail($refused->annonce_id)->statut);
+
+        // 9. Un second bonus n'est pas accordé au même étudiant
+        $this->assertSame(1, \App\Models\MouvementPoints::query()->where('compte_id', $compteFatou->id)->where('type', 'BONUS')->count());
 
         // Contrôle d'intégrité des soldes
         $this->assertSame([], app(WecceQueries::class)->balanceMismatches());

@@ -55,10 +55,16 @@ export type Acquisition = {
   points: number;
   /** Complément en francs. */
   complement: number;
-  /** en-attente : paiement mobile à valider ; reserve : objet réservé ; remis : retiré en boutique. */
-  status: "en-attente" | "reserve" | "remis";
+  /**
+   * en-attente : paiement mobile à confirmer ; a-valider : LBC doit valider l'achat (points bloqués) ;
+   * reserve : achat validé, objet à retirer ; remis : retiré en boutique.
+   */
+  status: "en-attente" | "a-valider" | "reserve" | "remis";
   paymentRef?: string;
   sentAt?: string;
   confirmedAt?: string;
   pickupBefore: string;
+  validatedAt?: string;
+  handedAt?: string;
+  warrantyUntil?: string;
 };
